@@ -888,3 +888,23 @@ def build_cropped_grid(unit_list, cropped_x, cropped_y, grid_size, unit_grid, x1
             y = int(math.ceil( (unit_x + 1) / (cropped_x/grid_size) ))
             x = int(math.ceil( (unit_y + 1) / (cropped_y/grid_size) ))
             unit_grid[x-1][y-1] += 1
+
+def get_fog_of_war_percentage(obs):
+    '''
+    This function, as the name suggests, returns the percentage of discovered fog of war
+    in the match. For this, the function observes the 'minimap' features searching for
+    the grid regions where its status are visible, then the counting of the total number
+    of these regions is divided by the total map area. The return of this function
+    is a number between [0, 1] and only the observation is needed to make it work!
+
+    Is valid to remember about the percentage of the fog of war: the higher the worst, since
+    it represents how much of the map stills unknown.
+    '''
+    is_visible = features.Visibility.VISIBLE
+    
+    # the map area is also in the grid map (just get its size)
+    map_area = obs.feature_minimap.visibility_map.flatten()
+    non_visible_area = np.count_nonzero(map_area == (not is_visible))   # fog of war is the non-visible area
+    fog_percentage = non_visible_area/map_area.size
+
+    return fog_percentage
