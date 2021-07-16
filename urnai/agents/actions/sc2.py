@@ -301,6 +301,32 @@ def harvest_gather_gas(obs, player_race):
                         distances.pop(index)
     return _NO_OP()
 
+def harvest_gather_gas_idle(obs, player_race, idle_workers):
+    if player_race == _TERRAN:
+        # the terran townhall and its upgradable versions
+        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
+    if player_race == _PROTOSS:
+        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+    if player_race == _ZERG:
+        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
+    
+    # sources of minerals (which are to harvest)
+    vespene_geysers = get_neutral_units_by_type(obs, units.Neutral.VespeneGeyser)
+    if len(vespene_geysers) > 0:
+        if len(townhalls) > 0:
+            for townhall in townhalls:
+                if townhall.build_progress == 100 and townhall.assigned_harvesters <= townhall.ideal_harvesters:
+                    target = [townhall.x, townhall.y]
+                    worker = get_closest_unit(obs, target, units_list=idle_workers)
+
+                    if worker != _NO_UNITS:
+                        distances = get_distances(obs, vespene_geysers, target)
+                        closest_vespene_to_townhall = vespene_geysers[np.argmin(distances)]
+                        return actions.RAW_FUNCTIONS.Harvest_Gather_unit("now", worker.tag, closest_vespene_to_townhall.tag)
+    return _NO_OP()
+
 def harvest_return(obs, worker):
     if worker != _NO_UNITS:
         return actions.RAW_FUNCTIONS.Harvest_Return_quick("queued", worker.tag)
