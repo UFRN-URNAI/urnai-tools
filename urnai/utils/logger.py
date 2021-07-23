@@ -19,7 +19,9 @@ class Logger(Savable):
                  action_wrapper_name, agent_action_size, agent_action_names, 
                  state_builder_name, reward_builder_name, env_name, 
                  is_episodic=True, render=True, generate_bar_graphs_every=100, log_actions=True,
-                 episode_batch_avg_calculation=10, rolling_avg_window_size=20):
+                 episode_batch_avg_calculation=10, rolling_avg_window_size=20
+                 graph_size_in_inches_width=12.8,
+                 graph_size_in_inches_height=4.8):
         super().__init__()
         # Adding rolling avg size to pickle black list to allow us to regenerate graphs with different rolling window sizes
         self.pickle_black_list.append("rolling_avg_window_size")
@@ -105,7 +107,8 @@ class Logger(Savable):
         self.training_report = ""
 
         self.render = render
-        self.graph_size_in_inches = (12.8,4.8)
+        self.graph_size_in_inches_width = graph_size_in_inches_width
+        self.graph_size_in_inches_height = graph_size_in_inches_height
 
         self.log_training_start_information()
 
@@ -476,7 +479,7 @@ class Logger(Savable):
                 output.write(self.training_report)
 
     def __plot_curves(self, x, ys, x_label, y_label, y_labels, title):
-        fig, ax = plt.subplots(figsize=self.graph_size_in_inches)
+        fig, ax = plt.subplots(figsize=self.__get_graph_size_in_inches())
         for i in range(len(ys)):
             ax.plot(x, ys[i], label=y_labels[i])
 
@@ -494,7 +497,7 @@ class Logger(Savable):
         return fig
 
     def __plot_curve(self, x, y, x_label, y_label, title):
-        fig, ax = plt.subplots(figsize=self.graph_size_in_inches)
+        fig, ax = plt.subplots(figsize=self.__get_graph_size_in_inches())
         ax.plot(x, y)
 
         ax.set(xlabel=x_label, ylabel=y_label, title=title)
@@ -508,7 +511,7 @@ class Logger(Savable):
         return fig
 
     def __plot_bar(self, values, bar_labels, x_label, y_label, title, width=0.2):
-        fig, ax = plt.subplots(figsize=self.graph_size_in_inches)
+        fig, ax = plt.subplots(figsize=self.__get_graph_size_in_inches())
 
         x = np.arange(len(bar_labels))  # List of label locations for the x values
 
@@ -538,3 +541,6 @@ class Logger(Savable):
 
     def __lerp(self, a, b, t):
         return (1 - t) * a + t * b
+
+    def __get_graph_size_in_inches(self):
+        return (self.graph_size_in_inches_width, self.graph_size_in_inches_height)
