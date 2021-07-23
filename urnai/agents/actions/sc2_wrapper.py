@@ -1165,7 +1165,7 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_TRAIN_HELLBAT,
             ACTION_TRAIN_SIEGETANK,
             ACTION_TRAIN_CYCLONE,
-            ACTION_TRAIN_WIDOWMINE,
+            #ACTION_TRAIN_WIDOWMINE,
             ACTION_TRAIN_THOR,
 
             ACTION_TRAIN_VIKING,

@@ -36,11 +36,11 @@ def declare_trainer():
     env = SC2Env(map_name="Simple64", render=False, step_mul=16, player_race="terran", enemy_race="terran", difficulty="very_easy")
     
     action_wrapper = SimpleTerranWrapper(atk_grid_x=4, atk_grid_y=4)
-    state_builder = MultipleUnitGridState(4)
+    state_builder = TVTUnitStackingState()
     
     helper = ModelBuilder()
     helper.add_input_layer()
-    helper.add_fullyconn_layer(nodes=50)
+    helper.add_fullyconn_layer(nodes=60)
     helper.add_output_layer()
     
     dq_network = DoubleDeepQLearning(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), use_memory=True,
@@ -54,7 +54,7 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1500,
     #                 max_test_episodes=100, max_steps_testing=1500, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_newgridstate7",
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_tvtunitstacking",
                     save_every=6, enable_save=True, relative_path=True, reset_epsilon=False,
                     max_training_episodes=2, max_steps_training=1000,
                     max_test_episodes=2, max_steps_testing=100, rolling_avg_window_size=5)

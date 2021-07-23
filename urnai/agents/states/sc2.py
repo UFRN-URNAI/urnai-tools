@@ -528,7 +528,7 @@ class UnitStackingState(StateBuilder):
         state[2][0] = obs.alerts[0] if len(obs.alerts)>0 else 0
         state[2][1] = obs.action_result[0] if len(obs.action_result)>0 else 0
         state[2][2] = (obs.game_loop[-1]/obs.step_mul)/2000                     #find a way of getting max_steps_training here?
-        state[2][3] = 0                                                         # find another non-spatial feature
+        state[2][3] = get_fog_of_war_percentage(obs)
 
         # addind amount of each unit in amount_unit_types for the player to state
         state = build_unit_amount_matrix(obs, features.PlayerRelative.SELF, state, self.amount_unit_types, 4, 20)
@@ -703,7 +703,7 @@ class MultipleUnitGridState(StateBuilder):
         state = np.append(state, obs.alerts[0] if len(obs.alerts)>0 else 0 )
         state = np.append(state, obs.action_result[0] if len(obs.action_result)>0 else 0 )
         state = np.append(state, (obs.game_loop[-1]/obs.step_mul)/2000 )          #find a way of getting max_steps_training here?
-        state = np.append(state, 0 )                                              # find another non-spatial feature
+        state = np.append(state, get_fog_of_war_percentage(obs) )
 
         # amount of buildings
         state = np.append(state, get_my_units_amount(obs, units.Terran.CommandCenter)/2 )
