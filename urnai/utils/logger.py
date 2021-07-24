@@ -19,7 +19,7 @@ class Logger(Savable):
                  action_wrapper_name, agent_action_size, agent_action_names, 
                  state_builder_name, reward_builder_name, env_name, 
                  is_episodic=True, render=True, generate_bar_graphs_every=100, log_actions=True,
-                 episode_batch_avg_calculation=10, rolling_avg_window_size=20
+                 episode_batch_avg_calculation=10, rolling_avg_window_size=20,
                  graph_size_in_inches_width=12.8,
                  graph_size_in_inches_height=4.8):
         super().__init__()
