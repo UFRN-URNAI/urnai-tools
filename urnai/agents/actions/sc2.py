@@ -3,6 +3,7 @@ import numpy as np
 from collections import Counter
 from pysc2.lib import actions, features, units
 from pysc2.env import sc2_env
+from scipy.constants.codata import unit
 
 '''
 An action set defines all actions an agent can use. In the case of StarCraft 2 using PySC2, some actions require extra
@@ -97,6 +98,12 @@ _TRAIN_RAVEN = actions.RAW_FUNCTIONS.Train_Raven_quick
 _TRAIN_BANSHEE = actions.RAW_FUNCTIONS.Train_Banshee_quick
 _TRAIN_BATTLECRUISER = actions.RAW_FUNCTIONS.Train_Battlecruiser_quick
 
+'''CALL DOWN ACTIONS'''
+_CALL_DOWN_MULE = actions.RAW_FUNCTIONS.Effect_CalldownMULE_unit
+
+'''MORPH ACTIONS'''
+_MORPH_ORBITAL = actions.RAW_FUNCTIONS.Morph_OrbitalCommand_quick
+
 '''UNIT EFFECTS'''
 _EFFECT_STIMPACK = actions.RAW_FUNCTIONS.Effect_Stim_quick
 
@@ -155,6 +162,17 @@ def train_unit(obs, action_id, building_type):
         building_tags = [building.tag for building in buildings]
         return action_id("now", building_tags)
     return _NO_OP()
+
+def calldown_mule(obs):
+    # the upgraded version of command center is required for this unit
+    orbital_command = get_my_units_by_type(obs, units.Terran.OrbitalCommand)
+    orbital_command.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommandFlying))
+
+    # the orbital command spends 50 energy to make a mule
+    if len(orbital_command) > 0 and orbital_command.energy >= 50:
+        return _CALL_DOWN_MULE()
+    return _NO_OP()
+
 
 def attack_target_point(obs, player_race, target, base_top_left):
     if not base_top_left: target = (63-target[0]-5, 63-target[1]+5)

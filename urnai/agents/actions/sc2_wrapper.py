@@ -71,6 +71,7 @@ ACTION_RESEARCH_BATTLECRUISER_WEAPONREFIT = 'researchbattlecruiserweaponrefit'
 ACTION_EFFECT_STIMPACK = 'effectstimpack'
 
 ACTION_TRAIN_SCV = 'trainscv'                               # Selects all command center > trains an scv > nothing
+ACTION_CALLDOWN_MULE = 'calldownmule'                      # Verify for orbital command > call down mule > nothing
 ACTION_TRAIN_MARINE = 'trainmarine'                         # Selects all barracks > trains marines > nothing
 ACTION_TRAIN_MARAUDER = 'trainmarauder'
 ACTION_TRAIN_REAPER = 'trainreaper'
@@ -266,6 +267,7 @@ class TerranWrapper(SC2Wrapper):
             ACTION_EFFECT_STIMPACK,
 
             ACTION_TRAIN_SCV,
+            ACTION_CALLDOWN_MULE,
 
             ACTION_TRAIN_MARINE,
             ACTION_TRAIN_MARAUDER,
@@ -340,6 +342,7 @@ class TerranWrapper(SC2Wrapper):
         has_idle_scv = obs.player.idle_worker_count > 0
         has_army = select_army(obs, sc2_env.Race.terran) != sc2._NO_UNITS
         has_marinemarauder = building_exists(obs, units.Terran.Marine) or building_exists(obs, units.Terran.Marauder)
+        has_orbitalcommand = building_exists(obs, units.Terran.OrbitalCommand) or building_exists(obs, units.Terran.OrbitalCommandFlying)
         has_supplydepot = building_exists(obs, units.Terran.SupplyDepot) or building_exists(obs, units.Terran.SupplyDepotLowered)
         has_barracks = building_exists(obs, units.Terran.Barracks)
         has_barracks_techlab = building_exists(obs, units.Terran.BarracksTechLab)
@@ -361,6 +364,7 @@ class TerranWrapper(SC2Wrapper):
             'has_idle_scv' : has_idle_scv,
             'has_army' : has_army,
             'has_marinemarauder' : has_marinemarauder,
+            'has_orbitalcommand': has_orbitalcommand,
             'has_supplydepot' : has_supplydepot,
             'has_barracks' : has_barracks,
             'has_barracks_techlab' : has_barracks_techlab,
@@ -561,6 +565,11 @@ class TerranWrapper(SC2Wrapper):
     def trainscv_exclude(excluded_actions, gi):
         if not gi.has_ccs or gi.minerals < 50:
             excluded_actions.append(ACTION_TRAIN_SCV)
+    
+    # exclude mule
+    def calldownmule_exclude(exclude_actions, gi):
+        if not gi.has_orbitalcommand:
+            exclude_actions.appen(ACTION_CALLDOWN_MULE)
 
     def trainmarine_exclude(excluded_actions, gi):
         if not gi.has_barracks or gi.minerals < 50 or gi.freesupply < 1:
@@ -657,6 +666,10 @@ class TerranWrapper(SC2Wrapper):
             actions = build_structure_raw_pt_spatial(obs, units.Terran.CommandCenter, sc2._BUILD_COMMAND_CENTER, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
+    
+    #region MORPHING
+    #TODO make a morph from command center to orbital command
+    #endregion
 
     def buildsupplydepot(self, obs, x=None, y=None):
         if x is None and y is None:
@@ -925,8 +938,9 @@ class TerranWrapper(SC2Wrapper):
     def trainscv(self, obs):
         return train_unit(obs, sc2._TRAIN_SCV, units.Terran.CommandCenter)
 
-    #TODO create a train MULE action
-    
+    def calldownmule(self, obs):
+        return calldown_mule(obs)
+
     # BARRACKS UNITS
     def trainmarine(self, obs):
         return train_unit(obs, sc2._TRAIN_MARINE, units.Terran.Barracks)
