@@ -42,6 +42,8 @@ _BUILD_REACTOR_BARRACKS = actions.RAW_FUNCTIONS.Build_Reactor_Barracks_quick
 _BUILD_REACTOR_FACTORY = actions.RAW_FUNCTIONS.Build_Reactor_Factory_quick
 _BUILD_REACTOR_STARPORT = actions.RAW_FUNCTIONS.Build_Reactor_Starport_quick
 
+_MORPH_ORBITAL_COMMAND = actions.RAW_FUNCTIONS.Morph_OrbitalCommand_quick
+
 '''ENGINEERING BAY RESEARCH'''
 _RESEARCH_TERRAN_INF_WEAPONS = actions.RAW_FUNCTIONS.Research_TerranInfantryWeapons_quick
 _RESEARCH_TERRAN_INF_ARMOR = actions.RAW_FUNCTIONS.Research_TerranInfantryArmor_quick
@@ -351,7 +353,6 @@ def harvest_return(obs, worker):
     return _NO_OP()
 
 def build_structure_raw(obs, building_type, building_action, max_amount = 999):
-
     player_race = get_unit_race(building_type)
 
     if get_my_units_amount(obs, building_type) < max_amount:

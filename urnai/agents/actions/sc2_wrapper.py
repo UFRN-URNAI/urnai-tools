@@ -3,6 +3,7 @@ import random
 import ast
 from types import SimpleNamespace
 from inspect import ismethod, signature
+from google.protobuf.descriptor import Error
 
 from numpy.lib.nanfunctions import _nanmedian_small
 from urnai.agents.actions.sc2 import research_upgrade
@@ -38,6 +39,8 @@ ACTION_BUILD_TECHLAB_STARPORT = 'buildtechlabstarport'
 ACTION_BUILD_REACTOR_BARRACKS = 'buildreactorbarracks'
 ACTION_BUILD_REACTOR_FACTORY = 'buildreactorfactory'
 ACTION_BUILD_REACTOR_STARPORT = 'buildreactorstarport'
+
+ACTION_MORPH_ORBITAL_COMMAND = 'morphorbitalcommand'
 
 ACTION_RESEARCH_INF_WEAPONS = 'researchinfantryweapons'
 ACTION_RESEARCH_INF_ARMOR = 'researchinfantryarmor'
@@ -228,6 +231,9 @@ class TerranWrapper(SC2Wrapper):
             ACTION_BUILD_REACTOR_FACTORY,
             ACTION_BUILD_REACTOR_STARPORT,
 
+            # MORPHING COMMAND CENTER
+            ACTION_MORPH_ORBITAL_COMMAND,
+
             # ENGINEERING BAY RESEARCH
             ACTION_RESEARCH_INF_WEAPONS,
             ACTION_RESEARCH_INF_ARMOR,
@@ -302,19 +308,21 @@ class TerranWrapper(SC2Wrapper):
 
         self.building_positions = {
             'command_center' : [[18, 15], [41, 21]],
-            'supply_depot' : [[21, 25], [23, 25], [25, 25], [22,26], [24,26], [26,26], [26.7,26]],
+            'orbital_command': [[18, 15], [41, 21]],
+            'supply_depot' : [[21, 25], [23, 25], [25, 25], [22, 26], [24, 26], [26, 26], [26.7, 26]],
             'barracks' : [[25, 18], [25, 22], [28, 24]],
             'factory' : [[39, 26], [43, 26]],
             'starport' : [[37, 29], [41, 29]],
 
-            'engineering_bay' : [[18,28]],
-            'armory' : [[20,29]],
+            'engineering_bay' : [[18, 28]],
+            'armory' : [[20, 29]],
             'fusion_core' : [[38, 23]],
             'ghost_academy' : [[36, 23]],
         }
 
         self.building_amounts = {
             'command_center' : 2,
+            'orbital_command' : 2,
             'supply_depot' : 16,
             'barracks' : 4,
             'factory' : 3,
@@ -471,6 +479,10 @@ class TerranWrapper(SC2Wrapper):
         if not gi.has_starport or not gi.has_scv or gi.minerals < 50 and gi.vespene < 50:
             excluded_actions.append(ACTION_BUILD_REACTOR_STARPORT)
 
+    def morphorbitalcommand_exclude(excluded_actions, gi):
+        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 150:
+            excluded_actions.append(ACTION_MORPH_ORBITAL_COMMAND)
+
     def researchinfantryweapons_exclude(excluded_actions, gi):
         if not gi.has_engineeringbay or gi.minerals < 100 or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_INF_WEAPONS)
@@ -569,7 +581,7 @@ class TerranWrapper(SC2Wrapper):
     # exclude mule
     def calldownmule_exclude(exclude_actions, gi):
         if not gi.has_orbitalcommand:
-            exclude_actions.appen(ACTION_CALLDOWN_MULE)
+            exclude_actions.append(ACTION_CALLDOWN_MULE)
 
     def trainmarine_exclude(excluded_actions, gi):
         if not gi.has_barracks or gi.minerals < 50 or gi.freesupply < 1:
@@ -666,10 +678,6 @@ class TerranWrapper(SC2Wrapper):
             actions = build_structure_raw_pt_spatial(obs, units.Terran.CommandCenter, sc2._BUILD_COMMAND_CENTER, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
-    
-    #region MORPHING
-    #TODO make a morph from command center to orbital command
-    #endregion
 
     def buildsupplydepot(self, obs, x=None, y=None):
         if x is None and y is None:
@@ -844,6 +852,16 @@ class TerranWrapper(SC2Wrapper):
         actions = build_structure_raw(obs, units.Terran.Starport, sc2._BUILD_REACTOR_STARPORT)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
+    #endregion
+
+    #region MORPHING
+    def morphorbitalcommand(self, obs):
+        # gets the command center unit
+        command_center = get_my_units_by_type(obs, units.Terran.CommandCenter)[0]
+        # returns the action to morph the specified command center
+        # the conditions for not executing this morphing action are in _excluded section
+        return _MORPH_ORBITAL_COMMAND('now', command_center.tag)
+
     #endregion
 
     #region ENGINEERING BAY RESEARCH
@@ -1169,6 +1187,7 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_EFFECT_STIMPACK,
 
             ACTION_TRAIN_SCV,
+            ACTION_CALLDOWN_MULE,
 
             ACTION_TRAIN_MARINE,
             ACTION_TRAIN_MARAUDER,
@@ -1213,6 +1232,7 @@ class SimpleTerranWrapper(TerranWrapper):
 
         self.building_positions = {
             'command_center' : [[19, 23], [41, 21]],
+            'orbital_command' : [[18, 15], [41, 21]],
             'supply_depot' : [[16,27], [18,27], [20,27], [22,27], [16,29], [18,29], [20,29]],
             'barracks' : [[25, 18], [24, 20], [30, 24]],
             'factory' : [[25, 25], [26, 27]],
@@ -1230,6 +1250,7 @@ class SimpleTerranWrapper(TerranWrapper):
 
         self.building_amounts = {
             'command_center' : 2,
+            'orbital_command' : 2,
             'supply_depot' : 18,
             'barracks' : 3,
             'factory' : 2,
