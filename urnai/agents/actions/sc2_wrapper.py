@@ -3,7 +3,6 @@ import random
 import ast
 from types import SimpleNamespace
 from inspect import ismethod, signature
-from google.protobuf.descriptor import Error
 
 from numpy.lib.nanfunctions import _nanmedian_small
 from urnai.agents.actions.sc2 import research_upgrade
