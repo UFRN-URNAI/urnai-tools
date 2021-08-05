@@ -142,10 +142,14 @@ These Solve files are great learning tools to get in touch with URNAI's architec
 
 If you installed URNAI as a python package using pip, you can use it on the command line.
 
-To see what you can do, run:
+The CLI is important to use the library as a quick tool to train agents. Its main purpose is to allow the user to launch trainings without the need to touch python code. In general, one may find very useful to create python scripts to import and configure URNAI. On the other hand, if the need to do mass training of multiple agents with several parameters arise, the command line interface is the way to go. Mainly because of the support of JSON and CSV files, and the commands available to convert these two types. 
+
+There are also some commands to interact with the environments available in the library. To see a full documentation on how to use the command line, please go [here](). If you want a quick help, call URNAI on the CLI like this:
+
 ```
-urnai -h
+$ urnai -h
 ```
+
 
 ## Building your own code
 
