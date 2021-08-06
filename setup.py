@@ -8,10 +8,10 @@ def is_optional_enabled(optional):
 # Old versions
 VERSION_ABSL = "==0.9.0"
 VERSION_GYM = "==0.10.11"
-VERSION_TF = "==2.2.0"
+VERSION_TF = "==2.2"
 VERSION_NUMPY = "==1.18.4"
 VERSION_MATPLOTLIB = "==3.2.0"
-VERSION_KERAS = "==2.3.1"
+#VERSION_KERAS = "==2.3.1"
 VERSION_PYSC2 = "==3.0.0"
 VERSION_PANDAS = "==1.0.1"
 VERSION_PSUTIL = "==5.7.2"
@@ -49,7 +49,7 @@ if is_optional_enabled(LATEST_DEPS):
     VERSION_TF = ""
     VERSION_NUMPY = ""
     VERSION_MATPLOTLIB = ""
-    VERSION_KERAS = ""
+    #VERSION_KERAS = ""
     VERSION_PYSC2 = ""
     VERSION_PANDAS = ""
     VERSION_PSUTIL = ""
@@ -70,7 +70,7 @@ if is_optional_enabled(TF_CPU):
     tf = 'tensorflow' + VERSION_TF
 
 setup(
-    name = "urnai",
+    name = "urnai-py",
     packages = find_packages(),
     install_requires = [
         'absl-py' + VERSION_ABSL,
@@ -78,14 +78,14 @@ setup(
         tf,
         'numpy' + VERSION_NUMPY,
         'matplotlib' + VERSION_MATPLOTLIB,
-        'keras' + VERSION_KERAS,
+        #'keras' + VERSION_KERAS,
         'pysc2' + VERSION_PYSC2,
         'pandas' + VERSION_PANDAS,
         'psutil' + VERSION_PSUTIL,
         ] + dep_list,
     dependency_links=dep_links,
     entry_points = {
-        "console_scripts": ['urnai=urnai.urnai_cmd:main']
+        "console_scripts": ['urnai-py=urnai.urnai_cmd:main']
         },
     version = "1.0",
     description = "A modular Deep Reinforcement Learning toolkit that supports multiple environments, such as PySC2, OpenAI Gym, ViZDoom and DeepRTS.",

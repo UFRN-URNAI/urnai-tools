@@ -7,11 +7,11 @@ import numpy as np
 import random
 import os
 from collections import deque
-from keras import Model
-from keras.layers import Input, Dense, Conv2D, Flatten, MaxPooling2D 
-from keras.optimizers import Adam
-from keras import backend as K
-from keras import utils as keras_utils
+from tensorflow.keras import Model
+from tensorflow.keras.layers import Input, Dense, Conv2D, Flatten, MaxPooling2D 
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
+from tensorflow.keras import utils as keras_utils
 
 from .base.abmodel import LearningModel
 from agents.actions.base.abwrapper import ActionWrapper

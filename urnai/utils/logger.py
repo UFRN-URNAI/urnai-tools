@@ -1,13 +1,14 @@
-from base.savable import Savable 
-from utils import constants
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 import pandas as pd
 import os
-from utils.reporter import Reporter as rp
 from time import time
 import psutil
+
+from urnai.utils.reporter import Reporter as rp
+from urnai.base.savable import Savable 
+from urnai.utils import constants
 
 class Logger(Savable):
     """

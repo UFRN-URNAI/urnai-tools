@@ -12,12 +12,13 @@ ACTION_GROUP_ATTACK_POINT = 'groupattackpoint'
 ACTION_GROUP_MOVE_POINT = 'groupmovepoint'
 
 class MOspatialTerranWrapper(SC2Wrapper):
-    def __init__(self, x_gridsize, y_gridsize, map_size):
+    def __init__(self, x_gridsize, y_gridsize, map_size_x, map_size_y):
         SC2Wrapper.__init__(self)
 
         self.x_gridsize = x_gridsize
         self.y_gridsize = y_gridsize
-        self.map_size = map_size
+        self.map_size_x = map_size_x
+        self.map_size_y = map_size_y
 
         self.named_actions = [
             sc2_wrapper.ACTION_DO_NOTHING,
@@ -114,6 +115,12 @@ class MOspatialTerranWrapper(SC2Wrapper):
 
         self.multi_output_ranges = [0, self.n_actions_len, self.n_actions_len+self.x_gridsize, self.n_actions_len+self.x_gridsize+self.y_gridsize]
 
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
     def get_excluded_actions(self, obs):
@@ -121,13 +128,14 @@ class MOspatialTerranWrapper(SC2Wrapper):
         return excluded_actions
 
     def get_actions(self):
-        x_grid_actions = np.arange(self.multi_output_ranges[1], self.multi_output_ranges[1] + self.x_gridsize)
-        y_grid_actions = np.arange(self.multi_output_ranges[2], self.multi_output_ranges[2] + self.y_gridsize)
-        total_actions = []
-        total_actions.extend(self.action_indices)
-        total_actions.extend(x_grid_actions)
-        total_actions.extend(y_grid_actions)
-        return total_actions
+        # x_grid_actions = np.arange(self.multi_output_ranges[1], self.multi_output_ranges[1] + self.x_gridsize)
+        # y_grid_actions = np.arange(self.multi_output_ranges[2], self.multi_output_ranges[2] + self.y_gridsize)
+        # total_actions = []
+        # total_actions.extend(self.action_indices)
+        # total_actions.extend(x_grid_actions)
+        # total_actions.extend(y_grid_actions)
+        # return total_actions
+        return self.action_indices
 
     def get_action(self, action_idx, obs):
         action_id, x, y = action_idx
@@ -135,8 +143,8 @@ class MOspatialTerranWrapper(SC2Wrapper):
         adjusted_x = x - self.multi_output_ranges[1]
         adjusted_y = y - self.multi_output_ranges[2]
 
-        gridwidth = self.map_size.x/self.x_gridsize
-        gridheight = self.map_size.y/self.y_gridsize
+        gridwidth = self.map_size_x/self.x_gridsize
+        gridheight = self.map_size_y/self.y_gridsize
 
         xtarget = int((adjusted_x*gridwidth) + random.uniform(0, gridwidth))
         ytarget = int(adjusted_y*gridheight + random.uniform(0, gridheight))
@@ -495,12 +503,13 @@ class MOspatialTerranWrapper(SC2Wrapper):
 
 
 class SimpleMOTerranWrapper(TerranWrapper):
-    def __init__(self, x_gridsize, y_gridsize, map_size):
+    def __init__(self, x_gridsize=10, y_gridsize=10, map_size_x=64, map_size_y=64):
         SC2Wrapper.__init__(self)
 
-        self.x_gridsize = x_gridsize
-        self.y_gridsize = y_gridsize
-        self.map_size = map_size
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.map_size_x = int(map_size_x)
+        self.map_size_y = int(map_size_y)
 
         self.named_actions = [
             sc2_wrapper.ACTION_DO_NOTHING,
@@ -660,16 +669,23 @@ class SimpleMOTerranWrapper(TerranWrapper):
 
         self.multi_output_ranges = [0, self.n_actions_len, self.n_actions_len+self.x_gridsize, self.n_actions_len+self.x_gridsize+self.y_gridsize]
 
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
     def get_actions(self):
-        x_grid_actions = np.arange(self.multi_output_ranges[1], self.multi_output_ranges[1] + self.x_gridsize)
-        y_grid_actions = np.arange(self.multi_output_ranges[2], self.multi_output_ranges[2] + self.y_gridsize)
-        total_actions = []
-        total_actions.extend(self.action_indices)
-        total_actions.extend(x_grid_actions)
-        total_actions.extend(y_grid_actions)
-        return total_actions
+        # x_grid_actions = np.arange(self.multi_output_ranges[1], self.multi_output_ranges[1] + self.x_gridsize)
+        # y_grid_actions = np.arange(self.multi_output_ranges[2], self.multi_output_ranges[2] + self.y_gridsize)
+        # total_actions = []
+        # total_actions.extend(self.action_indices)
+        # total_actions.extend(x_grid_actions)
+        # total_actions.extend(y_grid_actions)
+        # return total_actions
+        return self.action_indices
 
     def get_action(self, action_idx, obs):
         action_id, x, y = action_idx
@@ -677,8 +693,8 @@ class SimpleMOTerranWrapper(TerranWrapper):
         adjusted_x = x - self.multi_output_ranges[1]
         adjusted_y = y - self.multi_output_ranges[2]
 
-        gridwidth = self.map_size.x/self.x_gridsize
-        gridheight = self.map_size.y/self.y_gridsize
+        gridwidth = self.map_size_x/self.x_gridsize
+        gridheight = self.map_size_y/self.y_gridsize
 
         xtarget = int((adjusted_x*gridwidth) + random.uniform(0, gridwidth))
         ytarget = int(adjusted_y*gridheight + random.uniform(0, gridheight))

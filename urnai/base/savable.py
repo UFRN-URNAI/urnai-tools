@@ -2,7 +2,7 @@ import os
 import pickle
 import tempfile
 from abc import ABC, abstractmethod
-from utils.reporter import Reporter as rp
+from urnai.utils.reporter import Reporter as rp
 
 class SavableAttr:
     def __init__(self, value):

@@ -299,31 +299,35 @@ class TerranWrapper(SC2Wrapper):
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
         self.building_positions = {
-            'command_center' : [[18, 15], [41, 21]],
-            'supply_depot' : [[21, 25], [23, 25], [25, 25], [22,26], [24,26], [26,26], [26.7,26]],
-            'barracks' : [[25, 18], [25, 22], [28, 24]],
-            'factory' : [[39, 26], [43, 26]],
-            'starport' : [[37, 29], [41, 29]],
+            'command_center' : [[19, 23], [41, 21]],
+            'supply_depot' : [[16,27], [18,27], [20,27], [22,27], [16,29], [18,29], [20,29]],
+            'barracks' : [[25, 18], [24, 20], [30, 24]],
+            'factory' : [[25, 25], [26, 27]],
+            'starport' : [[35, 15], [37, 19]],
 
-            'engineering_bay' : [[18,28]],
-            'armory' : [[20,29]],
-            'fusion_core' : [[38, 23]],
-            'ghost_academy' : [[36, 23]],
+            'engineering_bay' : [[37,25]],
+            'armory' : [[22,23]],
+            'fusion_core' : [[14, 18]],
+            'ghost_academy' : [[47, 16]],
+            
+            'missile_turret' : [[17,17], [12,20], [48,19], [42,14]],
+            'sensor_tower' : 1,
+            'bunker' : 4,
         }
 
         self.building_amounts = {
             'command_center' : 2,
-            'supply_depot' : 16,
-            'barracks' : 4,
-            'factory' : 3,
-            'starport' : 3,
+            'supply_depot' : 18,
+            'barracks' : 3,
+            'factory' : 2,
+            'starport' : 2,
 
             'engineering_bay' : 1,
             'armory' : 1,
             'fusion_core' : 1,
             'ghost_academy' : 1,
 
-            'missile_turret' : 6,
+            'missile_turret' : 4,
             'sensor_tower' : 1,
             'bunker' : 4,
         }
@@ -1084,13 +1088,14 @@ class TerranWrapper(SC2Wrapper):
                 action_method = getattr(self.__class__, named_action)
                 return action_method(self, obs)
 
-        
+
 class SimpleTerranWrapper(TerranWrapper):
-    def __init__(self, atk_grid_x=4, atk_grid_y=4):
+    def __init__(self, use_atk_grid=False, atk_grid_x=4, atk_grid_y=4):
         SC2Wrapper.__init__(self)       # Imports self variables from SC2Wrapper
         
-        self.atk_grid_x = atk_grid_x
-        self.atk_grid_y = atk_grid_y
+        self.use_atk_grid = use_atk_grid
+        self.atk_grid_x = int(atk_grid_x)
+        self.atk_grid_y = int(atk_grid_y)
 
         self.named_actions = [
             ACTION_DO_NOTHING,
@@ -1178,23 +1183,26 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_HARVEST_MINERALS_IDLE,
             ACTION_HARVEST_MINERALS_FROM_GAS,
             ACTION_HARVEST_GAS_FROM_MINERALS,
-
-            # ACTION_ATTACK_ENEMY_BASE,
-            # ACTION_ATTACK_ENEMY_SECOND_BASE,
-            # ACTION_ATTACK_MY_BASE,
-            # ACTION_ATTACK_MY_SECOND_BASE,
-            # ACTION_ATTACK_DISTRIBUTE_ARMY,
         ]
 
-        xgridsize = 64/self.atk_grid_x
-        ygridsize = 64/self.atk_grid_y
+        # if true generate atk_grid_x*atk_grid_y attack actions to be appended into self.named_actions
+        if self.use_atk_grid:
+            xgridsize = 64/self.atk_grid_x
+            ygridsize = 64/self.atk_grid_y
 
-        for i in range (self.atk_grid_x):
-            for j in range (self.atk_grid_y):
-                x = xgridsize*(i+1) - (xgridsize/2)
-                y = ygridsize*(j+1) - (ygridsize/2)
-                self.named_actions.append(ACTION_ATTACK_POINT + '_' + str(x) + '_' + str(y))
-
+            for i in range (self.atk_grid_x):
+                for j in range (self.atk_grid_y):
+                    x = xgridsize*(i+1) - (xgridsize/2)
+                    y = ygridsize*(j+1) - (ygridsize/2)
+                    self.named_actions.append(ACTION_ATTACK_POINT + '_' + str(x) + '_' + str(y))
+        # if false just append four basic attack actions and a fifth action to distribute the army in an area
+        else:
+            self.named_actions.append(ACTION_ATTACK_ENEMY_BASE)
+            self.named_actions.append(ACTION_ATTACK_ENEMY_SECOND_BASE)
+            self.named_actions.append(ACTION_ATTACK_MY_BASE)
+            self.named_actions.append(ACTION_ATTACK_MY_SECOND_BASE)
+            self.named_actions.append(ACTION_ATTACK_DISTRIBUTE_ARMY)
+            
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
         self.building_positions = {

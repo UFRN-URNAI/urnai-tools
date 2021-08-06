@@ -2,6 +2,7 @@ from urnai.utils.module_specialist import get_cls
 from urnai.utils.error import ClassNotFoundError, FileFormatNotSupportedError
 from urnai.utils.file_util import is_json_file, is_csv_file 
 from .trainer import Trainer
+import inspect
 import json, csv
 import os
 import pandas as pd
@@ -47,21 +48,26 @@ class FileTrainer(Trainer):
         for training in self.trainings:
             try:
                 env_cls = get_cls("urnai.envs", training["env"]["class"])
+                self.remove_nonused_class_attrs(env_cls, training["env"]["params"])
                 env = env_cls(**training["env"]["params"]) 
             except ClassNotFoundError as cnfe:
                 if "was not found in urnai.envs" in str(cnfe):
                     env_cls = get_cls("urnai.scenarios", training["env"]["class"])
+                    self.remove_nonused_class_attrs(env_cls, training["env"]["params"])
                     env = env_cls(**training["env"]["params"])
                     scenario = True
 
             if not scenario:
                 action_wrapper_cls = get_cls("urnai.agents.actions", training["action_wrapper"]["class"])
+                self.remove_nonused_class_attrs(action_wrapper_cls, training["action_wrapper"]["params"])
                 action_wrapper = action_wrapper_cls(**training["action_wrapper"]["params"])
 
                 state_builder_cls = get_cls("urnai.agents.states", training["state_builder"]["class"])
+                self.remove_nonused_class_attrs(state_builder_cls, training["state_builder"]["params"])
                 state_builder = state_builder_cls(**training["state_builder"]["params"])
 
                 reward_cls = get_cls("urnai.agents.rewards", training["reward"]["class"])
+                self.remove_nonused_class_attrs(reward_cls, training["reward"]["params"])
                 reward = reward_cls(**training["reward"]["params"])
             else:
                 action_wrapper = env.get_default_action_wrapper() 
@@ -69,9 +75,11 @@ class FileTrainer(Trainer):
                 reward = env.get_default_reward_builder() 
 
             model_cls = get_cls("urnai.models", training["model"]["class"])
+            self.remove_nonused_class_attrs(model_cls, training["model"]["params"])
             model = model_cls(action_wrapper=action_wrapper, state_builder=state_builder, **training["model"]["params"])
 
             agent_cls = get_cls("urnai.agents", training["agent"]["class"])
+            self.remove_nonused_class_attrs(agent_cls, training["agent"]["params"])
             agent = agent_cls(model, reward, **training["agent"]["params"])
 
             self.setup(env, agent, **training["trainer"]["params"])
@@ -144,3 +152,10 @@ class FileTrainer(Trainer):
             # save
             result.append(parsed_row)
         return result
+
+    def remove_nonused_class_attrs(self, py_class, training_dict):
+        class_attributes = inspect.signature(py_class).parameters
+
+        for param in list(training_dict):
+            if param not in class_attributes:
+                training_dict.pop(param)

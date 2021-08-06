@@ -4,10 +4,10 @@ import random
 import os
 from datetime import datetime
 from collections import deque
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation
-from keras.optimizers import Adam
-from keras import backend as K
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
 from models.dqn_keras import DQNKeras
 from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder

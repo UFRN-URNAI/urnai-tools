@@ -20,9 +20,9 @@ from urnai.models.model_builder import ModelBuilder
 
 
 from urnai.models.memory_representations.neural_network.keras import KerasDeepNeuralNetwork
-from keras import layers
-from keras import models
-from keras import optimizers
+from tensorflow.keras import layers
+from tensorflow.keras import models
+from tensorflow.keras import optimizers
 
 class CustomKerasConvClass(KerasDeepNeuralNetwork):
     def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32):        

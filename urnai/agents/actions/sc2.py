@@ -159,7 +159,7 @@ def train_unit(obs, action_id, building_type):
 def attack_target_point(obs, player_race, target, base_top_left):
     if not base_top_left: target = (63-target[0]-5, 63-target[1]+5)
     army = select_army(obs, player_race)
-    if army != _NO_UNITS:
+    if len(army) > 0:
         actions_queue = []
         army_tags = [unit.tag for unit in army]
         actions_queue.append(actions.RAW_FUNCTIONS.Attack_pt("now", army_tags, target))
@@ -184,7 +184,7 @@ def move_target_point_spatial(units, target):
 
 def attack_distribute_army(obs, player_race):
     army = select_army(obs, player_race)
-    if army != _NO_UNITS:
+    if len(army) > 0:
         actions_queue = []
         while len(army) != 0:
             x_offset = random.randint(-8, 8)

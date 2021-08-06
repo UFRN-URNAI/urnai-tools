@@ -1,8 +1,8 @@
 from .abneuralnetwork import ABNeuralNetwork 
-from keras.models import Sequential
-from keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation, Input
-from keras.optimizers import Adam
-from keras import backend as K
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation, Input
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
 
 class KerasDeepNeuralNetwork(ABNeuralNetwork):
     """
@@ -43,8 +43,8 @@ class KerasDeepNeuralNetwork(ABNeuralNetwork):
 
 
     def add_input_layer(self, idx):
-        self.model.add(Input(shape=self.build_model[idx]['shape']))
-        #self.model.add(Dense(self.build_model[idx]['nodes'], input_dim=self.build_model[idx]['shape'], activation='relu'))
+        #self.model.add(Input(shape=self.build_model[idx]['shape']))
+        self.model.add(Dense(self.build_model[idx]['nodes'], input_dim=self.build_model[idx]['shape'], activation='relu'))
 
     def add_output_layer(self, idx):
         self.model.add(Dense(self.build_model[idx]['length'], activation='linear'))
@@ -126,7 +126,7 @@ class DNNCustomModelOverrideExample(KerasDeepNeuralNetwork):
     """
         This Class is a custom handcrafted Keras Neural Network
 
-        To create a custom model we override the make_model() method from KerasDeepNeuralNetwork, 
+        To create a custom model we override the make_model() method from tensorflow.kerasDeepNeuralNetwork, 
         and then define our model architecture.
 
         This sort of inheritance and override is very useful for advanced users of Keras, since it lets them

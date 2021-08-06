@@ -56,7 +56,8 @@ class LearningModel(Savable):
         super(LearningModel, self).__init__()
 
         self.seed_value = seed_value
-        self.set_seeds(cpu_only)
+        self.cpu_only = cpu_only
+        self.set_seeds()
 
         self.gamma = gamma
         self.learning_rate = learning_rate
@@ -146,7 +147,7 @@ class LearningModel(Savable):
         if episode > self.learning_rate_decay_ep_cutoff and self.learning_rate_decay != 1:
             self.decay_lr()
     
-    def set_seeds(self, cpu_only):
+    def set_seeds(self):
         if self.seed_value != None:
             """
             This method sets seeds for the Random Number Generators of Python and Numpy.
@@ -167,7 +168,7 @@ class LearningModel(Savable):
             """
             import os
 
-            if(cpu_only):
+            if(self.cpu_only):
                 os.environ['CUDA_VISIBLE_DEVICES']="" # To be used when GPU usage is not desired
 
             os.environ['PYTHONHASHSEED']=str(self.seed_value)

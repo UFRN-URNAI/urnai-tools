@@ -1,5 +1,5 @@
-from base.savable import Savable
-from utils.reporter import Reporter as rp
+from urnai.base.savable import Savable
+from urnai.utils.reporter import Reporter as rp
 import os
 import subprocess
 

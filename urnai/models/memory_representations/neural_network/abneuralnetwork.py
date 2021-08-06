@@ -55,7 +55,7 @@ class ABNeuralNetwork(ABMemoryRepresentation):
     def create_base_model(self) -> None:
         """
         This method is used to instantiate a Generic NN model and return it.
-        This is necessary because the instantiation of NN models differs from Keras 
+        This is necessary because the instantiation of NN models differs from tensorflow.keras 
         to Pytorch, so with this method we can separate the instantion of the model
         from its construction.
         """

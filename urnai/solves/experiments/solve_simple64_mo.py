@@ -28,7 +28,8 @@ def declare_trainer():
     env = SC2Env(map_name="Simple64", render=False, step_mul=16, player_race="terran", enemy_race="terran", difficulty="very_easy")
     
     #action_wrapper = MOspatialTerranWrapper(10, 10, env.env_instance._interface_formats[0]._raw_resolution)
-    action_wrapper = SimpleMOTerranWrapper(10, 10, env.env_instance._interface_formats[0]._raw_resolution)
+    map_size = env.env_instance._interface_formats[0]._raw_resolution
+    action_wrapper = SimpleMOTerranWrapper(10, 10, map_size.x, map_size.y)
     #state_builder = Simple64GridState_SimpleTerran(grid_size=7) # This state_builder with grid_size=7 will end upt with a total size of 110 ( (7*7)*2 + 12 )
     state_builder = TVTUnitStackingEnemyGridState(grid_size=4) # total size of 92
 
@@ -44,15 +45,15 @@ def declare_trainer():
     # Terran agent
     agent = SC2Agent(dq_network, KilledUnitsReward())
 
-    # trainer = Trainer(env, agent, save_path='/home/lpdcalves/', file_name="terran_ddqn_mo_v_easy",
+    # trainer = Trainer(env, agent, save_path='/home/lpdcalves/', file_name="tvt_ddqn_mo_v_easy",
     #                 save_every=200, enable_save=True, relative_path=False, reset_epsilon=False,
     #                 max_training_episodes=3000, max_steps_training=1200,
     #                 max_test_episodes=100, max_steps_testing=1200, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddqn_mostackgridstate_atkgrouping4",
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="tvt_ddqn_tvtunitenemygrp_atkgrouping2",
                     save_every=20, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=10, max_steps_training=1200,
-                    max_test_episodes=2, max_steps_testing=1200, rolling_avg_window_size=5)
+                    max_training_episodes=1, max_steps_training=300,
+                    max_test_episodes=0, max_steps_testing=300, rolling_avg_window_size=5)
     return trainer
 
 def main(unused_argv):

@@ -456,7 +456,7 @@ class Simple64GridState_SimpleTerran(StateBuilder):
 
 
 class SimpleCroppedGridState(StateBuilder):
-    def __init__(self, x1, y1, x2, y2, grid_size=4, r_enemy=False, r_player=False, r_neutral=False):
+    def __init__(self, x1=12, y1=12, x2=50, y2=50, grid_size=4, r_enemy=True, r_player=True, r_neutral=False):
         self.grid_size = grid_size
         self.x1 = x1
         self.y1 = y1

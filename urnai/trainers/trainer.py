@@ -8,10 +8,10 @@ import itertools
 import time
 import numpy as np
 import tensorflow as tf
-from utils.logger import Logger
-from base.savable import Savable 
-from utils.reporter import Reporter as rp
-from version.versioner import Versioner
+from urnai.utils.logger import Logger
+from urnai.base.savable import Savable 
+from urnai.utils.reporter import Reporter as rp
+from urnai.version.versioner import Versioner
 from datetime import datetime
 
 class TestParams():

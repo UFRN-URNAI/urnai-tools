@@ -15,7 +15,7 @@ class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
     for adding Neural Network layers, such as add_input_layer(), add_output_layer(),
     add_fully_connected_layer().
 
-    Differently from KerasDeepNeuralNetwork, this class is not able to dynamically build
+    Differently from tensorflow.kerasDeepNeuralNetwork, this class is not able to dynamically build
     Neural Network architectures that use convolutional layers, due to the complexity 
     of PyTorch's initialization of convolutional layers and a general difficulty in 
     fitting that complexity to URNAI's achitecture. To use PyTorch with convolutional 
