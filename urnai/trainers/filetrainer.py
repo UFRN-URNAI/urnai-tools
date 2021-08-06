@@ -31,6 +31,7 @@ class FileTrainer(Trainer):
         self.do_reward_test = None
         self.reward_test_number_of_episodes = None
         self.inside_training_test_loggers = None
+        self.rolling_avg_window_size = None
 
         self.pickle_black_list = None
         self.prepare_black_list()
