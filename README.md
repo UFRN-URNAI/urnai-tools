@@ -22,16 +22,16 @@ Therefore, if you intend to use URNAI on the command line but also want to devel
 
 - Cloning this repo:
 ```
-git clone https://github.com/marcocspc/URNAI-Tools.git
+git clone https://github.com/UFRN-URNAI/URNAI-Tools.git
 ```
 You can clone this repo to any folder you desire, and use it to run solve files or even modify the toolkit as you wish.
 
 - Install urnai Python package from this repo:
 ```
-pip3 install git+https://github.com/marcocspc/URNAI-Tools/
+pip3 install git+https://github.com/UFRN-URNAI/URNAI-Tools/
 ```
 
-Installing using pip will automatically install URNAI dependencies, such as PySC2, Tensorflow, Keras, Gym etc. To see all dependencies you can check [setup.py](https://github.com/marcocspc/URNAI-Tools/blob/master/setup.py). 
+Installing using pip will automatically install URNAI dependencies, such as PySC2, Tensorflow, Keras, Gym etc. To see all dependencies you can check [setup.py](https://github.com/UFRN-URNAI/URNAI-Tools/blob/master/setup.py). 
 
 **By default, URNAI installs tensorflow-gpu**. If you wish to install tensorflow-cpu instead, check out [this section](#tensorflow-cpu).
 
@@ -73,7 +73,7 @@ Installation of VizDoom for Python is not as straight forward as some other pack
 URNAI supports a modified [DeepRTS](https://github.com/cair/deep-rts) version. To download it as a python package, run the following command:
 
 ```
-pip3 install git+https://github.com/marcocspc/deep-rts
+pip3 install git+https://github.com/UFRN-URNAI/deep-rts
 ```
 
 #### Gym Atari Games
@@ -97,12 +97,12 @@ By default, URNAI depends on tensorflow-gpu, to use tf-cpu instead, use:
 
 - On Unix:
 ```
-URNAI_TF_CPU=1 pip3 install git+https://github.com/marcocspc/URNAI-Tools/ 
+URNAI_TF_CPU=1 pip3 install git+https://github.com/UFRN-URNAI/URNAI-Tools/ 
 ```
 
 - On Windows:
 ```
-set "URNAI_TF_CPU=1" && pip3 install git+https://github.com/marcocspc/URNAI-Tools/
+set "URNAI_TF_CPU=1" && pip3 install git+https://github.com/UFRN-URNAI/URNAI-Tools/
 ```
 
 #### Latest Dependencies 
@@ -111,12 +111,12 @@ By default, URNAI fixes all dependencies' versions. If you need to install those
 
 - On Unix:
 ```
-URNAI_LATEST_DEPS=1 pip3 install git+https://github.com/marcocspc/URNAI-Tools/
+URNAI_LATEST_DEPS=1 pip3 install git+https://github.com/UFRN-URNAI/URNAI-Tools/
 ```
 
 - On Windows:
 ```
-set "URNAI_LATEST_DEPS=1" && pip3 install git+https://github.com/marcocspc/URNAI-Tools/
+set "URNAI_LATEST_DEPS=1" && pip3 install git+https://github.com/UFRN-URNAI/URNAI-Tools/
 ```
 
 ### Running the examples
@@ -124,7 +124,7 @@ set "URNAI_LATEST_DEPS=1" && pip3 install git+https://github.com/marcocspc/URNAI
 From version 0.0.2+ you can use CSV or JSON files to run a batch of trainings:
 
 ```
-git clone https://github.com/marcocspc/URNAI-Tools 
+git clone https://github.com/UFRN-URNAI/URNAI-Tools 
 cd 'URNAI-Tools/urnai/solves'
 urnai train --train-file=solve_x.json
 ```
