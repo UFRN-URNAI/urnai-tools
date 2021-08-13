@@ -170,9 +170,24 @@ def calldown_mule(obs):
     orbital_command = get_my_units_by_type(obs, units.Terran.OrbitalCommand)
     orbital_command.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommandFlying))
 
-    # the orbital command spends 50 energy to make a mule
-    if len(orbital_command) > 0 and orbital_command.energy >= 50:
-        return _CALL_DOWN_MULE()
+    mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)
+    if len(mineral_fields) > 0:
+        # the orbital command spends 50 energy to make a mule
+        if len(orbital_command) > 0:
+            # part necessary to not fall into dimensional tensor errors
+            orbital_indexes = [x for x in range(len(orbital_command))]
+            choosen_index = np.random.choice(orbital_indexes)
+            choosen_orbital_command = orbital_command[choosen_index]
+
+            if (choosen_orbital_command.assigned_harvesters <= choosen_orbital_command.ideal_harvesters and 
+                choosen_orbital_command.build_progress == 100 and
+                choosen_orbital_command.energy >= 50):
+                    target = [choosen_orbital_command.x, choosen_orbital_command.y]
+                    closest_mineral = get_closest_unit(obs, target, units_list=mineral_fields)
+                    
+                    if closest_mineral != _NO_UNITS:
+                        return _CALL_DOWN_MULE("queued", choosen_orbital_command.tag, closest_mineral.tag)
+
     return _NO_OP()
 
 
@@ -220,8 +235,10 @@ def harvest_gather_minerals_quick(obs, worker, player_race):
         townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
         townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
         townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
-    if player_race == _PROTOSS: townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
-    if player_race == _ZERG: townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
+    if player_race == _PROTOSS: 
+        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+    if player_race == _ZERG: 
+        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
 
     if worker != _NO_UNITS:
         mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)

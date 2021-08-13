@@ -13,7 +13,7 @@ from urnai.models.ddqn_keras import DDQNKeras
 from urnai.models.model_builder import ModelBuilder
 
 def declare_trainer():
-    env = SC2Env(map_name="Simple64", render=False, 
+    env = SC2Env(map_name="Simple64", render=True, 
                 step_mul=16, player_race="terran", 
                 enemy_race="random", difficulty="very_easy")
     
@@ -37,8 +37,8 @@ def declare_trainer():
 
     trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddqn_vs_random_v_easy", 
                     save_every=50, enable_save=True, relative_path=True,
-                    max_training_episodes=3000, max_steps_training=1200,
-                    max_test_episodes=100, max_steps_testing=1200)
+                    max_training_episodes=5, max_steps_training=1200,
+                    max_test_episodes=5, max_steps_testing=1200)
     return trainer
 
 def main(unused_argv):
