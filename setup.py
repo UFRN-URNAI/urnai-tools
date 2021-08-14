@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+/rom setuptools import setup, find_packages
 import os
 
 def is_optional_enabled(optional):
@@ -70,7 +70,7 @@ if is_optional_enabled(TF_CPU):
     tf = 'tensorflow' + VERSION_TF
 
 setup(
-    name = "urnai-py",
+    name = "urnai",
     packages = find_packages(),
     install_requires = [
         'absl-py' + VERSION_ABSL,
@@ -85,7 +85,7 @@ setup(
         ] + dep_list,
     dependency_links=dep_links,
     entry_points = {
-        "console_scripts": ['urnai-py=urnai.urnai_cmd:main']
+        "console_scripts": ['urnai=urnai.urnai_cmd:main']
         },
     version = "1.0",
     description = "A modular Deep Reinforcement Learning toolkit that supports multiple environments, such as PySC2, OpenAI Gym, ViZDoom and DeepRTS.",
