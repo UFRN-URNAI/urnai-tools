@@ -30,11 +30,10 @@ VERSION_PSUTIL = "==5.7.2"
 VERSION_VIZDOOM = ""
 VERSION_DRTS = "stable"
 
-
-
 VIZDOOM = 'URNAI_VIZDOOM'
 TF_CPU = 'URNAI_TF_CPU'
 DEEPRTS = 'URNAI_DEEPRTS'
+INSTALL_KERAS_FROM_TF = 'URNAI_INSTALL_KERAS_FROM_TENSORFLOW'
 LATEST_DEPS = 'URNAI_LATEST_DEPS'
 
 git_url = '{package} @ git+https://github.com/{user}/{repo}@{branch}#egg={package}'
@@ -49,11 +48,10 @@ if is_optional_enabled(LATEST_DEPS):
     VERSION_TF = ""
     VERSION_NUMPY = ""
     VERSION_MATPLOTLIB = ""
-    # VERSION_KERAS = ""
+    VERSION_KERAS = ""
     VERSION_PYSC2 = ""
     VERSION_PANDAS = ""
     VERSION_PSUTIL = ""
-
     VERSION_VIZDOOM = ""
 
 
@@ -69,6 +67,10 @@ if is_optional_enabled(TF_CPU):
     print("Tensorflow cpu will be installed instead of Tensorflow GPU.")
     tf = 'tensorflow' + VERSION_TF
 
+if not is_optional_enabled(URNAI_INSTALL_KERAS_FROM_TENSORFLOW):
+    print("Keras Tensorflow built-in will be installed instead of the official repository one.")
+    tf = 'keras' +  VERSION_KERAS
+
 setup(
     name = "urnai",
     packages = find_packages(),
@@ -78,7 +80,6 @@ setup(
         tf,
         'numpy' + VERSION_NUMPY,
         'matplotlib' + VERSION_MATPLOTLIB,
-        'keras' + VERSION_KERAS,
         'pysc2' + VERSION_PYSC2,
         'pandas' + VERSION_PANDAS,
         'psutil' + VERSION_PSUTIL,
