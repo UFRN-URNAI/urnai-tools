@@ -11,7 +11,7 @@ VERSION_GYM = "==0.10.11"
 VERSION_TF = "==2.2"
 VERSION_NUMPY = "==1.18.4"
 VERSION_MATPLOTLIB = "==3.2.0"
-#VERSION_KERAS = "==2.3.1"
+VERSION_KERAS = "==2.3.1"
 VERSION_PYSC2 = "==3.0.0"
 VERSION_PANDAS = "==1.0.1"
 VERSION_PSUTIL = "==5.7.2"
@@ -49,7 +49,7 @@ if is_optional_enabled(LATEST_DEPS):
     VERSION_TF = ""
     VERSION_NUMPY = ""
     VERSION_MATPLOTLIB = ""
-    #VERSION_KERAS = ""
+    # VERSION_KERAS = ""
     VERSION_PYSC2 = ""
     VERSION_PANDAS = ""
     VERSION_PSUTIL = ""
@@ -78,7 +78,7 @@ setup(
         tf,
         'numpy' + VERSION_NUMPY,
         'matplotlib' + VERSION_MATPLOTLIB,
-        #'keras' + VERSION_KERAS,
+        'keras' + VERSION_KERAS,
         'pysc2' + VERSION_PYSC2,
         'pandas' + VERSION_PANDAS,
         'psutil' + VERSION_PSUTIL,
