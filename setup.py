@@ -5,7 +5,6 @@ def is_optional_enabled(optional):
     return os.environ.get(optional, None) is not None
 
 # Dependencies versions
-# Old versions
 VERSION_ABSL = "==0.9.0"
 VERSION_GYM = "==0.10.11"
 VERSION_TF = "==2.1.0"
