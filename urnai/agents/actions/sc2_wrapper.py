@@ -973,12 +973,12 @@ class TerranWrapper(SC2Wrapper):
 
     def siegemodetanks(self, obs):
         unsiegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTank)
-        action = effect_units(_MORPH_SIEGEMODE_TANK, unsiegedtanks)
+        action = effect_units(sc2._MORPH_SIEGEMODE_TANK, unsiegedtanks)
         return action
 
     def unsiegetanks(self, obs):
         siegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTankSieged)
-        action = effect_units(_MORPH_UNSIEGE_TANK, siegedtanks)
+        action = effect_units(sc2._MORPH_UNSIEGE_TANK, siegedtanks)
         return action
     #endregion
 

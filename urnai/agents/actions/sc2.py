@@ -181,8 +181,7 @@ def calldown_mule(obs):
             choosen_index = np.random.choice(orbital_indexes)
             choosen_orbital_command = orbital_command[choosen_index]
 
-            if (choosen_orbital_command.assigned_harvesters <= choosen_orbital_command.ideal_harvesters and 
-                choosen_orbital_command.build_progress == 100 and
+            if (choosen_orbital_command.build_progress == 100 and
                 choosen_orbital_command.energy >= 50):
                     target = [choosen_orbital_command.x, choosen_orbital_command.y]
                     closest_mineral = get_closest_unit(obs, target, units_list=mineral_fields)
@@ -248,7 +247,7 @@ def harvest_gather_minerals_quick(obs, worker, player_race):
             # If we find one, send the worker to gather minerals there.
             if len(townhalls) > 0:
                 for townhall in townhalls:
-                    if townhall.assigned_harvesters <= townhall.ideal_harvesters and townhall.build_progress == 100:
+                    if townhall.build_progress == 100:
                         target = [townhall.x, townhall.y]
                         closest_mineral = get_closest_unit(obs, target, units_list=mineral_fields)
                         if closest_mineral != _NO_UNITS:
@@ -356,7 +355,7 @@ def harvest_gather_gas_idle(obs, player_race, idle_workers):
     if len(vespene_geysers) > 0:
         if len(townhalls) > 0:
             for townhall in townhalls:
-                if townhall.build_progress == 100 and townhall.assigned_harvesters <= townhall.ideal_harvesters:
+                if townhall.build_progress == 100:
                     target = [townhall.x, townhall.y]
                     worker = get_closest_unit(obs, target, units_list=idle_workers)
 
