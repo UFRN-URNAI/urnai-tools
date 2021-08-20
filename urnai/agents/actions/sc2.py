@@ -42,7 +42,7 @@ _BUILD_REACTOR_BARRACKS = actions.RAW_FUNCTIONS.Build_Reactor_Barracks_quick
 _BUILD_REACTOR_FACTORY = actions.RAW_FUNCTIONS.Build_Reactor_Factory_quick
 _BUILD_REACTOR_STARPORT = actions.RAW_FUNCTIONS.Build_Reactor_Starport_quick
 
-_MORPH_ORBITAL_COMMAND = actions.RAW_FUNCTIONS.Morph_OrbitalCommand_quick
+
 
 '''ENGINEERING BAY RESEARCH'''
 _RESEARCH_TERRAN_INF_WEAPONS = actions.RAW_FUNCTIONS.Research_TerranInfantryWeapons_quick
@@ -104,7 +104,9 @@ _TRAIN_BATTLECRUISER = actions.RAW_FUNCTIONS.Train_Battlecruiser_quick
 _CALL_DOWN_MULE = actions.RAW_FUNCTIONS.Effect_CalldownMULE_unit
 
 '''MORPH ACTIONS'''
-_MORPH_ORBITAL = actions.RAW_FUNCTIONS.Morph_OrbitalCommand_quick
+_MORPH_ORBITAL_COMMAND = actions.RAW_FUNCTIONS.Morph_OrbitalCommand_quick
+_MORPH_SIEGEMODE_TANK = actions.RAW_FUNCTIONS.Morph_SiegeMode_quick
+_MORPH_UNSIEGE_TANK = actions.RAW_FUNCTIONS.Morph_Unsiege_quick
 
 '''UNIT EFFECTS'''
 _EFFECT_STIMPACK = actions.RAW_FUNCTIONS.Effect_Stim_quick
@@ -152,7 +154,7 @@ def research_upgrade(obs, action_id, building_type):
                 return action_id("now", building.tag)
     return _NO_OP()
 
-def effect_units(obs, action_id, units):
+def effect_units(action_id, units):
     if len(units) > 0:
         unit_tags = [unit.tag for unit in units]
         return action_id("now", unit_tags)
@@ -174,7 +176,6 @@ def calldown_mule(obs):
     if len(orbital_command) > 0 and orbital_command.energy >= 50:
         return _CALL_DOWN_MULE()
     return _NO_OP()
-
 
 def attack_target_point(obs, player_race, target, base_top_left):
     if not base_top_left: target = (63-target[0]-5, 63-target[1]+5)
@@ -257,7 +258,7 @@ def harvest_gather_minerals(obs, player_race):
         # If we find one, send the worker to gather minerals there.
         if len(townhalls) > 0:
             for townhall in townhalls:
-                if townhall.assigned_harvesters <= townhall.ideal_harvesters and townhall.build_progress == 100:
+                if townhall.build_progress == 100:
                     target = [townhall.x, townhall.y]
                     if len(workers) > 0:
                         distances = list(get_distances(obs, workers, target))
@@ -286,7 +287,7 @@ def harvest_gather_minerals_idle(obs, player_race, idle_workers):
     if len(mineral_fields) > 0:
         if len(townhalls) > 0:
             for townhall in townhalls:
-                if townhall.assigned_harvesters <= townhall.ideal_harvesters and townhall.build_progress == 100:
+                if townhall.build_progress == 100:
                     target = [townhall.x, townhall.y]
                     worker = get_closest_unit(obs, target, units_list=idle_workers)
                     if worker != _NO_UNITS:
@@ -307,18 +308,19 @@ def harvest_gather_gas(obs, player_race):
         workers = get_my_units_by_type(obs, units.Zerg.Drone)
 
     if len(gas_colectors) > 0:
-        for gas_colector in gas_colectors:
-            if 0 <= gas_colector.assigned_harvesters < 3 and gas_colector.build_progress == 100:
-                target = [gas_colector.x, gas_colector.y]
-                if len(workers) > 0:
+        if len(workers) > 0:
+            for gas_colector in gas_colectors:
+                if 0 <= gas_colector.assigned_harvesters < 4 and gas_colector.build_progress == 100:
+                    target = [gas_colector.x, gas_colector.y]
                     distances = list(get_distances(obs, workers, target))
-                while len(workers) != 0:
-                    index = np.argmin(distances)
-                    if (workers[index].order_id_0 == 362 or workers[index].order_length == 0) and distances[index] >= 3:
-                        return actions.RAW_FUNCTIONS.Harvest_Gather_unit("queued", workers[index].tag, gas_colector.tag)
-                    else:
-                        workers.pop(index)
-                        distances.pop(index)
+
+                    while len(workers) != 0:
+                        index = np.argmin(distances)
+                        if (workers[index].order_id_0 == 362 or workers[index].order_length == 0) and distances[index] >= 3:
+                            return actions.RAW_FUNCTIONS.Harvest_Gather_unit("queued", workers[index].tag, gas_colector.tag)
+                        else:
+                            workers.pop(index)
+                            distances.pop(index)
     return _NO_OP()
 
 def harvest_gather_gas_idle(obs, player_race, idle_workers):
@@ -747,88 +749,42 @@ def select_all_race_units(obs, player_race):
 def select_army(obs, player_race):
     army = []
     if player_race == _PROTOSS:
-        army.extend(get_my_units_by_type(obs, units.Protoss.Adept))
-        army.extend(get_my_units_by_type(obs, units.Protoss.AdeptPhaseShift))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Archon))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Carrier))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Colossus))
-        army.extend(get_my_units_by_type(obs, units.Protoss.DarkTemplar))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Disruptor))
-        army.extend(get_my_units_by_type(obs, units.Protoss.DisruptorPhased))
-        army.extend(get_my_units_by_type(obs, units.Protoss.HighTemplar))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Immortal))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Mothership))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Observer))
-        army.extend(get_my_units_by_type(obs, units.Protoss.ObserverSurveillanceMode))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Oracle))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Phoenix))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Sentry))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Stalker))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Tempest))
-        army.extend(get_my_units_by_type(obs, units.Protoss.VoidRay))
-        army.extend(get_my_units_by_type(obs, units.Protoss.Zealot))
+        army_unit_types = [
+            units.Protoss.Adept,units.Protoss.AdeptPhaseShift,units.Protoss.Archon,
+            units.Protoss.Carrier,units.Protoss.Colossus,units.Protoss.DarkTemplar,
+            units.Protoss.Disruptor,units.Protoss.DisruptorPhased,units.Protoss.HighTemplar,
+            units.Protoss.Immortal,units.Protoss.Mothership,units.Protoss.Observer,
+            units.Protoss.ObserverSurveillanceMode,units.Protoss.Oracle,units.Protoss.Phoenix,
+            units.Protoss.Sentry,units.Protoss.Stalker,units.Protoss.Tempest,units.Protoss.VoidRay,units.Protoss.Zealot,
+        ]
+
+        army = [unit for unit in obs.raw_units if unit.alliance == features.PlayerRelative.SELF and unit.unit_type in army_unit_types]
+    
     elif player_race == _TERRAN:
-        army.extend(get_my_units_by_type(obs, units.Terran.Marine))
-        army.extend(get_my_units_by_type(obs, units.Terran.Marauder))
-        army.extend(get_my_units_by_type(obs, units.Terran.Reaper))
-        army.extend(get_my_units_by_type(obs, units.Terran.Ghost))
-        army.extend(get_my_units_by_type(obs, units.Terran.Hellion))
-        army.extend(get_my_units_by_type(obs, units.Terran.Hellbat))
-        army.extend(get_my_units_by_type(obs, units.Terran.SiegeTank))
-        army.extend(get_my_units_by_type(obs, units.Terran.Cyclone))
-        army.extend(get_my_units_by_type(obs, units.Terran.WidowMine))
-        army.extend(get_my_units_by_type(obs, units.Terran.Thor))
-        army.extend(get_my_units_by_type(obs, units.Terran.ThorHighImpactMode))
-        army.extend(get_my_units_by_type(obs, units.Terran.VikingAssault))
-        army.extend(get_my_units_by_type(obs, units.Terran.VikingFighter))
-        army.extend(get_my_units_by_type(obs, units.Terran.Medivac))
-        army.extend(get_my_units_by_type(obs, units.Terran.Liberator))
-        army.extend(get_my_units_by_type(obs, units.Terran.LiberatorAG))
-        army.extend(get_my_units_by_type(obs, units.Terran.Raven))
-        army.extend(get_my_units_by_type(obs, units.Terran.Banshee))
-        army.extend(get_my_units_by_type(obs, units.Terran.Battlecruiser))
+        army_unit_types = [units.Terran.Marine,units.Terran.Marauder,units.Terran.Reaper,
+                            units.Terran.Ghost,units.Terran.Hellion,units.Terran.Hellbat,
+                            units.Terran.SiegeTank,units.Terran.Cyclone,units.Terran.WidowMine,
+                            units.Terran.Thor,units.Terran.ThorHighImpactMode,units.Terran.VikingAssault,
+                            units.Terran.VikingFighter,units.Terran.Medivac,units.Terran.Liberator,
+                            units.Terran.LiberatorAG,units.Terran.Raven,units.Terran.Banshee,units.Terran.Battlecruiser]
+
+        army = [unit for unit in obs.raw_units if unit.alliance == features.PlayerRelative.SELF and unit.unit_type in army_unit_types]
+
     elif player_race == _ZERG:
-        army.extend(get_my_units_by_type(obs, units.Zerg.Baneling))
-        army.extend(get_my_units_by_type(obs, units.Zerg.BanelingBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.BanelingCocoon))
-        army.extend(get_my_units_by_type(obs, units.Zerg.BroodLord))
-        army.extend(get_my_units_by_type(obs, units.Zerg.BroodLordCocoon))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Broodling))
-        army.extend(get_my_units_by_type(obs, units.Zerg.BroodlingEscort))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Changeling))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ChangelingMarine))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ChangelingMarineShield))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ChangelingZealot))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ChangelingZergling))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ChangelingZerglingWings))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Corruptor))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Hydralisk))
-        army.extend(get_my_units_by_type(obs, units.Zerg.HydraliskBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Infestor))
-        army.extend(get_my_units_by_type(obs, units.Zerg.InfestorBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Locust))
-        army.extend(get_my_units_by_type(obs, units.Zerg.LocustFlying))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Lurker))
-        army.extend(get_my_units_by_type(obs, units.Zerg.LurkerBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.LurkerCocoon))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Mutalisk))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Overseer))
-        army.extend(get_my_units_by_type(obs, units.Zerg.OverseerCocoon))
-        army.extend(get_my_units_by_type(obs, units.Zerg.OverseerOversightMode))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Queen))
-        army.extend(get_my_units_by_type(obs, units.Zerg.QueenBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Ravager))
-        army.extend(get_my_units_by_type(obs, units.Zerg.RavagerBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.RavagerCocoon))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Roach))
-        army.extend(get_my_units_by_type(obs, units.Zerg.RoachBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.SwarmHost))
-        army.extend(get_my_units_by_type(obs, units.Zerg.SwarmHostBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Ultralisk))
-        army.extend(get_my_units_by_type(obs, units.Zerg.UltraliskBurrowed))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Viper))
-        army.extend(get_my_units_by_type(obs, units.Zerg.Zergling))
-        army.extend(get_my_units_by_type(obs, units.Zerg.ZerglingBurrowed))
+        army_unit_types = [
+            units.Zerg.Baneling,units.Zerg.BanelingBurrowed,units.Zerg.BanelingCocoon,units.Zerg.BroodLord,
+            units.Zerg.BroodLordCocoon,units.Zerg.Broodling,units.Zerg.BroodlingEscort,units.Zerg.Changeling,
+            units.Zerg.ChangelingMarine,units.Zerg.ChangelingMarineShield,units.Zerg.ChangelingZealot,units.Zerg.ChangelingZergling,
+            units.Zerg.ChangelingZerglingWings,units.Zerg.Corruptor,units.Zerg.Hydralisk,units.Zerg.HydraliskBurrowed,
+            units.Zerg.Infestor,units.Zerg.InfestorBurrowed,units.Zerg.Locust,units.Zerg.LocustFlying,units.Zerg.Lurker,
+            units.Zerg.LurkerBurrowed,units.Zerg.LurkerCocoon,units.Zerg.Mutalisk,units.Zerg.Overseer,units.Zerg.OverseerCocoon,
+            units.Zerg.OverseerOversightMode,units.Zerg.Queen,units.Zerg.QueenBurrowed,units.Zerg.Ravager,units.Zerg.RavagerBurrowed,
+            units.Zerg.RavagerCocoon,units.Zerg.Roach,units.Zerg.RoachBurrowed,units.Zerg.SwarmHost,units.Zerg.SwarmHostBurrowed,
+            units.Zerg.Ultralisk,units.Zerg.UltraliskBurrowed,units.Zerg.Viper,units.Zerg.Zergling,units.Zerg.ZerglingBurrowed,
+        ]
+
+        army = [unit for unit in obs.raw_units if unit.alliance == features.PlayerRelative.SELF and unit.unit_type in army_unit_types]
+
     return army   
 
 def get_unit_race(unit_type):

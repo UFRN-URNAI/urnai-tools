@@ -71,6 +71,8 @@ ACTION_RESEARCH_ADVANCEDBALLISTICS = 'researchadvancedballistics'
 ACTION_RESEARCH_BATTLECRUISER_WEAPONREFIT = 'researchbattlecruiserweaponrefit'
 
 ACTION_EFFECT_STIMPACK = 'effectstimpack'
+ACTION_MORPH_SIEGEMODE_TANK = 'siegemodetanks'
+ACTION_MORPH_UNSIEGE_TANK = 'unsiegetanks'
 
 ACTION_TRAIN_SCV = 'trainscv'                               # Selects all command center > trains an scv > nothing
 ACTION_CALLDOWN_MULE = 'calldownmule'                      # Verify for orbital command > call down mule > nothing
@@ -364,6 +366,8 @@ class TerranWrapper(SC2Wrapper):
         has_fusioncore = building_exists(obs, units.Terran.FusionCore)
         has_ccs = building_exists(obs, units.Terran.CommandCenter) or building_exists(obs, units.Terran.PlanetaryFortress) or building_exists(obs, units.Terran.OrbitalCommand)
         has_engineeringbay = building_exists(obs, units.Terran.EngineeringBay)
+        has_refinery = building_exists(obs, units.Terran.Refinery)
+        has_tanks = building_exists(obs, units.Terran.SiegeTank) or building_exists(obs, units.Terran.SiegeTankSieged)
 
         game_info = {
             'minerals' : minerals,
@@ -385,7 +389,9 @@ class TerranWrapper(SC2Wrapper):
             'has_starport_techlab' : has_starport_techlab,
             'has_fusioncore' : has_fusioncore,
             'has_ccs' : has_ccs,
-            'has_engineeringbay' : has_engineeringbay
+            'has_engineeringbay' : has_engineeringbay,
+            'has_refinery' : has_refinery,
+            'has_tanks' : has_tanks
         }
 
         game_info = SimpleNamespace(**game_info)
@@ -575,6 +581,14 @@ class TerranWrapper(SC2Wrapper):
         if not gi.has_marinemarauder:
             excluded_actions.append(ACTION_EFFECT_STIMPACK)
 
+    def siegemodetanks_exclude(excluded_actions, gi):
+        if not gi.has_tanks:
+            excluded_actions.append(ACTION_MORPH_SIEGEMODE_TANK)
+
+    def unsiegetanks_exclude(excluded_actions, gi):
+        if not gi.has_tanks:
+            excluded_actions.append(ACTION_MORPH_UNSIEGE_TANK)
+
     def trainscv_exclude(excluded_actions, gi):
         if not gi.has_ccs or gi.minerals < 50:
             excluded_actions.append(ACTION_TRAIN_SCV)
@@ -649,15 +663,15 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_TRAIN_BATTLECRUISER)
 
     def harvestmineralsidle_exclude(excluded_actions, gi):
-        if gi.has_idle_scv:
+        if gi.has_idle_scv or not gi.has_ccs:
             excluded_actions.append(ACTION_HARVEST_MINERALS_IDLE)
 
     def harvestmineralsfromgas_exclude(excluded_actions, gi):
-        if not gi.has_scv:
+        if not gi.has_scv or not gi.has_ccs:
             excluded_actions.append(ACTION_HARVEST_MINERALS_FROM_GAS)
 
     def harvestgasfromminerals_exclude(excluded_actions, gi):
-        if not gi.has_scv:
+        if not gi.has_scv or not gi.has_refinery:
             excluded_actions.append(ACTION_HARVEST_GAS_FROM_MINERALS)
     #endregion
 
@@ -857,11 +871,11 @@ class TerranWrapper(SC2Wrapper):
 
     #region MORPHING
     def morphorbitalcommand(self, obs):
-        # gets the command center unit
+        # gets one command center unit
         command_center = get_my_units_by_type(obs, units.Terran.CommandCenter)[0]
         # returns the action to morph the specified command center
         # the conditions for not executing this morphing action are in _excluded section
-        return _MORPH_ORBITAL_COMMAND('now', command_center.tag)
+        return sc2._MORPH_ORBITAL_COMMAND('now', command_center.tag)
 
     #endregion
 
@@ -949,7 +963,17 @@ class TerranWrapper(SC2Wrapper):
     def effectstimpack(self, obs):
         army = get_my_units_by_type(obs, units.Terran.Marine)
         army.extend(get_my_units_by_type(obs, units.Terran.Marauder))
-        action = effect_units(obs, sc2._EFFECT_STIMPACK, army)
+        action = effect_units(sc2._EFFECT_STIMPACK, army)
+        return action
+
+    def siegemodetanks(self, obs):
+        unsiegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTank)
+        action = effect_units(_MORPH_SIEGEMODE_TANK, unsiegedtanks)
+        return action
+
+    def unsiegetanks(self, obs):
+        siegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTankSieged)
+        action = effect_units(_MORPH_UNSIEGE_TANK, siegedtanks)
         return action
     #endregion
 
@@ -1052,22 +1076,30 @@ class TerranWrapper(SC2Wrapper):
 
     def attackmybase(self, obs):
         target=self.my_base_xy
-        actions = attack_target_point(obs, sc2_env.Race.terran, target, self.base_top_left)
+        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        army = select_army(obs, sc2_env.Race.terran)
+        actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
     def attackmysecondbase(self, obs):
         target=self.my_second_base_xy
-        actions = attack_target_point(obs, sc2_env.Race.terran, target, self.base_top_left)
+        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        army = select_army(obs, sc2_env.Race.terran)
+        actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
     def attackenemybase(self, obs):
         target=self.enemy_base_xy
-        actions = attack_target_point(obs, sc2_env.Race.terran, target, self.base_top_left)
+        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        army = select_army(obs, sc2_env.Race.terran)
+        actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
     def attackenemysecondbase(self, obs):
         target=self.enemy_second_base_xy
-        actions = attack_target_point(obs, sc2_env.Race.terran, target, self.base_top_left)
+        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        army = select_army(obs, sc2_env.Race.terran)
+        actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
     #endregion
@@ -1130,6 +1162,7 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_DO_NOTHING,
 
             ACTION_BUILD_COMMAND_CENTER,
+            ACTION_MORPH_ORBITAL_COMMAND,
             ACTION_BUILD_SUPPLY_DEPOT,
             ACTION_BUILD_REFINERY,
             ACTION_BUILD_ENGINEERINGBAY,
@@ -1141,14 +1174,14 @@ class SimpleTerranWrapper(TerranWrapper):
             #ACTION_BUILD_GHOSTACADEMY,
             ACTION_BUILD_BARRACKS,
             ACTION_BUILD_FACTORY,
-            ACTION_BUILD_STARPORT,
+            # ACTION_BUILD_STARPORT,
             
             ACTION_BUILD_TECHLAB_BARRACKS,
             ACTION_BUILD_TECHLAB_FACTORY,
-            ACTION_BUILD_TECHLAB_STARPORT,
+            # ACTION_BUILD_TECHLAB_STARPORT,
             ACTION_BUILD_REACTOR_BARRACKS,
             ACTION_BUILD_REACTOR_FACTORY,
-            ACTION_BUILD_REACTOR_STARPORT,
+            # ACTION_BUILD_REACTOR_STARPORT,
 
             # # ENGINEERING BAY RESEARCH
             # ACTION_RESEARCH_INF_WEAPONS,
@@ -1187,28 +1220,30 @@ class SimpleTerranWrapper(TerranWrapper):
             # ACTION_RESEARCH_BATTLECRUISER_WEAPONREFIT,
 
             ACTION_EFFECT_STIMPACK,
+            ACTION_MORPH_SIEGEMODE_TANK,
+            ACTION_MORPH_UNSIEGE_TANK,
 
             ACTION_TRAIN_SCV,
             ACTION_CALLDOWN_MULE,
 
             ACTION_TRAIN_MARINE,
-            ACTION_TRAIN_MARAUDER,
-            ACTION_TRAIN_REAPER,
+            # ACTION_TRAIN_MARAUDER,
+            # ACTION_TRAIN_REAPER,
             #ACTION_TRAIN_GHOST,
 
-            ACTION_TRAIN_HELLION,
-            ACTION_TRAIN_HELLBAT,
+            # ACTION_TRAIN_HELLION,
+            # ACTION_TRAIN_HELLBAT,
             ACTION_TRAIN_SIEGETANK,
-            ACTION_TRAIN_CYCLONE,
+            # ACTION_TRAIN_CYCLONE,
             #ACTION_TRAIN_WIDOWMINE,
-            ACTION_TRAIN_THOR,
+            # ACTION_TRAIN_THOR,
 
-            ACTION_TRAIN_VIKING,
-            ACTION_TRAIN_MEDIVAC,
-            ACTION_TRAIN_LIBERATOR,
-            ACTION_TRAIN_RAVEN,
-            ACTION_TRAIN_BANSHEE,
-            ACTION_TRAIN_BATTLECRUISER,
+            # ACTION_TRAIN_VIKING,
+            # ACTION_TRAIN_MEDIVAC,
+            # ACTION_TRAIN_LIBERATOR,
+            # ACTION_TRAIN_RAVEN,
+            # ACTION_TRAIN_BANSHEE,
+            # ACTION_TRAIN_BATTLECRUISER,
 
             ACTION_HARVEST_MINERALS_IDLE,
             ACTION_HARVEST_MINERALS_FROM_GAS,
@@ -1237,7 +1272,6 @@ class SimpleTerranWrapper(TerranWrapper):
 
         self.building_positions = {
             'command_center' : [[19, 23], [41, 21]],
-            'orbital_command' : [[18, 15], [41, 21]],
             'supply_depot' : [[16,27], [18,27], [20,27], [22,27], [16,29], [18,29], [20,29]],
             'barracks' : [[25, 18], [24, 20], [30, 24]],
             'factory' : [[25, 25], [26, 27]],
@@ -1255,7 +1289,6 @@ class SimpleTerranWrapper(TerranWrapper):
 
         self.building_amounts = {
             'command_center' : 2,
-            'orbital_command' : 2,
             'supply_depot' : 18,
             'barracks' : 3,
             'factory' : 2,
