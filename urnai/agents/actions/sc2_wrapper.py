@@ -487,7 +487,7 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_BUILD_REACTOR_STARPORT)
 
     def morphorbitalcommand_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 150:
+        if not (gi.has_barracks or gi.has_barracks_techlab) or gi.minerals < 150:
             excluded_actions.append(ACTION_MORPH_ORBITAL_COMMAND)
 
     def researchinfantryweapons_exclude(excluded_actions, gi):
@@ -592,8 +592,7 @@ class TerranWrapper(SC2Wrapper):
     def trainscv_exclude(excluded_actions, gi):
         if not gi.has_ccs or gi.minerals < 50:
             excluded_actions.append(ACTION_TRAIN_SCV)
-    
-    # exclude mule
+
     def calldownmule_exclude(exclude_actions, gi):
         if not gi.has_orbitalcommand:
             exclude_actions.append(ACTION_CALLDOWN_MULE)
@@ -871,12 +870,18 @@ class TerranWrapper(SC2Wrapper):
 
     #region MORPHING
     def morphorbitalcommand(self, obs):
-        # gets one command center unit
-        command_center = get_my_units_by_type(obs, units.Terran.CommandCenter)[0]
-        # returns the action to morph the specified command center
-        # the conditions for not executing this morphing action are in _excluded section
-        return sc2._MORPH_ORBITAL_COMMAND('now', command_center.tag)
-
+        # gets the command center unit list
+        commands_center = get_my_units_by_type(obs, units.Terran.CommandCenter)
+        # if there is more than one command center, the morphing one is choosen at random
+        if len(commands_center) > 0:
+            # part necessary to not fall into dimensional tensor errors
+            command_indexes = [x for x in range(len(commands_center))]
+            choosen_index = np.random.choice(command_indexes)
+            choosen_command_center = commands_center[choosen_index]
+            # returns the action to morph the specified command center
+            # the conditions for not executing this morphing action are in _excluded section
+            return sc2._MORPH_ORBITAL_COMMAND('now', choosen_command_center.tag)
+        return sc2._NO_OP()
     #endregion
 
     #region ENGINEERING BAY RESEARCH
@@ -1168,10 +1173,10 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_BUILD_ENGINEERINGBAY,
             ACTION_BUILD_ARMORY,
             ACTION_BUILD_MISSILETURRET,
-            #ACTION_BUILD_SENSORTOWER,
-            #ACTION_BUILD_BUNKER,
+            # ACTION_BUILD_SENSORTOWER,
+            # ACTION_BUILD_BUNKER,
             ACTION_BUILD_FUSIONCORE,
-            #ACTION_BUILD_GHOSTACADEMY,
+            # ACTION_BUILD_GHOSTACADEMY,
             ACTION_BUILD_BARRACKS,
             ACTION_BUILD_FACTORY,
             # ACTION_BUILD_STARPORT,
@@ -1182,6 +1187,8 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_BUILD_REACTOR_BARRACKS,
             ACTION_BUILD_REACTOR_FACTORY,
             # ACTION_BUILD_REACTOR_STARPORT,
+
+            ACTION_MORPH_ORBITAL_COMMAND,
 
             # # ENGINEERING BAY RESEARCH
             # ACTION_RESEARCH_INF_WEAPONS,
