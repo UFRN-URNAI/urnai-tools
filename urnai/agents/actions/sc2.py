@@ -328,7 +328,9 @@ def harvest_gather_gas(obs, player_race):
             for gas_colector in gas_colectors:
                 if 0 <= gas_colector.assigned_harvesters < 4 and gas_colector.build_progress == 100:
                     target = [gas_colector.x, gas_colector.y]
-                    distances = list(get_distances(obs, workers, target))
+                    
+                    if len(workers) > 0:
+                        distances = list(get_distances(obs, workers, target))
 
                     while len(workers) != 0:
                         index = np.argmin(distances)

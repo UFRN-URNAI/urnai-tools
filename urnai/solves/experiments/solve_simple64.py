@@ -6,7 +6,7 @@ from pysc2.env import sc2_env
 from urnai.envs.sc2 import SC2Env
 from urnai.trainers.trainer import Trainer
 from urnai.agents.sc2_agent import SC2Agent
-from urnai.agents.actions.sc2_wrapper import SimpleTerranWrapper
+from urnai.agents.actions.sc2_wrapper import SimpleTerranWrapper, TerranWrapper
 from urnai.agents.actions.mo_spatial_terran_wrapper import MOspatialTerranWrapper
 from urnai.agents.rewards.sc2 import KilledUnitsReward
 from urnai.agents.states.sc2 import Simple64GridState, SimpleCroppedGridState, TVTUnitStackingState, MultipleUnitGridState, TVTUnitStackingEnemyGridState
@@ -35,18 +35,18 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 def declare_trainer():
     env = SC2Env(map_name="Simple64", render=False, step_mul=16, player_race="terran", enemy_race="terran", difficulty="very_easy")
     
-    action_wrapper = SimpleTerranWrapper(use_atk_grid=False, atk_grid_x=4, atk_grid_y=4)
+    #action_wrapper = SimpleTerranWrapper(use_atk_grid=False, atk_grid_x=4, atk_grid_y=4)
+    action_wrapper = TerranWrapper()
     state_builder = TVTUnitStackingState()
     
     helper = ModelBuilder()
-    helper.add_input_layer(nodes=60)
-    helper.add_fullyconn_layer(nodes=75)
+    helper.add_input_layer(nodes=82)
     helper.add_output_layer()
     print(helper.get_model_layout())
     
     dq_network = DoubleDeepQLearning(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), use_memory=True,
-                        gamma=0.99, learning_rate=0.001, memory_maxlen=100000, min_memory_size=64, lib="keras",
-                        epsilon_decay=0.9994, epsilon_start=0.6, epsilon_min=0.005, epsilon_linear_decay=True, per_episode_epsilon_decay=True)
+                        gamma=0.99, learning_rate=0.001, memory_maxlen=100000, min_memory_size=2000, lib="keras",
+                        epsilon_decay=0.99999, epsilon_start=1.0, epsilon_min=0.005, epsilon_linear_decay=False, per_episode_epsilon_decay=False)
     
     agent = SC2Agent(dq_network, KilledUnitsReward())
 
@@ -55,9 +55,9 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1500,
     #                 max_test_episodes=100, max_steps_testing=1500, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_siegemode",
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_testesps2",
                     save_every=6, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=2, max_steps_training=1200,
+                    max_training_episodes=6, max_steps_training=1200,
                     max_test_episodes=1, max_steps_testing=100, rolling_avg_window_size=50)
     return trainer
 
