@@ -35,8 +35,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 def declare_trainer():
     env = SC2Env(map_name="Simple64", render=False, step_mul=16, player_race="terran", enemy_race="terran", difficulty="very_easy")
     
-    #action_wrapper = SimpleTerranWrapper(use_atk_grid=False, atk_grid_x=4, atk_grid_y=4)
-    action_wrapper = TerranWrapper()
+    action_wrapper = SimpleTerranWrapper(use_atk_grid=False, atk_grid_x=4, atk_grid_y=4)
+    #action_wrapper = TerranWrapper()
     state_builder = TVTUnitStackingState()
     
     helper = ModelBuilder()
@@ -55,10 +55,10 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1500,
     #                 max_test_episodes=100, max_steps_testing=1500, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_testesps2",
-                    save_every=6, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=6, max_steps_training=1200,
-                    max_test_episodes=1, max_steps_testing=100, rolling_avg_window_size=50)
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_rollingavgfix3",
+                    save_every=12, enable_save=True, relative_path=True, reset_epsilon=False,
+                    max_training_episodes=12, max_steps_training=800,
+                    max_test_episodes=1, max_steps_testing=100, rolling_avg_window_size=3)
     return trainer
 
 def main(unused_argv):

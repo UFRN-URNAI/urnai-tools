@@ -277,7 +277,7 @@ class Logger(Savable):
                             'Avg. Steps', r'Per Episode Avg. Steps')
 
     def plot_instant_reward_graph(self):
-        # Plotting average reward graph
+        # Plotting instant reward graph
         return self.__plot_curve(range(self.ep_count), self.ep_rewards, 'Episode Count',
                             'Ep Reward', r'Per Episode Reward')
 
@@ -292,17 +292,29 @@ class Logger(Savable):
                             'Training Tests Avg Reward', r'Training Tests Average Reward Evolution')
 
     def plot_win_rate_graph(self):
-        # Plotting average reward graph
+        # Plotting average win rate graph
         return self.__plot_curve(range(self.ep_count), self.ep_avg_victories, 'Episode Count',
                             'Avg. Win Rate', r'Per Episode Avg. Win Rate')
 
     def plot_moving_avg_win_rate_graph(self):
         winrate_series = pd.Series(self.ep_victories)
+        # creating a rolling window
         winrate_rolling_avg = winrate_series.rolling(window=self.rolling_avg_window_size)
-        winrate_roll_mean = winrate_rolling_avg.mean().fillna(value=0)
+        # getting the mean of the windows and dropping NaN (which will be the first rolling_avg_window_size-1 elements)
+        winrate_roll_dropped = winrate_rolling_avg.mean().dropna()
 
-        return self.__plot_curve(range(self.ep_count), winrate_roll_mean, 'Episode Count', 
+        return self.__plot_curve(range(self.rolling_avg_window_size - 1, self.ep_count), winrate_roll_dropped, 'Episode Count', 
             'Rolling Avg. Win Rate', 'Rolling Average Win Rate (window size: {})'.format(self.rolling_avg_window_size))
+
+    def plot_moving_avg_reward_graph(self):
+        reward_series = pd.Series(self.ep_rewards)
+        # creating a rolling window
+        reward_rolling_avg = reward_series.rolling(window=self.rolling_avg_window_size)
+        # getting the mean of the windows and dropping NaN (which will be the first rolling_avg_window_size-1 elements)
+        reward_avg_dropped = reward_rolling_avg.mean().dropna()
+
+        return self.__plot_curve(range(self.rolling_avg_window_size - 1, self.ep_count), reward_avg_dropped, 'Episode Count', 
+            'Rolling Avg. Reward', 'Rolling Average Reward (window size: {})'.format(self.rolling_avg_window_size))
 
     def plot_win_rate_percentage_over_play_testing_graph(self):
         # Plotting win rate over play testing graph
@@ -345,6 +357,11 @@ class Logger(Savable):
             temp_fig = self.plot_moving_avg_win_rate_graph()
             plt.savefig(persist_path + os.path.sep + self.get_default_save_stamp() + "rolling_avg_winrate_graph.png")
             plt.savefig(persist_path + os.path.sep + self.get_default_save_stamp() + "rolling_avg_winrate_graph.pdf")
+            plt.close(temp_fig)
+
+            temp_fig = self.plot_moving_avg_reward_graph()
+            plt.savefig(persist_path + os.path.sep + self.get_default_save_stamp() + "rolling_avg_reward_graph.png")
+            plt.savefig(persist_path + os.path.sep + self.get_default_save_stamp() + "rolling_avg_reward_graph.pdf")
             plt.close(temp_fig)
 
             temp_fig = self.generalized_curve_plot(self.episode_duration_list, "Episode Duration (Seconds)", "Per Episode Duration In Seconds")
