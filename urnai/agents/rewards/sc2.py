@@ -16,6 +16,13 @@ class SparseReward(RewardBuilder):
         return reward
 
 class GeneralReward(RewardBuilder):
+    '''
+    This reward function gives a reward value every step. The reward is a constant -1 value 
+    as long as the agent doesn't do anything. If the agent does something "positive" such as
+    creating more army, workers, structures or killing units, the reward value receives a positive 
+    value proportional to the score change of those categories. Every step the current reward is then
+    reset to -1.
+    '''
     def __init__(self):
         self.reward = 0
 
@@ -55,6 +62,10 @@ class GeneralReward(RewardBuilder):
         return self.reward
 
 class KilledUnitsReward(RewardBuilder):
+    '''
+    A simple reward function in which the reward value is the difference in score points from 
+    killing enemy units or structures at the current time step compared the previous time step.
+    '''
     def __init__(self):
 
         # Properties keep track of the change of values used in our reward system
@@ -85,6 +96,10 @@ class KilledUnitsReward(RewardBuilder):
         return new_reward
 
 class KilledUnitsRewardBoosted(RewardBuilder):
+    '''
+    A reward class similar to KilledUnitsReward but with added reward bonuses for constructing certain structures
+    and training certain units. For example, constructing a Barrack, Factory or Starport is worth 300 reward points.
+    '''
     def __init__(self):
 
         self.construction_reward = 1000
@@ -157,3 +172,17 @@ class KilledUnitsRewardBoosted(RewardBuilder):
             new_reward = 5000
 
         return new_reward
+
+
+'''
+Ideas for new reward builders or improvements for current ones:
+
+    - Use utils.sc2_utils.get_fog_of_war_percentage() as a part of a reward value. 
+    Ex: if the agent explored 25% of the map give some reward, if explored 50% give another reward, etc. 
+
+    - Try out GeneralReward again but without the constant -1, just either 0 or positive reward,
+    and try and balance different scores more (for instance, food_army score is multiplied by 50 and that may not be optimal)
+
+    - Create a reward for researching technology, or for creating techlabs in factory, starport etc 
+    so we can encourage the agent to train more complex units and have better army composition
+'''

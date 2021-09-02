@@ -1,5 +1,6 @@
-#from envs.sc2 import SC2Env
 from pysc2.env import sc2_env
+import pysc2
+import numpy as np
 
 sc2_races = {
     "terran": sc2_env.Race.terran,
@@ -31,3 +32,23 @@ def get_sc2_difficulty(sc2_difficulty: str):
         return out
     else:
         raise Exception("Chosen difficulty for StarCraft II doesn't match any known difficulties. Try: 'very_easy', 'easy', 'medium', 'medium_hard', 'hard', 'harder', 'very_hard', 'cheat_vision', 'cheat_money' or 'cheat_insane'")
+
+def get_fog_of_war_percentage(obs):
+    '''
+    This function, as the name suggests, returns the percentage of discovered fog of war
+    in the match. For this, the function observes the 'minimap' features searching for
+    the grid regions where its status are visible, then the counting of the total number
+    of these regions is divided by the total map area. The return of this function
+    is a number between [0, 1] and only the observation is needed to make it work!
+
+    Is valid to remember about the percentage of the fog of war: the higher the worst, since
+    it represents how much of the map stills unknown.
+    '''
+    is_visible = pysc2.lib.features.Visibility.VISIBLE
+    
+    # the map area is also in the grid map (just get its size)
+    map_area = obs.feature_minimap.visibility_map.flatten()
+    non_visible_area = np.count_nonzero(map_area == (not is_visible))   # fog of war is the non-visible area
+    fog_percentage = non_visible_area/map_area.size
+
+    return fog_percentage
