@@ -349,25 +349,36 @@ class TerranWrapper(SC2Wrapper):
         vespene = obs.player.vespene
         freesupply = get_free_supply(obs)
 
-        has_scv = building_exists(obs, units.Terran.SCV)
+        has_scv = unit_exists(obs, units.Terran.SCV)
         has_idle_scv = obs.player.idle_worker_count > 0
         has_army = select_army(obs, sc2_env.Race.terran) != sc2._NO_UNITS
-        has_marinemarauder = building_exists(obs, units.Terran.Marine) or building_exists(obs, units.Terran.Marauder)
-        has_orbitalcommand = building_exists(obs, units.Terran.OrbitalCommand) or building_exists(obs, units.Terran.OrbitalCommandFlying)
-        has_supplydepot = building_exists(obs, units.Terran.SupplyDepot) or building_exists(obs, units.Terran.SupplyDepotLowered)
-        has_barracks = building_exists(obs, units.Terran.Barracks)
-        has_barracks_techlab = building_exists(obs, units.Terran.BarracksTechLab)
-        has_ghostacademy = building_exists(obs, units.Terran.GhostAcademy)
-        has_factory = building_exists(obs, units.Terran.Factory)
-        has_factory_techlab = building_exists(obs, units.Terran.FactoryTechLab)
-        has_armory = building_exists(obs, units.Terran.Armory)
-        has_starport = building_exists(obs, units.Terran.Starport)
-        has_starport_techlab = building_exists(obs, units.Terran.StarportTechLab)
-        has_fusioncore = building_exists(obs, units.Terran.FusionCore)
-        has_ccs = building_exists(obs, units.Terran.CommandCenter) or building_exists(obs, units.Terran.PlanetaryFortress) or building_exists(obs, units.Terran.OrbitalCommand)
-        has_engineeringbay = building_exists(obs, units.Terran.EngineeringBay)
-        has_refinery = building_exists(obs, units.Terran.Refinery)
-        has_tanks = building_exists(obs, units.Terran.SiegeTank) or building_exists(obs, units.Terran.SiegeTankSieged)
+        has_marinemarauder = unit_exists(obs, units.Terran.Marine) or unit_exists(obs, units.Terran.Marauder)
+        has_tanks = unit_exists(obs, units.Terran.SiegeTank) or unit_exists(obs, units.Terran.SiegeTankSieged)
+        
+        has_barracks = unit_exists(obs, units.Terran.Barracks)
+        has_queueable_barracks = can_queue_unit_terran(obs, units.Terran.Barracks)
+        has_barracks_techlab = unit_exists(obs, units.Terran.BarracksTechLab)
+
+        has_factory = unit_exists(obs, units.Terran.Factory)
+        has_queueable_factory = can_queue_unit_terran(obs, units.Terran.Factory)
+        has_factory_techlab = unit_exists(obs, units.Terran.FactoryTechLab)
+
+        has_starport = unit_exists(obs, units.Terran.Starport)
+        has_queueable_starport = can_queue_unit_terran(obs, units.Terran.Starport)
+        has_starport_techlab = unit_exists(obs, units.Terran.StarportTechLab)
+        
+        has_engineeringbay = unit_exists(obs, units.Terran.EngineeringBay)
+        has_armory = unit_exists(obs, units.Terran.Armory)
+        has_fusioncore = unit_exists(obs, units.Terran.FusionCore)
+        has_ghostacademy = unit_exists(obs, units.Terran.GhostAcademy)
+        
+        has_ccs = unit_exists(obs, units.Terran.CommandCenter) or unit_exists(obs, units.Terran.PlanetaryFortress) or unit_exists(obs, units.Terran.OrbitalCommand)
+        has_queueable_ccs = can_queue_unit_terran(obs, units.Terran.CommandCenter) or can_queue_unit_terran(obs, units.Terran.PlanetaryFortress) or \
+                            can_queue_unit_terran(obs, units.Terran.OrbitalCommand)
+        has_cc = unit_exists(obs, units.Terran.CommandCenter)
+        has_orbitalcommand = unit_exists(obs, units.Terran.OrbitalCommand) or unit_exists(obs, units.Terran.OrbitalCommandFlying)
+        has_refinery = unit_exists(obs, units.Terran.Refinery)
+        has_supplydepot = unit_exists(obs, units.Terran.SupplyDepot) or unit_exists(obs, units.Terran.SupplyDepotLowered)
 
         game_info = {
             'minerals' : minerals,
@@ -380,15 +391,20 @@ class TerranWrapper(SC2Wrapper):
             'has_orbitalcommand': has_orbitalcommand,
             'has_supplydepot' : has_supplydepot,
             'has_barracks' : has_barracks,
+            'has_queueable_barracks' : has_queueable_barracks,
             'has_barracks_techlab' : has_barracks_techlab,
             'has_ghostacademy' : has_ghostacademy,
             'has_factory' : has_factory,
+            'has_queueable_factory' : has_queueable_factory,
             'has_factory_techlab' : has_factory_techlab,
             'has_armory' : has_armory,
             'has_starport' : has_starport,
+            'has_queueable_starport' : has_queueable_starport,
             'has_starport_techlab' : has_starport_techlab,
             'has_fusioncore' : has_fusioncore,
             'has_ccs' : has_ccs,
+            'has_queueable_ccs' : has_queueable_ccs,
+            'has_cc' : has_cc,
             'has_engineeringbay' : has_engineeringbay,
             'has_refinery' : has_refinery,
             'has_tanks' : has_tanks
@@ -487,7 +503,7 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_BUILD_REACTOR_STARPORT)
 
     def morphorbitalcommand_exclude(excluded_actions, gi):
-        if not (gi.has_barracks or gi.has_barracks_techlab) or gi.minerals < 150:
+        if not (gi.has_barracks or gi.has_barracks_techlab or gi.has_cc) or gi.minerals < 150:
             excluded_actions.append(ACTION_MORPH_ORBITAL_COMMAND)
 
     def researchinfantryweapons_exclude(excluded_actions, gi):
@@ -590,7 +606,7 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_MORPH_UNSIEGE_TANK)
 
     def trainscv_exclude(excluded_actions, gi):
-        if not gi.has_ccs or gi.minerals < 50:
+        if not gi.has_ccs or not gi.has_queueable_ccs or gi.minerals < 50:
             excluded_actions.append(ACTION_TRAIN_SCV)
 
     def calldownmule_exclude(exclude_actions, gi):
@@ -598,67 +614,67 @@ class TerranWrapper(SC2Wrapper):
             exclude_actions.append(ACTION_CALLDOWN_MULE)
 
     def trainmarine_exclude(excluded_actions, gi):
-        if not gi.has_barracks or gi.minerals < 50 or gi.freesupply < 1:
+        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 or gi.freesupply < 1:
             excluded_actions.append(ACTION_TRAIN_MARINE)
 
     def trainmarauder_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 100 or gi.vespene < 25 or gi.freesupply < 2:
+        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab or gi.minerals < 100 or gi.vespene < 25 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_MARAUDER)
 
     def trainreaper_exclude(excluded_actions, gi):
-        if not gi.has_barracks or gi.minerals < 50 or gi.vespene < 50 or gi.freesupply < 1:
+        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 or gi.vespene < 50 or gi.freesupply < 1:
             excluded_actions.append(ACTION_TRAIN_REAPER)
 
     def trainghost_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or not gi.has_ghostacademy or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 2:
+        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab or not gi.has_ghostacademy or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_GHOST)
     
     def trainhellion_exclude(excluded_actions, gi):
-        if not gi.has_factory or gi.minerals < 100 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_HELLION)
 
     def trainhellbat_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_armory or gi.minerals < 100 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_armory or gi.minerals < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_HELLBAT)
 
     def trainsiegetank_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 3:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_SIEGETANK)
 
     def traincyclone_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 3:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_CYCLONE)
 
     def trainwidowmine_exclude(excluded_actions, gi):
-        if not gi.has_factory or gi.minerals < 75 or gi.vespene < 25 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 75 or gi.vespene < 25 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_WIDOWMINE)
     
     def trainthor_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 300 or gi.vespene < 200 or gi.freesupply < 6:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 300 or gi.vespene < 200 or gi.freesupply < 6:
             excluded_actions.append(ACTION_TRAIN_THOR)
 
     def trainviking_exclude(excluded_actions, gi):
-        if not gi.has_starport or gi.minerals < 150 or gi.vespene < 75 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 or gi.vespene < 75 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_VIKING)
 
     def trainmedivac_exclude(excluded_actions, gi):
-        if not gi.has_starport or gi.minerals < 100 or gi.vespene < 100 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 100 or gi.vespene < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_MEDIVAC)
     
     def trainliberator_exclude(excluded_actions, gi):
-        if not gi.has_starport or gi.minerals < 150 or gi.vespene < 150 or gi.freesupply < 3:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 or gi.vespene < 150 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_LIBERATOR)
 
     def trainraven_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 100 or gi.vespene < 200 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or gi.minerals < 100 or gi.vespene < 200 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_RAVEN)
 
     def trainbanshee_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_BANSHEE)
 
     def trainbattlecruiser_exclude(excluded_actions, gi): 
-        if not gi.has_starport or not gi.has_starport_techlab or not gi.has_fusioncore or gi.minerals < 400 or gi.vespene < 300 or gi.freesupply < 6:
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or not gi.has_fusioncore or gi.minerals < 400 or gi.vespene < 300 or gi.freesupply < 6:
             excluded_actions.append(ACTION_TRAIN_BATTLECRUISER)
 
     def harvestmineralsidle_exclude(excluded_actions, gi):
@@ -871,7 +887,7 @@ class TerranWrapper(SC2Wrapper):
     #region MORPHING
     def morphorbitalcommand(self, obs):
         # gets the command center unit list
-        commands_center = get_my_units_by_type(obs, units.Terran.CommandCenter)
+        commands_center = get_units_by_type(obs, units.Terran.CommandCenter)
         # if there is more than one command center, the morphing one is choosen at random
         if len(commands_center) > 0:
             # part necessary to not fall into dimensional tensor errors
@@ -966,18 +982,18 @@ class TerranWrapper(SC2Wrapper):
     
     #region EFFECT ACTIONS
     def effectstimpack(self, obs):
-        army = get_my_units_by_type(obs, units.Terran.Marine)
-        army.extend(get_my_units_by_type(obs, units.Terran.Marauder))
+        army = get_units_by_type(obs, units.Terran.Marine)
+        army.extend(get_units_by_type(obs, units.Terran.Marauder))
         action = effect_units(sc2._EFFECT_STIMPACK, army)
         return action
 
     def siegemodetanks(self, obs):
-        unsiegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTank)
+        unsiegedtanks = get_units_by_type(obs, units.Terran.SiegeTank)
         action = effect_units(sc2._MORPH_SIEGEMODE_TANK, unsiegedtanks)
         return action
 
     def unsiegetanks(self, obs):
-        siegedtanks = get_my_units_by_type(obs, units.Terran.SiegeTankSieged)
+        siegedtanks = get_units_by_type(obs, units.Terran.SiegeTankSieged)
         action = effect_units(sc2._MORPH_UNSIEGE_TANK, siegedtanks)
         return action
     #endregion
@@ -1049,12 +1065,12 @@ class TerranWrapper(SC2Wrapper):
         return no_op()
 
     def harvestmineralsfromgas(self, obs):
-        if building_exists(obs, units.Terran.CommandCenter) or building_exists(obs, units.Terran.PlanetaryFortress) or building_exists(obs, units.Terran.OrbitalCommand):
+        if unit_exists(obs, units.Terran.CommandCenter) or unit_exists(obs, units.Terran.PlanetaryFortress) or unit_exists(obs, units.Terran.OrbitalCommand):
             return harvest_gather_minerals(obs, sc2_env.Race.terran)
         return no_op()
 
     def harvestgasfromminerals(self, obs):
-        if building_exists(obs, units.Terran.Refinery):
+        if unit_exists(obs, units.Terran.Refinery):
             return harvest_gather_gas(obs, sc2_env.Race.terran)
         return no_op()
     #endregion
@@ -1115,7 +1131,7 @@ class TerranWrapper(SC2Wrapper):
         if len(self.actions_queue) > 0:
             return self.actions_queue.pop(0) # returning the next action that's on queue without checking anything else
         if obs.game_loop[0] < 80:
-            command_center = get_my_units_by_type(obs, units.Terran.CommandCenter)[0]
+            command_center = get_units_by_type(obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32) # determining wether or not our base is in top left corner (simple64 map)
         
         if self.units_to_attack != sc2._NO_UNITS:
@@ -1343,7 +1359,7 @@ class ProtossWrapper(SC2Wrapper):
             named_action = self.last_effect_action
 
         if obs.game_loop[0] < 80 and self.base_top_left == None:
-            nexus = get_my_units_by_type(obs, units.Protoss.Nexus)[0]
+            nexus = get_units_by_type(obs, units.Protoss.Nexus)[0]
             self.base_top_left = (nexus.x < 32)
 
         
@@ -1550,35 +1566,35 @@ class ZergWrapper(SC2Wrapper):
         # VERIFICATION
 
         # Missing units: Baneling, Ravager...
-        has_drone = building_exists(obs, units.Zerg.Drone)
+        has_drone = unit_exists(obs, units.Zerg.Drone)
         has_army = select_army(obs, sc2_env.Race.zerg) != sc2._NO_UNITS
-        has_larva = building_exists(obs, units.Zerg.Larva)
-        has_overlord = building_exists(obs, units.Zerg.Overlord)
-        has_zergling = building_exists(obs, units.Zerg.Zergling)
-        has_corruptor = building_exists(obs, units.Zerg.Corruptor)
-        has_hydralisk = building_exists(obs, units.Zerg.Hydralisk)
-        has_roach = building_exists(obs, units.Zerg.Roach)
-        has_overseer = building_exists(obs, units.Zerg.Overseer)
-        has_swarmhost = building_exists(obs, units.Zerg.Swarmhost)
-        has_infestor = building_exists(obs, units.Zerg.Infestor)
+        has_larva = unit_exists(obs, units.Zerg.Larva)
+        has_overlord = unit_exists(obs, units.Zerg.Overlord)
+        has_zergling = unit_exists(obs, units.Zerg.Zergling)
+        has_corruptor = unit_exists(obs, units.Zerg.Corruptor)
+        has_hydralisk = unit_exists(obs, units.Zerg.Hydralisk)
+        has_roach = unit_exists(obs, units.Zerg.Roach)
+        has_overseer = unit_exists(obs, units.Zerg.Overseer)
+        has_swarmhost = unit_exists(obs, units.Zerg.Swarmhost)
+        has_infestor = unit_exists(obs, units.Zerg.Infestor)
 
         # BUILDING BOOLEANS
-        has_spawningpool = building_exists(obs, units.Zerg.SpawningPool)
-        has_evolutionchamber = building_exists(obs, units.Zerg.EvolutionChamber)
-        has_roachwarren = building_exists(obs, units.Zerg.RoachWarren)
-        has_banelingnest = building_exists(obs, units.Zerg.BanelingNest)
-        has_hydraliskden = building_exists(obs, units.Zerg.HydraliskDen)
-        has_lurkerden = building_exists(obs, units.Zerg.LurkerDen)
-        has_infestationpit = building_exists(obs, units.Zerg.InfestationPit)
-        has_nydusnetwork = building_exists(obs, units.Zerg.NydusNetwork)
-        has_ultraliskcavern = building_exists(obs, units.Zerg.UltraliskCavern)
-        has_spire = building_exists(obs, units.Zerg.Spire)
-        has_greaterspire = building_exists(obs, units.Zerg.GreaterSpire)
-        has_hatchery = building_exists(obs, units.Zerg.Hatchery)
-        has_lair = building_exists(obs, units.Zerg.Lair)
-        has_hive = building_exists(obs, units.Zerg.Hive)
-        has_spinecrawler = building_exists(obs, units.Zerg.SpineCrawler)
-        has_sporecrawler = building_exists(obs, units.Zerg.SporeCrawler)
+        has_spawningpool = unit_exists(obs, units.Zerg.SpawningPool)
+        has_evolutionchamber = unit_exists(obs, units.Zerg.EvolutionChamber)
+        has_roachwarren = unit_exists(obs, units.Zerg.RoachWarren)
+        has_banelingnest = unit_exists(obs, units.Zerg.BanelingNest)
+        has_hydraliskden = unit_exists(obs, units.Zerg.HydraliskDen)
+        has_lurkerden = unit_exists(obs, units.Zerg.LurkerDen)
+        has_infestationpit = unit_exists(obs, units.Zerg.InfestationPit)
+        has_nydusnetwork = unit_exists(obs, units.Zerg.NydusNetwork)
+        has_ultraliskcavern = unit_exists(obs, units.Zerg.UltraliskCavern)
+        has_spire = unit_exists(obs, units.Zerg.Spire)
+        has_greaterspire = unit_exists(obs, units.Zerg.GreaterSpire)
+        has_hatchery = unit_exists(obs, units.Zerg.Hatchery)
+        has_lair = unit_exists(obs, units.Zerg.Lair)
+        has_hive = unit_exists(obs, units.Zerg.Hive)
+        has_spinecrawler = unit_exists(obs, units.Zerg.SpineCrawler)
+        has_sporecrawler = unit_exists(obs, units.Zerg.SporeCrawler)
 
         excluded_actions.remove(ACTION_DO_NOTHING)
 
@@ -1792,7 +1808,7 @@ class ZergWrapper(SC2Wrapper):
             named_action = self.last_effect_action
 
         if obs.game_loop[0] < 80 and self.base_top_left == None:
-            hatchery = get_my_units_by_type(obs, units.Zerg.Hatchery)[0]
+            hatchery = get_units_by_type(obs, units.Zerg.Hatchery)[0]
             self.base_top_left = (hatchery.x < 32)
 
         # -----------------------------------------------------------------------------------
@@ -1808,13 +1824,13 @@ class ZergWrapper(SC2Wrapper):
 
         # HARVEST MINERALS WITH WORKER FROM GAS LINE
         if named_action == ACTION_HARVEST_MINERALS_FROM_GAS:
-            if building_exists(obs, units.Zerg.Hatchery) or building_exists(obs, units.Zerg.Lair) or building_exists(obs, units.Zerg.Hive):
+            if unit_exists(obs, units.Zerg.Hatchery) or unit_exists(obs, units.Zerg.Lair) or unit_exists(obs, units.Zerg.Hive):
                 return harvest_gather_minerals(obs, sc2_env.Race.zerg)
             return no_op()
 
         # HARVEST GAS WITH WORKER FROM MINERAL LINE
         if named_action == ACTION_HARVEST_GAS_FROM_MINERALS:
-            if building_exists(obs, units.Zerg.Extractor):
+            if unit_exists(obs, units.Zerg.Extractor):
                 return harvest_gather_gas(obs, sc2_env.Race.zerg)
             return no_op()
 

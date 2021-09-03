@@ -135,27 +135,27 @@ class KilledUnitsRewardBoosted(RewardBuilder):
 
         new_reward = 0
 
-        if building_exists(obs, units.Terran.Barracks) and not self._has_barracks:
+        if unit_exists(obs, units.Terran.Barracks) and not self._has_barracks:
             new_reward += self.construction_reward
             self._has_barracks = True
 
-        if building_exists(obs, units.Terran.Factory) and not self._has_factory:
+        if unit_exists(obs, units.Terran.Factory) and not self._has_factory:
             new_reward += self.construction_reward
             self._has_factory = True
 
-        if building_exists(obs, units.Terran.Starport) and not self._has_starport:
+        if unit_exists(obs, units.Terran.Starport) and not self._has_starport:
             new_reward += self.construction_reward
             self._has_starport = True
 
-        if building_exists(obs, units.Terran.SiegeTank) and not self._trained_tank:
+        if unit_exists(obs, units.Terran.SiegeTank) and not self._trained_tank:
             new_reward += self.big_unit_reward
             self._trained_tank = True
 
-        if building_exists(obs, units.Terran.Medivac) and not self._trained_medivac:
+        if unit_exists(obs, units.Terran.Medivac) and not self._trained_medivac:
             new_reward += self.big_unit_reward
             self._trained_medivac = True
 
-        if building_exists(obs, units.Terran.Hellion) and not self._trained_hellion:
+        if unit_exists(obs, units.Terran.Hellion) and not self._trained_hellion:
             new_reward += self.small_unit_reward
             self._trained_hellion = True
 

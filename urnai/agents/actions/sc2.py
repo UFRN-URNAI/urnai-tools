@@ -147,8 +147,8 @@ def build_structure_by_type(obs, action_id, player_race, target=None):
     return _NO_OP(), _NO_UNITS
 
 def research_upgrade(obs, action_id, building_type):
-    if building_exists(obs, building_type):
-        buildings = get_my_units_by_type(obs, building_type)
+    if unit_exists(obs, building_type):
+        buildings = get_units_by_type(obs, building_type)
         for building in buildings:
             if building.build_progress == 100 and building.order_progress_0 == 0:
                 return action_id("now", building.tag)
@@ -161,7 +161,7 @@ def effect_units(action_id, units):
     return _NO_OP()
 
 def train_unit(obs, action_id, building_type):
-    buildings = get_my_units_by_type(obs, building_type)
+    buildings = get_units_by_type(obs, building_type)
     if len(buildings) > 0:
         building_tags = [building.tag for building in buildings]
         return action_id("now", building_tags)
@@ -169,8 +169,8 @@ def train_unit(obs, action_id, building_type):
 
 def calldown_mule(obs):
     # the upgraded version of command center is required for this unit
-    orbital_command = get_my_units_by_type(obs, units.Terran.OrbitalCommand)
-    orbital_command.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommandFlying))
+    orbital_command = get_units_by_type(obs, units.Terran.OrbitalCommand)
+    orbital_command.extend(get_units_by_type(obs, units.Terran.OrbitalCommandFlying))
 
     mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)
     if len(mineral_fields) > 0:
@@ -232,13 +232,13 @@ def attack_distribute_army(obs, player_race):
 
 def harvest_gather_minerals_quick(obs, worker, player_race):
     if player_race == _TERRAN: 
-        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
+        townhalls = get_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls.extend(get_units_by_type(obs, units.Terran.OrbitalCommand))
     if player_race == _PROTOSS: 
-        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+        townhalls = get_units_by_type(obs, units.Protoss.Nexus)
     if player_race == _ZERG: 
-        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
+        townhalls = get_units_by_type(obs, units.Zerg.Hatchery)
 
     if worker != _NO_UNITS:
         mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)
@@ -257,16 +257,16 @@ def harvest_gather_minerals_quick(obs, worker, player_race):
 
 def harvest_gather_minerals(obs, player_race):
     if player_race == _TERRAN: 
-        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
-        workers = get_my_units_by_type(obs, units.Terran.SCV)
+        townhalls = get_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls.extend(get_units_by_type(obs, units.Terran.OrbitalCommand))
+        workers = get_units_by_type(obs, units.Terran.SCV)
     if player_race == _PROTOSS: 
-        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
-        workers = get_my_units_by_type(obs, units.Protoss.Probe)
+        townhalls = get_units_by_type(obs, units.Protoss.Nexus)
+        workers = get_units_by_type(obs, units.Protoss.Probe)
     if player_race == _ZERG: 
-        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
-        workers = get_my_units_by_type(obs, units.Zerg.Drone)
+        townhalls = get_units_by_type(obs, units.Zerg.Hatchery)
+        workers = get_units_by_type(obs, units.Zerg.Drone)
 
     mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)
     if len(mineral_fields) > 0:
@@ -291,13 +291,13 @@ def harvest_gather_minerals(obs, player_race):
 
 def harvest_gather_minerals_idle(obs, player_race, idle_workers):
     if player_race == _TERRAN: 
-        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
+        townhalls = get_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls.extend(get_units_by_type(obs, units.Terran.OrbitalCommand))
     if player_race == _PROTOSS: 
-        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+        townhalls = get_units_by_type(obs, units.Protoss.Nexus)
     if player_race == _ZERG: 
-        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
+        townhalls = get_units_by_type(obs, units.Zerg.Hatchery)
     
     mineral_fields = get_neutral_units_by_type(obs, units.Neutral.MineralField)
     if len(mineral_fields) > 0:
@@ -314,14 +314,14 @@ def harvest_gather_minerals_idle(obs, player_race, idle_workers):
 
 def harvest_gather_gas(obs, player_race):
     if player_race == _TERRAN: 
-        gas_colectors = get_my_units_by_type(obs, units.Terran.Refinery)
-        workers = get_my_units_by_type(obs, units.Terran.SCV)
+        gas_colectors = get_units_by_type(obs, units.Terran.Refinery)
+        workers = get_units_by_type(obs, units.Terran.SCV)
     if player_race == _PROTOSS: 
-        gas_colectors = get_my_units_by_type(obs, units.Protoss.Assimilator)
-        workers = get_my_units_by_type(obs, units.Protoss.Probe) 
+        gas_colectors = get_units_by_type(obs, units.Protoss.Assimilator)
+        workers = get_units_by_type(obs, units.Protoss.Probe) 
     if player_race == _ZERG: 
-        gas_colectors = get_my_units_by_type(obs, units.Zerg.Extractor)
-        workers = get_my_units_by_type(obs, units.Zerg.Drone)
+        gas_colectors = get_units_by_type(obs, units.Zerg.Extractor)
+        workers = get_units_by_type(obs, units.Zerg.Drone)
 
     if len(gas_colectors) > 0:
         if len(workers) > 0:
@@ -344,13 +344,13 @@ def harvest_gather_gas(obs, player_race):
 def harvest_gather_gas_idle(obs, player_race, idle_workers):
     if player_race == _TERRAN:
         # the terran townhall and its upgradable versions
-        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
+        townhalls = get_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls.extend(get_units_by_type(obs, units.Terran.OrbitalCommand))
     if player_race == _PROTOSS:
-        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+        townhalls = get_units_by_type(obs, units.Protoss.Nexus)
     if player_race == _ZERG:
-        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
+        townhalls = get_units_by_type(obs, units.Zerg.Hatchery)
     
     # sources of minerals (which are to harvest)
     vespene_geysers = get_neutral_units_by_type(obs, units.Neutral.VespeneGeyser)
@@ -376,7 +376,7 @@ def build_structure_raw(obs, building_type, building_action, max_amount = 999):
     player_race = get_unit_race(building_type)
 
     if get_my_units_amount(obs, building_type) < max_amount:
-        buildings = get_my_units_by_type(obs, building_type)
+        buildings = get_units_by_type(obs, building_type)
         if len(buildings) > 0:
             target = random.choice(buildings)
             action_one, last_worker = build_structure_by_type(obs, building_action, player_race, target)
@@ -434,7 +434,7 @@ such as: getting all units from a certain type, counting the amount of free supp
 '''
 
 def select_random_unit_by_type(obs, unit_type):
-    units = get_my_units_by_type(obs, unit_type)
+    units = get_units_by_type(obs, unit_type)
 
     if len(units) > 0:
         random_unit = random.choice(units)
@@ -443,11 +443,11 @@ def select_random_unit_by_type(obs, unit_type):
 
 def get_random_idle_worker(obs, player_race):
     if player_race == _PROTOSS:
-        workers = get_my_units_by_type(obs, units.Protoss.Probe)
+        workers = get_units_by_type(obs, units.Protoss.Probe)
     elif player_race == _TERRAN:
-        workers = get_my_units_by_type(obs, units.Terran.SCV)
+        workers = get_units_by_type(obs, units.Terran.SCV)
     elif player_race == _ZERG:
-        workers = get_my_units_by_type(obs, units.Zerg.Drone)
+        workers = get_units_by_type(obs, units.Zerg.Drone)
 
     if len(workers) > 0:
         for worker in workers:
@@ -457,11 +457,11 @@ def get_random_idle_worker(obs, player_race):
 
 def get_all_idle_workers(obs, player_race):
     if player_race == _PROTOSS:
-        workers = get_my_units_by_type(obs, units.Protoss.Probe)
+        workers = get_units_by_type(obs, units.Protoss.Probe)
     elif player_race == _TERRAN:
-        workers = get_my_units_by_type(obs, units.Terran.SCV)
+        workers = get_units_by_type(obs, units.Terran.SCV)
     elif player_race == _ZERG:
-        workers = get_my_units_by_type(obs, units.Zerg.Drone)
+        workers = get_units_by_type(obs, units.Zerg.Drone)
 
     idle_workers = []
 
@@ -474,7 +474,7 @@ def get_all_idle_workers(obs, player_race):
 
 def get_closest_unit(obs, target_xy, unit_type = _NO_UNITS, units_list = _NO_UNITS):
     if unit_type != _NO_UNITS:
-        units = get_my_units_by_type(obs, unit_type)
+        units = get_units_by_type(obs, unit_type)
         if len(units) > 0:
             distances = get_distances(obs, units, target_xy)
             min_dist_index = np.argmin(distances)
@@ -489,24 +489,29 @@ def get_closest_unit(obs, target_xy, unit_type = _NO_UNITS, units_list = _NO_UNI
             return unit
     return _NO_UNITS
 
-def get_units_by_type_and_player(obs, unit_type, player):
+# def get_my_units_by_type(obs, unit_type):
+#     return [unit for unit in obs.raw_units 
+#             if unit.unit_type == unit_type
+#             and unit.alliance == features.PlayerRelative.SELF]
+
+def get_units_by_type(obs, unit_type, alliance=features.PlayerRelative.SELF):
     return [unit for unit in obs.raw_units 
             if unit.unit_type == unit_type
-            and unit.alliance == player]
+            and unit.alliance == alliance
+            and unit.build_progress == 100]
 
-def get_my_units_by_type(obs, unit_type):
-    return [unit for unit in obs.raw_units 
-            if unit.unit_type == unit_type
-            and unit.alliance == features.PlayerRelative.SELF]
+def can_queue_unit_terran(obs, unit_type):
+    structures = get_units_by_type(obs, unit_type)
+    for structure in structures:
+        # if we have less than 5 units on queue, we can queue another unit
+        if structure.order_length < 5:
+            return True
+        # if the addon to our construction is a reactor, we can queue up to 10 units
+        elif structure.addon_unit_type == 38 and structure.order_length < 10:
+            return True
+    return False
 
-def get_enemy_units_by_type(obs, unit_type):
-    return [unit for unit in obs.raw_units 
-            if unit.unit_type == unit_type
-            and unit.alliance == features.PlayerRelative.ENEMY]
 
-def get_units_by_type(obs, unit_type):
-    return [unit for unit in obs.raw_units 
-            if unit.unit_type == unit_type]
 
 def get_neutral_units_by_type(obs, unit_type):
     return [unit for unit in obs.raw_units 
@@ -521,30 +526,30 @@ def get_free_supply(obs):
     return obs.player.food_cap - obs.player.food_used
 
 def get_unit_amount(obs, unit_type, player):
-    return len(get_units_by_type_and_player(obs, unit_type, player))
+    return len(get_units_by_type(obs, unit_type, player))
 
 def get_my_units_amount(obs, unit_type):
-    return len(get_my_units_by_type(obs, unit_type))
+    return len(get_units_by_type(obs, unit_type, features.PlayerRelative.SELF))
 
 def get_enemy_units_amount(obs, unit_type):
-    return len(get_enemy_units_by_type(obs, unit_type))
+    return len(get_units_by_type(obs, unit_type, features.PlayerRelative.ENEMY))
 
-def building_exists(obs, unit_type):
+def unit_exists(obs, unit_type):
     if get_my_units_amount(obs, unit_type) > 0:
         return True
     return False
 
 def get_exploitable_geyser(obs, player_race):
     if player_race == _PROTOSS:
-        townhalls = get_my_units_by_type(obs, units.Protoss.Nexus)
+        townhalls = get_units_by_type(obs, units.Protoss.Nexus)
     elif player_race == _TERRAN:
-        townhalls = get_my_units_by_type(obs, units.Terran.CommandCenter)
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.OrbitalCommand))
-        townhalls.extend(get_my_units_by_type(obs, units.Terran.PlanetaryFortress))
+        townhalls = get_units_by_type(obs, units.Terran.CommandCenter)
+        townhalls.extend(get_units_by_type(obs, units.Terran.OrbitalCommand))
+        townhalls.extend(get_units_by_type(obs, units.Terran.PlanetaryFortress))
     elif player_race == _ZERG:
-        townhalls = get_my_units_by_type(obs, units.Zerg.Hatchery)
-        townhalls.extend(get_my_units_by_type(obs, units.Zerg.Lair))
-        townhalls.extend(get_my_units_by_type(obs, units.Zerg.Hive))
+        townhalls = get_units_by_type(obs, units.Zerg.Hatchery)
+        townhalls.extend(get_units_by_type(obs, units.Zerg.Lair))
+        townhalls.extend(get_units_by_type(obs, units.Zerg.Hive))
     geysers = get_neutral_units_by_type(obs, units.Neutral.VespeneGeyser)
     if len(geysers) > 0 and len(townhalls) > 0:
         for geyser in geysers:
@@ -571,7 +576,7 @@ def organize_queue(actions, actions_queue):
 # TO DO: Implement the following methods to facilitate checks and overall code reuse:
 
 # Create a "get my units by types" where we pass instead of a single type an array of unit types and the return is an array of those units from the chosen types:
-# possible function prototype: get_my_units_by_types(obs, unit_types) (maybe we can just reuse the get_my_units_by_type function and create a verification if unit_type is a single type or array of types)
+# possible function prototype: get_units_by_types(obs, unit_types) (maybe we can just reuse the get_units_by_type function and create a verification if unit_type is a single type or array of types)
 
 # check_unit_validity (should check if the object being received is a proper unit from pysc2)
 

@@ -76,7 +76,7 @@
 
 * Arguments: obs, target_xy, unit_type, units_list
 
-## Function get_my_units_by_type()
+## Function get_units_by_type()
 
 * Arguments: obs, unit_type
 
@@ -100,7 +100,7 @@
 
 * Arguments: target
 
-## Function building_exists()
+## Function unit_exists()
 
 * Arguments: obs, unit_type
 

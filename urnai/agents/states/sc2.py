@@ -24,9 +24,9 @@ class Simple64State(StateBuilder):
     def build_state(self, obs):
         if obs.game_loop[0] < 80 and self.base_top_left == None:
 
-            commandcenter = get_my_units_by_type(obs, units.Terran.CommandCenter)
-            nexus = get_my_units_by_type(obs, units.Protoss.Nexus)
-            hatchery = get_my_units_by_type(obs, units.Zerg.Hatchery)
+            commandcenter = get_units_by_type(obs, units.Terran.CommandCenter)
+            nexus = get_units_by_type(obs, units.Protoss.Nexus)
+            hatchery = get_units_by_type(obs, units.Zerg.Hatchery)
             if len(commandcenter)>0: 
                 townhall = commandcenter[0]
                 self.player_race = sc2_env.Race.terran
@@ -159,9 +159,9 @@ class Simple64StateFullRes(StateBuilder):
     def build_state(self, obs):
         if obs.game_loop[0] < 80 and self.base_top_left == None:
 
-            commandcenter = get_my_units_by_type(obs, units.Terran.CommandCenter)
-            nexus = get_my_units_by_type(obs, units.Protoss.Nexus)
-            hatchery = get_my_units_by_type(obs, units.Zerg.Hatchery)
+            commandcenter = get_units_by_type(obs, units.Terran.CommandCenter)
+            nexus = get_units_by_type(obs, units.Protoss.Nexus)
+            hatchery = get_units_by_type(obs, units.Zerg.Hatchery)
             if len(commandcenter)>0: 
                 townhall = commandcenter[0]
                 self.player_race = sc2_env.Race.terran
@@ -291,9 +291,9 @@ class Simple64GridState(StateBuilder):
     def build_state(self, obs):
         if obs.game_loop[0] < 80 and self.base_top_left == None:
 
-            commandcenter = get_my_units_by_type(obs, units.Terran.CommandCenter)
-            nexus = get_my_units_by_type(obs, units.Protoss.Nexus)
-            hatchery = get_my_units_by_type(obs, units.Zerg.Hatchery)
+            commandcenter = get_units_by_type(obs, units.Terran.CommandCenter)
+            nexus = get_units_by_type(obs, units.Protoss.Nexus)
+            hatchery = get_units_by_type(obs, units.Zerg.Hatchery)
             if len(commandcenter)>0: 
                 townhall = commandcenter[0]
                 self.player_race = sc2_env.Race.terran

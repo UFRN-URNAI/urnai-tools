@@ -54,9 +54,9 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1500,
     #                 max_test_episodes=100, max_steps_testing=1500, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_getfogofwar",
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_actionchanges3",
                     save_every=12, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=1, max_steps_training=800,
+                    max_training_episodes=2, max_steps_training=800,
                     max_test_episodes=1, max_steps_testing=100, rolling_avg_window_size=3)
     return trainer
 

@@ -164,7 +164,7 @@ class MOspatialTerranWrapper(SC2Wrapper):
             named_action = self.last_effect_action
 
         if obs.game_loop[0] < 80 and self.base_top_left == None:
-            command_center = get_my_units_by_type(obs, units.Terran.CommandCenter)[0]
+            command_center = get_units_by_type(obs, units.Terran.CommandCenter)[0]
             self.base_top_left = (command_center.x < 32)
 
 
@@ -296,13 +296,13 @@ class MOspatialTerranWrapper(SC2Wrapper):
 
         # HARVEST MINERALS WITH WORKER FROM GAS LINE
         if named_action == sc2_wrapper.ACTION_HARVEST_MINERALS_FROM_GAS:
-            if building_exists(obs, units.Terran.CommandCenter) or building_exists(obs, units.Terran.PlanetaryFortress) or building_exists(obs, units.Terran.OrbitalCommand):
+            if unit_exists(obs, units.Terran.CommandCenter) or unit_exists(obs, units.Terran.PlanetaryFortress) or unit_exists(obs, units.Terran.OrbitalCommand):
                 return harvest_gather_minerals(obs, sc2_env.Race.terran)
             return no_op()
 
         # HARVEST GAS WITH WORKER FROM MINERAL LINE
         if named_action == sc2_wrapper.ACTION_HARVEST_GAS_FROM_MINERALS:
-            if building_exists(obs, units.Terran.Refinery):
+            if unit_exists(obs, units.Terran.Refinery):
                 return harvest_gather_gas(obs, sc2_env.Race.terran)
             return no_op()
 
@@ -472,8 +472,8 @@ class MOspatialTerranWrapper(SC2Wrapper):
         if named_action == sc2_wrapper.ACTION_EFFECT_STIMPACK:
             if self.units_to_effect == sc2._NO_UNITS:
                 army = []
-                marines = get_my_units_by_type(obs, units.Terran.Marine)
-                marauders = get_my_units_by_type(obs, units.Terran.Marauder)
+                marines = get_units_by_type(obs, units.Terran.Marine)
+                marauders = get_units_by_type(obs, units.Terran.Marauder)
                 army.extend(marines)
                 army.extend(marauders)
                 if len(army) == 0:

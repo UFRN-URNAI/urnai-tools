@@ -98,7 +98,7 @@ class BuildUnitsStarcraftIIActionWrapper(DefeatEnemiesStarcraftIIActionWrapper):
 
     def collect(self, obs):
         #get SCV list
-        scvs = scaux.get_my_units_by_type(obs, units.Terran.SCV)
+        scvs = scaux.get_units_by_type(obs, units.Terran.SCV)
         #get mineral list
         mineral_fields = scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField)
         #split SCVs into sets of numberSCVs/numberOfMinerals
@@ -119,7 +119,7 @@ class BuildUnitsStarcraftIIActionWrapper(DefeatEnemiesStarcraftIIActionWrapper):
 
     def select_random_scv(self, obs):
         #get SCV list
-        scvs = scaux.get_my_units_by_type(obs, units.Terran.SCV)
+        scvs = scaux.get_units_by_type(obs, units.Terran.SCV)
         length = len(scvs)
         scv = scvs[random.randint(0, length - 1)] 
         return scv
@@ -145,7 +145,7 @@ class BuildUnitsStarcraftIIActionWrapper(DefeatEnemiesStarcraftIIActionWrapper):
             self.pending_actions.append(actions.RAW_FUNCTIONS.Build_Barracks_pt("now", scv.tag, [x, y]))
 
     def build_marine_(self, obs):
-        barracks = scaux.get_my_units_by_type(obs, units.Terran.Barracks)
+        barracks = scaux.get_units_by_type(obs, units.Terran.Barracks)
         if len(barracks) > 0:
             barrack = random.choice(barracks)
             self.pending_actions.append(actions.RAW_FUNCTIONS.Train_Marine_quick("now", barrack.tag))
