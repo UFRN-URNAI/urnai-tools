@@ -10,7 +10,7 @@ You also need to be running a NVidia gpu. For now, the recipe present on this di
 
 ## Building the image
 
-The image is built with all the needed basic libraries to run trainings on the StarCraft II environment. To start the building process, take a look at the config.json.example file, change it to suit your needs and rename it to config.json. After this, run on a terminal:
+The image is built with all the needed basic libraries to run trainings on the StarCraft II environment. To start the building process, take a look at the config.json.example file, change it to suit your needs (do *NOT* use relative paths, always use full file paths) and rename it to config.json. After this, run on a terminal:
 
 ```
 $ chmod +x build_sif.sh

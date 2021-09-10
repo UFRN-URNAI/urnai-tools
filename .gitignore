@@ -110,3 +110,4 @@ _vizdoom.ini
 *.swo
 .fuse_hidden*
 *.json
+tmp/
