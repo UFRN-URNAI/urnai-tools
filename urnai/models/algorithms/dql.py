@@ -106,7 +106,7 @@ class DeepQLearning(LearningModel):
         if neural_net_class != None:
             self.dnn = neural_net_class(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
         else:
-            self.dnn = get_nn_model(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
+            self.dnn = get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
 
 
         self.use_memory = use_memory
