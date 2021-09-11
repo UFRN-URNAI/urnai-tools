@@ -8,10 +8,8 @@ if [ -e config.json ]; then
     simg_file=$(cat config.json | jq -r '.simg_file')
     sif_file=$(cat config.json | jq -r '.sif_file')
 
-    if [ "$(cat config.json | jq 'has("put_date_on_sif_file_name")')" = "true" ]; then
-        if [ "$(cat config.json | jq -r '.put_date_on_sif_file_name')" = "yes" ]; then
-            sif_file="$(cat config.json | jq -r '.sif_file')_$(date +%F).sif"
-        fi
+    if [ "$(cat config.json | jq 'has("put_date_on_sif_file_name")')" = "true" ] && [ "$(cat config.json | jq -r '.put_date_on_sif_file_name')" = "yes" ]; then
+        sif_file="$(cat config.json | jq -r '.sif_file' | cut -d. -f1)_$(date +%F).sif"
     fi
 
     if [ "$(cat config.json | jq 'has("use_custom_tmp_dir")')" = "true" ] && [ "$(cat config.json | jq 'has("tmp_dir")')" = "true" ] ; then
@@ -20,7 +18,7 @@ if [ -e config.json ]; then
     fi
 
     if [ "$use_tmp_dir" = "yes" ]; then
-        mkdir =p $tmp_dir
+        mkdir -p $tmp_dir
         export SINGULARITY_TMPDIR="$tmp_dir"
         export TMPDIR="$tmp_dir"
     fi

@@ -6,6 +6,7 @@ from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder
 from utils.error import UnsuportedLibraryError
 from utils import constants
+from models.memory_representations.neural_network.nnfactory.NeuralNetworkFactory import get_nn_model
 
 class DeepQLearning(LearningModel):
     """
@@ -105,16 +106,7 @@ class DeepQLearning(LearningModel):
         if neural_net_class != None:
             self.dnn = neural_net_class(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
         else:
-            if self.lib in constants.listoflibs:
-                if self.lib == constants.Libraries.KERAS:
-                    from models.memory_representations.neural_network.keras import KerasDeepNeuralNetwork
-                    self.dnn = KerasDeepNeuralNetwork(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
-
-                if self.lib == constants.Libraries.PYTORCH:
-                    from models.memory_representations.neural_network.pytorch import PyTorchDeepNeuralNetwork
-                    self.dnn = PyTorchDeepNeuralNetwork(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value)
-            else:
-                raise UnsuportedLibraryError(self.lib)
+            self.dnn = get_nn_model(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
 
 
         self.use_memory = use_memory
