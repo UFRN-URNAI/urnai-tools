@@ -109,3 +109,5 @@ venv.bak/
 _vizdoom.ini
 *.swo
 .fuse_hidden*
+*.json
+tmp/

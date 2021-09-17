@@ -1,0 +1,7 @@
+{
+    "simg_file" : "FULL_PATH_HERE/urnai.simg",
+    "sif_file" : "FULL_PATH_HERE/urnai_singularity.sif",
+    "put_date_on_sif_file_name" : "yes",
+    "use_custom_tmp_dir" : "yes",
+    "tmp_dir" : "FULL_PATH_HERE/tmp"
+}
