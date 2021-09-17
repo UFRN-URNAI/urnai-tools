@@ -347,8 +347,10 @@ class Trainer(Savable):
         if self.logger.ep_count == 0 or is_testing:
             self.logger = Logger(max_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size) 
         
+
         while current_episodes < max_episodes:
             current_episodes += 1
+            # starting env
             self.env.start()
 
             if is_testing:
@@ -434,6 +436,7 @@ class Trainer(Savable):
         if is_testing:
             rp.report("\n> Test duration: {} seconds".format(end_time - start_time))
             self.logger.log_train_stats()
+            self.env.close()
         else:
             rp.report("\n> Training duration: {} seconds".format(end_time - start_time))
             self.logger.log_train_stats()
