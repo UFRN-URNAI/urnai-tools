@@ -3,9 +3,10 @@ class Games:
     SC2 = "starcraft_ii"
 
 class Libraries:
-    KERAS = "KerasDeepNeuralNetwork"
-    PYTORCH = "PyTorchDeepNeuralNetwork"
+    KERAS = "keras"
+    PYTORCH = "pytorch"
     TENSORFLOW = "tensorflow"
+    KERAS_E_TRACES = "keras_e_traces"
 
 class RTSGeneralization:
 

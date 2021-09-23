@@ -6,7 +6,8 @@ from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder
 from utils.error import UnsuportedLibraryError
 from utils import constants
-from models.memory_representations.neural_network.nnfactory.NeuralNetworkFactory import get_nn_model
+from models.memory_representations.neural_network.nnfactory import NeuralNetworkFactory
+#from models.memory_representations.neural_network.nnfactory.NeuralNetworkFactory import get_nn_model
 
 class DoubleDeepQLearning(DeepQLearning):
     """
@@ -109,26 +110,14 @@ class DoubleDeepQLearning(DeepQLearning):
         self.target_update_counter = 0
         self.update_target_every = update_target_every
 
-        # self.batch_size = batch_size
-        # self.build_model = build_model
-        # self.lib = lib
-        # self.neural_net_class = neural_net_class
-
         if neural_net_class != None:
             self.dnn = neural_net_class(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
             self.target_dnn = neural_net_class(self.action_size, self.state_size, self.build_model, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
             self.target_dnn.copy_model_weights(self.dnn)
         else:
-            self.dnn = get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
-            self.target_dnn = get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
+            self.dnn = NeuralNetworkFactory.get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
+            self.target_dnn = NeuralNetworkFactory.get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
             self.target_dnn.copy_model_weights(self.dnn)
-
-
-        # self.use_memory = use_memory
-        # if self.use_memory:
-        #     self.memory = deque(maxlen=memory_maxlen)
-        #     self.memory_maxlen = memory_maxlen
-        #     self.min_memory_size = min_memory_size
 
     def memory_learn(self, s, a, r, s_, done):
         self.memorize(s, a, r, s_, done)

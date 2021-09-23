@@ -1,4 +1,5 @@
-from .abneuralnetwork import ABNeuralNetwork 
+from .abneuralnetwork import ABNeuralNetwork
+from .sequential_lambda import SequentialLambda
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation, Input
 from tensorflow.keras.optimizers import Adam
@@ -150,3 +151,20 @@ class DNNCustomModelOverrideExample(KerasDeepNeuralNetwork):
         self.model.add(Dense(self.action_output_size, activation='linear'))
 
         self.model.compile(optimizer=Adam(lr=self.alpha), loss='mse', metrics=['accuracy'])
+
+class KerasDNNEligibilityTraces(KerasDeepNeuralNetwork):
+    """
+        This class acts exactly like KerasDeepNeuralNetwork but instead
+        of using the default Sequential() keras class, we use a custom
+        urnai class that inherits from Sequential() called "SequentialLambda()".
+        
+        SequentialLambda implements the logic for updating and using a vector 
+        of eligibility traces during training.
+    """
+    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32, lamb=0.9):        
+        self.lamb = lamb
+        super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed, batch_size)
+
+    def create_base_model(self):
+        model = SequentialLambda(self.gamma, self.lamb)
+        return model
