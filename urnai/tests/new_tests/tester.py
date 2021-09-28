@@ -2,6 +2,7 @@ import sys, pathlib, os
 import subprocess
 import getpass
 
+
 class Errors:
     class GitHashFileNotFoundError(Exception):
         pass
@@ -12,6 +13,7 @@ def get_urnai_latest_commit_hash():
     sep = os.path.sep
     git_path = find_urnai_git_repo_dir()
     if git_path != None:
+        print(git_path)
         latest_commit_hash = f"{gitpath}{sep}refs{sep}heads{sep}master"
         if os.exists(latest_commit_hash):
             with open(latest_commit_hash, 'r') as hash_:
@@ -28,7 +30,7 @@ def get_pip_freeze():
         return cpe.stderr
 
 def get_username():
-    return getuser()
+    return getpass.getuser()
 
 def find_urnai_git_repo_dir():
     sep = os.path.sep
@@ -46,7 +48,7 @@ def find_urnai_git_repo_dir():
                     if is_dir_there(".git", urnai_repos[0]):
                         return urnai_repos[0]
                     else:
-                        raise FileNotFoundError(f"{urnai_repos[0] does not contain a .git folder.}")
+                        raise FileNotFoundError(f"{urnai_repos[0]} does not contain a .git folder.")
                 else:
                     print("There were multiple urnai repos in your home folder:")
                     for i in range(len(urnai_repos)): print(f"{i + 1} - {urnai_repos[i]}")
@@ -72,16 +74,16 @@ def find_dir(dir_name, where_to_find):
         return dir_list
 
 def generate_log(user, pip_freeze, output, err):
-    with open("geral_test_info.log" ) as file_:
+    with open("geral_test_info.log",'w') as file_:
         text = """User: {usr}
         Packages installed (pip freeze): {pip_fr}""".format(usr=user, pip_fr=pip_freeze)
         file_.write(text)
 
-    with open("test_output.log" ) as file_:
-        file_.write(output)
+    with open("test_output.log",'w' ) as file_:
+        file_.write(str(output,'UTF-8'))
 
-    with open("test_err.log" ) as file_:
-        file_.write(err)
+    with open("test_err.log",'w') as file_:
+        file_.write(str(err,'latin-1'))
 
 def main():
     #TODO generate a log of the test, plus username, urnai revision hash and pip freeze
@@ -89,7 +91,7 @@ def main():
     user = get_username()
 
     output, err = "", ""
-    p = Popen(["python3", "-m", "pytest", "test_cartpole.py"], stdout=PIPE, stderr=PIPE)
+    p = subprocess.Popen(["python3", "-m", "pytest", "test_cartpole.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = p.communicate()
 
     generate_log(user, pip_freeze, output, err)
