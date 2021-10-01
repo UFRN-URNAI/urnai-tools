@@ -23,8 +23,8 @@ def declare_trainer():
     state_builder = GymState(env.env_instance.observation_space.shape[0])
 
     helper = ModelBuilder()
-    helper.add_input_layer(nodes=50)
-    helper.add_fullyconn_layer(50)
+    helper.add_input_layer(nodes=25)
+    helper.add_fullyconn_layer(25)
     helper.add_output_layer()
 
     dq_network = DDQNKeras(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), use_memory=False,
@@ -36,10 +36,10 @@ def declare_trainer():
 
     # Cartpole-v1 is solved when avg. reward over 100 episodes is greater than or equal to 475
     #test_params = TestParams(num_matches=100, steps_per_test=100, max_steps=500, reward_threshold=500)
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="cartpole_v1_ddqn_50x50_test", 
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="cartpole_v1_ddqn_25x25_test", 
                     save_every=100, enable_save=True, relative_path=True,
-                    max_training_episodes=1000, max_steps_training=500,
-                    max_test_episodes=100, max_steps_testing=500)
+                    max_training_episodes=1000, max_steps_training=520,
+                    max_test_episodes=100, max_steps_testing=520)
     return trainer
 
 def main(unused_argv):

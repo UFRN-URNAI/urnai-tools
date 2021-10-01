@@ -3,7 +3,7 @@
         "env" : {
             "class" : "GymEnv",
             "params" : {
-                "id" : "CartPole-v1" 
+                "id" : "CartPole-v1"
             }
         },
         "action_wrapper" : {
@@ -19,31 +19,29 @@
             }
         },
         "model" : {
-            "class" : "DqlTensorFlow",
+            "class" : "DoubleDeepQLearning",
             "params" : {
-                "learning_rate" : 0.005,
-                "gamma" : 0.9,
+                "learning_rate" : 0.001,
+                "gamma" : 0.99,
+                "epsilon_decay" : 0.9997, 
+                "epsilon_min" : 0.005,
+                "memory_maxlen" : 50000,
+                "min_memory_size" : 1000,
                 "build_model" : [
                     {
-                        "type": "input",
-                        "nodes": 50,
-                        "shape": [null, 4]
-                    },
+                        "type": "input", 
+                        "nodes": 25, 
+                        "shape": []
+                    }, 
                     {
                         "type": "fullyconn",
                         "nodes": 25,
                         "name": "default0"
                     },
                     {
-                        "type": "fullyconn",
-                        "nodes": 25,
-                        "name": "default1"
-                    },
-                    {
-                        "type": "output",
-                        "length": 4
+                        "type": "output", 
+                        "length": 2
                     }
-
                 ]
              }
         },
@@ -58,17 +56,16 @@
         "trainer" : {
             "class" : "Trainer",
             "params" : {
-                "file_name" : "cart_pole_pg",
-                "save_every" : 4000,
+                "save_path" : "urnai/models/saved",
+                "file_name" : "cartpole-v1_ddql_25x25_json",
+                "save_every" : 100,
                 "enable_save" : true,
-                "debug_level" : 1,
-                "max_training_episodes" : 3000,
-                "max_steps_training" : 1200,
+                "relative_path" : true,
+                "max_training_episodes" : 1000,
+                "max_steps_training" : 520,
                 "max_test_episodes" : 100,
-                "max_steps_testing" : 1200,
-                "do_reward_test" : true,
-                "reward_test_number_of_episodes" : 10,
-                "episode_batch_avg_calculation" : 50
+                "max_steps_testing" : 520,
+                "rolling_avg_window_size" : 50
             }
         }
     }

@@ -11,5 +11,6 @@ sys.path.insert(0,parentdir)
 
 from urnai.trainers.filetrainer import FileTrainer
 
-trainer = FileTrainer("D:/UFRN/Star Craft II - Reinforcement Learning/urnai-tools/urnai/solves/experiments/solve_simple64_test.csv")
+#trainer = FileTrainer("D:/UFRN/Star Craft II - Reinforcement Learning/urnai-tools/urnai/solves/experiments/solve_simple64_test.csv")
+trainer = FileTrainer("D:/UFRN/Star Craft II - Reinforcement Learning/urnai-tools/urnai/solves/solve_cartpole_v1.json")
 trainer.start_training()

@@ -7,7 +7,7 @@ def is_optional_enabled(optional):
 # Dependencies versions
 VERSION_ABSL = "==0.9.0"
 VERSION_GYM = "==0.10.11"
-VERSION_TF = "==2.1.0"
+VERSION_TF = "==2.2.0"
 VERSION_NUMPY = "==1.18.4"
 VERSION_MATPLOTLIB = "==3.2.0"
 VERSION_KERAS = "==2.3.1"
