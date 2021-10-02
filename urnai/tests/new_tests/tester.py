@@ -76,7 +76,7 @@ def find_dir(dir_name, where_to_find):
 def generate_log(user, pip_freeze, output, err):
     with open("geral_test_info.log",'w') as file_:
         text = """User: {usr}
-        Packages installed (pip freeze): {pip_fr}""".format(usr=user, pip_fr=pip_freeze)
+        Packages installed (pip freeze): {pip_fr}""".format(usr=user, pip_fr=str(pip_freeze,'UTF-8'))
         file_.write(text)
 
     with open("test_output.log",'w' ) as file_:
@@ -91,7 +91,7 @@ def main():
     user = get_username()
 
     output, err = "", ""
-    p = subprocess.Popen(["python3", "-m", "pytest", "test_cartpole.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["python", "-m", "pytest", "test_cartpole.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, err = p.communicate()
 
     generate_log(user, pip_freeze, output, err)
