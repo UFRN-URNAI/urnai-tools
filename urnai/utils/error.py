@@ -48,3 +48,6 @@ class UnsuportedLibraryError(Exception):
         self.lib = lib
         self.message = "\'" + str(self.lib) + "\' is not a supported Machine Learning Library, check for typing errors."
         super().__init__(self.message)
+
+class DifferentModelSizeError(Exception):
+    pass
