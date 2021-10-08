@@ -85,8 +85,6 @@ class DqlTensorFlow(LearningModel):
 
         self.sess.run(self.optimizer, feed_dict={self.model_layers[0] : s, self.tf_qsa: qsa_values})
 
-        qsa_values = self.sess.run(self.model_layers[-1], feed_dict={self.model_layers[0]: s})
-
     def __maxq(self, state):
         values = self.sess.run(self.model_layers[-1], feed_dict={self.model_layers[0]: state})
 

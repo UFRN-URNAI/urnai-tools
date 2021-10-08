@@ -14,11 +14,15 @@ class NeuralNetworkFactory():
                 #importing this way is safer because it uses importlib
                 cls = get_cls("urnai.models.memory_representations.neural_network", "KerasDeepNeuralNetwork")
                 nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value, batch_size)
-            if lib == constants.Libraries.PYTORCH:
+            #elif shortens code execution
+            elif lib == constants.Libraries.PYTORCH:
                 #importing this way is safer because it uses importlib
                 cls = get_cls("urnai.models.memory_representations.neural_network", "PyTorchDeepNeuralNetwork")
                 nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value)
-            if lib == constants.Libraries.KERAS_E_TRACES:
+            elif lib == constants.Libraries.TENSORFLOW:
+                cls = get_cls("urnai.models.memory_representations.neural_network", "TensorflowDeepNeuralNetwork")
+                nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value, batch_size)
+            elif lib == constants.Libraries.KERAS_E_TRACES:
                 cls = get_cls("urnai.models.memory_representations.neural_network", "KerasDNNEligibilityTraces")
                 nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value, batch_size, lamb, True)
             return nn
