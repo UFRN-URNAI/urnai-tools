@@ -20,7 +20,7 @@ class NeuralNetworkFactory():
                 nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value)
             if lib == constants.Libraries.KERAS_E_TRACES:
                 cls = get_cls("urnai.models.memory_representations.neural_network", "KerasDNNEligibilityTraces")
-                nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value, batch_size, lamb)
+                nn = cls(action_size, state_size, build_model, gamma, learning_rate, seed_value, batch_size, lamb, True)
             return nn
         else:
             raise UnsuportedLibraryError(lib)

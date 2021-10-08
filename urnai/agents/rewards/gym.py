@@ -12,3 +12,12 @@ class FrozenlakeReward(RewardBuilder):
             return 1
         else:
             return -1000
+
+class FrozenlakeJiexunseeReward(RewardBuilder):
+    def get_reward(self, obs, reward, done):
+        if reward == 0:
+            reward = -0.01
+        if done:
+            if reward < 1:
+                reward = -1
+        return reward

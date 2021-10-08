@@ -1,3 +1,4 @@
+from tensorflow.python.framework.ops import eager_run
 from .abneuralnetwork import ABNeuralNetwork
 from .sequential_lambda import SequentialLambda
 from tensorflow.keras.models import Sequential
@@ -37,10 +38,10 @@ class KerasDeepNeuralNetwork(ABNeuralNetwork):
             Size of our learning batch to be passed to the Machine Learning library
     """
 
-    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32):     
+    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32, run_eagerly=False):     
         super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed, batch_size)
 
-        self.model.compile(optimizer=Adam(lr=self.alpha), loss='mse', metrics=['accuracy'])
+        self.model.compile(optimizer=Adam(lr=self.alpha), loss='mse', metrics=['accuracy'], run_eagerly=run_eagerly)
 
 
     def add_input_layer(self, idx):
@@ -161,10 +162,13 @@ class KerasDNNEligibilityTraces(KerasDeepNeuralNetwork):
         SequentialLambda implements the logic for updating and using a vector 
         of eligibility traces during training.
     """
-    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32, lamb=0.9):        
+    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed = None, batch_size=32, run_eagerly=True, lamb=0.9):        
         self.lamb = lamb
-        super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed, batch_size)
+        super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed, batch_size, run_eagerly)
 
     def create_base_model(self):
         model = SequentialLambda(self.gamma, self.lamb)
         return model
+
+    def reset_e_trace(self):
+        self.model.reset_e_trace()
