@@ -173,7 +173,7 @@ class PGKeras(LearningModel):
         model.predict returns an array of arrays, containing the Q-Values for the actions. 
         This function uses the action probabilities from our policy to randomly select an action
         '''
-        action_prob = self.predict_model.predict(state)
+        action_prob = self.predict_model(state).numpy()
         action_prob = action_prob[0]
         action = np.random.choice(np.arange(self.action_size), p=action_prob)
         return action

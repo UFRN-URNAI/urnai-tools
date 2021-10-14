@@ -44,13 +44,13 @@ def declare_trainer():
     helper.add_output_layer()
     print(helper.get_model_layout())
     
-    #dq_network = DoubleDeepQLearning(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), use_memory=True,
-    #                    gamma=0.99, learning_rate=0.001, memory_maxlen=100000, min_memory_size=32, lib="keras_e_traces",
-    #                    epsilon_decay=0.99999, epsilon_start=1.0, epsilon_min=0.005, epsilon_linear_decay=False, per_episode_epsilon_decay=False)
+    dq_network = DoubleDeepQLearning(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), use_memory=True,
+                       gamma=0.99, learning_rate=0.001, memory_maxlen=100000, min_memory_size=64, lib="keras",
+                       epsilon_decay=0.99999, epsilon_start=1.0, epsilon_min=0.005, epsilon_linear_decay=False, per_episode_epsilon_decay=False)
     
-    dq_network = DeepQLearningLambda(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(),
-                        lamb=0.9, gamma=0.99, learning_rate=0.001, memory_maxlen=128, min_memory_size=64, lib="keras_e_traces",
-                        epsilon_decay=0.99999, epsilon_start=1.0, epsilon_min=0.005, epsilon_linear_decay=False, per_episode_epsilon_decay=False)
+    # dq_network = DeepQLearningLambda(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(),
+    #                     lamb=0.9, gamma=0.99, learning_rate=0.001, memory_maxlen=128, min_memory_size=64, lib="keras_e_traces",
+    #                     epsilon_decay=0.99999, epsilon_start=1.0, epsilon_min=0.005, epsilon_linear_decay=False, per_episode_epsilon_decay=False)
 
     agent = SC2Agent(dq_network, KilledUnitsReward())
 
@@ -59,9 +59,9 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1500,
     #                 max_test_episodes=100, max_steps_testing=1500, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_e_traces1",
+    trainer = Trainer(env, agent, save_path='urnai/models/saved', file_name="terran_ddql_newpredict_customfit",
                     save_every=12, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=3, max_steps_training=800,
+                    max_training_episodes=4, max_steps_training=800,
                     max_test_episodes=1, max_steps_testing=100, rolling_avg_window_size=3)
     return trainer
 

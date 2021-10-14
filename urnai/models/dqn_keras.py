@@ -100,8 +100,8 @@ class DQNKeras(LearningModel):
             for state, action, reward, next_state, done in minibatch:
                 target = reward
                 if not done:
-                    target = (reward + self.gamma * np.amax(self.model.predict(next_state)[0]))
-                target_f = self.model.predict(state)
+                    target = (reward + self.gamma * np.amax(self.model(next_state).numpy()[0]))
+                target_f = self.model(state).numpy()
                 target_f[0][action] = target
                 self.model.fit(state, target_f, epochs=1, verbose=0, callbacks=self.tensorboard_callback)
         else:
@@ -110,8 +110,8 @@ class DQNKeras(LearningModel):
             i=0
 
             for state, action, reward, next_state, done in minibatch:
-                q_current_state = self.model.predict(state)[0]
-                q_next_state = self.model.predict(next_state)[0]
+                q_current_state = self.model(state).numpy()[0]
+                q_next_state = self.model(next_state).numpy()[0]
 
                 inputs[i] = state
                 targets[i] = q_current_state
@@ -130,8 +130,8 @@ class DQNKeras(LearningModel):
     def no_memory_learning(self, s, a, r, s_, done):
             target = r 
             if not done:
-                target = (r + self.gamma * np.amax(self.model.predict(s_)[0]))
-            target_f = self.model.predict(s)
+                target = (r + self.gamma * np.amax(self.model(s_).numpy()[0]))
+            target_f = self.model(s).numpy()
             target_f[0][a] = target
             self.model.fit(s, target_f, epochs=1, verbose=0, callbacks=self.tensorboard_callback)
 
@@ -166,7 +166,7 @@ class DQNKeras(LearningModel):
         model.predict returns an array of arrays, containing the Q-Values for the actions. This function should return the
         corresponding action with the highest Q-Value.
         '''
-        q_values = self.model.predict(state)[0]
+        q_values = self.model(state).numpy()[0]
         action_idx = int(np.argmax(q_values))
 
         while action_idx in excluded_actions:

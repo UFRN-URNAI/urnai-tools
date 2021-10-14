@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import random
 import os
+import time
 from datetime import datetime
 from collections import deque
 from tensorflow.keras.models import Sequential
@@ -64,13 +65,13 @@ class DDQNKeras(DQNKeras):
         # removing undesirable dimension created by np.array
         current_states = np.squeeze(current_states)
         # array of Q-Values for our initial states
-        current_qs_list = self.model.predict(current_states)
+        current_qs_list = self.model(current_states).numpy()
 
         # array of states after step from the minibatch
         next_current_states = np.array([transition[3] for transition in minibatch])
         next_current_states = np.squeeze(next_current_states)
         # array of Q-values for our next states
-        next_qs_list = self.target_model.predict(next_current_states)
+        next_qs_list = self.target_model(next_current_states).numpy()
 
         # inputs is going to be filled with all current states from the minibatch
         # targets is going to be filled with all of our outputs (Q-Values for each action)
@@ -115,10 +116,10 @@ class DDQNKeras(DQNKeras):
     def no_memory_learn(self, s, a, r, s_, done):
 
         # Q-Value for our initial states
-        current_qs = self.model.predict(s)
+        current_qs = self.model(s).numpy()
 
         # Q-value for our next states
-        next_qs_list = self.target_model.predict(s_)
+        next_qs_list = self.target_model(s_).numpy()
 
         # if this step is not the last, we calculate the new Q-Value based on the next_state
         if not done:

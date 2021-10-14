@@ -1,3 +1,4 @@
+from tensorflow import keras
 from tensorflow.python.framework.ops import eager_run
 from .abneuralnetwork import ABNeuralNetwork
 from .sequential_lambda import SequentialLambda
@@ -5,6 +6,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation, Input
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import backend as K
+
+import tensorflow as tf
+from tensorflow.python.keras.engine import data_adapter
+from tensorflow.python.eager import backprop
 
 class KerasDeepNeuralNetwork(ABNeuralNetwork):
     """
@@ -98,7 +103,8 @@ class KerasDeepNeuralNetwork(ABNeuralNetwork):
         loss = self.model.fit(state, target_output, batch_size=self.batch_size, shuffle=False, verbose=0)
 
     def get_output(self, state):
-        return self.model.predict(state)
+        #return self.model.predict(state)
+        return self.model(state).numpy()
 
     def set_seed(self, seed) -> None:  
         if seed != None:
