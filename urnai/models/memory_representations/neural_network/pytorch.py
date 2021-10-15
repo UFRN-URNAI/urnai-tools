@@ -95,7 +95,8 @@ class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
         if(str(self.device)=='cpu'):
             output = np.squeeze(action_values.cpu().data.numpy())
         else:
-            output = np.squeeze(action_values.cuda().data.numpy())
+            output = np.squeeze(action_values.cpu().data.numpy())
+            #output = np.squeeze(action_values.cuda().data.numpy())
         
         return output
 
