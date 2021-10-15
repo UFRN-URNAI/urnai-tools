@@ -162,8 +162,13 @@ class DQNPytorch(LearningModel):
         with torch.no_grad():
             action_values = self.model(state)
         self.model.train()
-
-        return np.argmax(action_values.cpu().data.numpy())
+        
+        if(str(device)=='cpu'):
+            return np.argmax(action_values.cpu().data.numpy())
+        else:
+            return np.argmax(action_values.cuda().data.numpy())
+        
+        
         
     def save_extra(self, persist_path):
         """
