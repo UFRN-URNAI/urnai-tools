@@ -92,7 +92,11 @@ class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
         # put the network back to training mode again
         self.model.train()
         # return the output
-        output = np.squeeze(action_values.cpu().data.numpy())
+        if(str(self.device)=='cpu'):
+            output = np.squeeze(action_values.cpu().data.numpy())
+        else:
+            output = np.squeeze(action_values.cuda().data.numpy())
+        
         return output
 
     def set_seed(self, seed):
