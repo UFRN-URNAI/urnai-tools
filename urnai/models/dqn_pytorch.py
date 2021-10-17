@@ -166,7 +166,8 @@ class DQNPytorch(LearningModel):
         if(str(device)=='cpu'):
             return np.argmax(action_values.cpu().data.numpy())
         else:
-            return np.argmax(action_values.cuda().data.numpy())
+            return torch.argmax(action_values.cuda()).item()
+            #return np.argmax(action_values.cuda().data.numpy())
         
         
         
