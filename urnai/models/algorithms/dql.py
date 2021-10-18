@@ -108,6 +108,7 @@ class DeepQLearning(LearningModel):
         else:
             self.dnn = NeuralNetworkFactory.get_nn_model(self.action_size, self.state_size, self.build_model, self.lib, self.gamma, self.learning_rate, self.seed_value, self.batch_size)
 
+        self.dnn.get_device()
         self.use_memory = use_memory
         if self.use_memory:
             self.memory = deque(maxlen=memory_maxlen)

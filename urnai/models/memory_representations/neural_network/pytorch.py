@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
-
+from urnai.utils.reporter import Reporter as rp
 class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
     """
     Implementation of a Generic Deep Neural Network using PyTorch
@@ -114,6 +114,8 @@ class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
     def copy_model_weights(self, model_to_copy):
         self.model.load_state_dict(model_to_copy.model.state_dict())
 
+    def get_device(self):
+        rp.report('DEVICE IN USE: '+str(self.device))
     class SubDeepQNetwork(nn.Module):
         def __init__(self):
             super().__init__()

@@ -4,7 +4,7 @@ from models.memory_representations.base.abmem import ABMemoryRepresentation
 from urnai.utils.error import IncoherentBuildModelError
 from urnai.utils.error import UnsupportedBuildModelLayerTypeError
 from models.model_builder import ModelBuilder
-
+from urnai.utils.reporter import Reporter as rp
 class ABNeuralNetwork(ABMemoryRepresentation):
     """
         Base Class for a Neural Network
@@ -72,6 +72,8 @@ class ABNeuralNetwork(ABMemoryRepresentation):
     @abstractmethod
     def copy_model_weights(self, model_to_copy) -> None:
         ...
+    def get_device(self):
+        rp.report("THIS CLASS DOES NOT YET SUPPORT RETURN THE DEVICE NAME.")
 
     def add_fully_connected_layer(self, idx):
         raise UnsupportedBuildModelLayerTypeError("Fully-connected layer is not supported by {}.".format(self.__class__.__name__))
