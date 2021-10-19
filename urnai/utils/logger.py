@@ -5,6 +5,7 @@ import pandas as pd
 import os
 from time import time
 import psutil
+import GPUtil
 
 from urnai.utils.reporter import Reporter as rp
 from urnai.base.savable import Savable 
@@ -98,11 +99,17 @@ class Logger(Savable):
         self.memory_avail_percent_inst = []
         self.memory_avail_gigs_inst = []
         self.cpu_usage_percent_inst = []
+        self.gpu_usage_percent_inst = []
+        self.gpu_memory_usage_percent_inst = []
+        self.gpu_memory_usage_gigs_inst = []
         self.memory_usage_percent_avg = []
         self.memory_usage_gigs_avg = []
         self.memory_avail_percent_avg = []
         self.memory_avail_gigs_avg = []
         self.cpu_usage_percent_avg = []
+        self.gpu_usage_percent_avg = []
+        self.gpu_memory_usage_percent_avg = []
+        self.gpu_memory_usage_gigs_avg = []
 
         #Training report
         self.training_report = ""
@@ -153,21 +160,32 @@ class Logger(Savable):
 
         #performance stuff
         memory_usage_percent = psutil.virtual_memory().percent
+        gpu_memory_usage_percent = GPUtil.getGPUs()[0].memoryUtil*100
         memory_avail_percent = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
         memory_usage_gigs = psutil.virtual_memory().used / 1024**3
+        gpu_memory_usage_gigs = GPUtil.getGPUs()[0].memoryUsed/1000
         memory_avail_gigs = psutil.virtual_memory().free / 1024**3
         cpu_usage_percent = psutil.cpu_percent()
+        gpu_usage_percent = GPUtil.getGPUs()[0].load*100
         self.memory_usage_percent_inst.append(memory_usage_percent)
+        self.gpu_memory_usage_percent_inst.append(gpu_memory_usage_percent)
         self.memory_usage_gigs_inst.append(memory_usage_gigs)
+        self.gpu_memory_usage_gigs_inst.append(gpu_memory_usage_gigs)
         self.memory_avail_percent_inst.append(memory_avail_percent)
         self.memory_avail_gigs_inst.append(memory_avail_gigs)
         self.cpu_usage_percent_inst.append(cpu_usage_percent)
+        self.gpu_usage_percent_inst.append(gpu_usage_percent)
+        
+
 
         self.memory_usage_percent_avg.append(sum(self.memory_usage_percent_inst)/self.ep_count)
+        self.gpu_memory_usage_percent_avg.append(sum(self.gpu_memory_usage_percent_inst)/self.ep_count)
         self.memory_usage_gigs_avg.append(sum(self.memory_usage_gigs_inst)/self.ep_count)
+        self.gpu_memory_usage_gigs_avg.append(sum(self.gpu_memory_usage_gigs_inst)/self.ep_count)
         self.memory_avail_percent_avg.append(sum(self.memory_avail_percent_inst)/self.ep_count)
         self.memory_avail_gigs_avg.append(sum(self.memory_avail_gigs_inst)/self.ep_count)
         self.cpu_usage_percent_avg.append(sum(self.cpu_usage_percent_inst)/self.ep_count)
+        self.gpu_usage_percent_avg.append(sum(self.gpu_usage_percent_inst)/self.ep_count)
 
         if ep_reward > self.best_reward:
             self.best_reward = ep_reward
@@ -454,36 +472,54 @@ class Logger(Savable):
                     "memory_usage_gigs_instant",
                     "memory_avail_percent_instant",
                     "memory_avail_gigs_instant",
+                    "gpu_memory_usage_percent_instant",
+                    "gpu_memory_usage_gigs_instant",
                     "cpu_usage_percent_instant",
+                    "gpu_usage_percent_instant",
                     "memory_usage_percent_average",
                     "memory_usage_gigs_average",
                     "memory_avail_percent_average",
                     "memory_avail_gigs_average",
+                    "gpu_memory_usage_percent_average",
+                    "gpu_memory_usage_gigs_average",
                     "cpu_usage_percent_average",
+                    "gpu_usage_percent_average"
                     ]
             lst_to_save = [ 
                     self.memory_usage_percent_inst,
                     self.memory_usage_gigs_inst,
                     self.memory_avail_percent_inst,
                     self.memory_avail_gigs_inst,
+                    self.gpu_memory_usage_percent_inst,
+                    self.gpu_memory_usage_gigs_inst,
                     self.cpu_usage_percent_inst,
+                    self.gpu_usage_percent_inst,
                     self.memory_usage_percent_avg,
                     self.memory_usage_gigs_avg,
                     self.memory_avail_percent_avg,
                     self.memory_avail_gigs_avg,
+                    self.gpu_memory_usage_percent_avg,
+                    self.gpu_memory_usage_gigs_avg,
                     self.cpu_usage_percent_avg,
+                    self.gpu_usage_percent_avg
             ]
             graph_titles = [
                     "Instant Memory Usage (%)",
                     "Instant Memory Usage (GB)",
                     "Instant Memory Available (%)",
                     "Instant Memory Available (GB)",
+                    "Instant GPU Memory Usage (%)",
+                    "Instant GPU Memory Usage (GB)",
                     "Instant CPU usage (%)",
+                    "Instant GPU usage (%)",
                     "Average Memory Usage (%)",
                     "Average Memory Usage (GB)",
                     "Average Memory Available (%)",
                     "Average Memory Available (GB)",
+                    "Average GPU Memory Usage (%)",
+                    "Average GPU Memory Usage (GB)",
                     "Average CPU usage (%)",
+                    "Average GPU usage (%)"
             ] 
             for i in range(len(fig_names)):
                 fig_name = fig_names[i]
