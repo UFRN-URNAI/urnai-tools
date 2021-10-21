@@ -160,13 +160,23 @@ class Logger(Savable):
 
         #performance stuff
         memory_usage_percent = psutil.virtual_memory().percent
-        gpu_memory_usage_percent = GPUtil.getGPUs()[0].memoryUtil*100
         memory_avail_percent = psutil.virtual_memory().available * 100 / psutil.virtual_memory().total
         memory_usage_gigs = psutil.virtual_memory().used / 1024**3
-        gpu_memory_usage_gigs = GPUtil.getGPUs()[0].memoryUsed/1000
         memory_avail_gigs = psutil.virtual_memory().free / 1024**3
         cpu_usage_percent = psutil.cpu_percent()
-        gpu_usage_percent = GPUtil.getGPUs()[0].load*100
+
+        #has GPU available
+        try:
+            gpu_memory_usage_percent = GPUtil.getGPUs()[0].memoryUtil*100
+            gpu_memory_usage_gigs = GPUtil.getGPUs()[0].memoryUsed/1000
+            gpu_usage_percent = GPUtil.getGPUs()[0].load*100
+            
+        except:
+            gpu_memory_usage_percent = 0
+            gpu_memory_usage_gigs = 0
+            gpu_usage_percent = 0
+
+
         self.memory_usage_percent_inst.append(memory_usage_percent)
         self.gpu_memory_usage_percent_inst.append(gpu_memory_usage_percent)
         self.memory_usage_gigs_inst.append(memory_usage_gigs)
