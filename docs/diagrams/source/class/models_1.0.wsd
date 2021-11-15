@@ -1,0 +1,95 @@
+@startuml
+scale 1
+
+' Classes
+
+class ABMemoryRepresentation {
+    +update(input, target_output)
+    +get_ouput(state)
+    +make_model()
+}
+
+class ABNeuralNetwork {
+    +create_base_model()
+    +add_input_layer()
+    +add_output_layer()
+    +add_fully_connected_layer()
+}
+
+class AnyOtherMemRep {}
+
+class KerasDeepNeuralNetwork {
+    +create_base_model()
+    +add_input_layer()
+    +add_output_layer()
+    +add_fully_connected_layer()
+}
+
+class PyTorchDeepNeuralNetwork {
+    +create_base_model()
+    +add_input_layer()
+    +add_output_layer()
+    +add_fully_connected_layer()
+}
+
+class TensorFlowDeepNeuralNetwork {
+    +create_base_model()
+    +add_input_layer()
+    +add_output_layer()
+    +add_fully_connected_layer()
+}
+
+class MyCustomKerasNN {}
+
+class LearningModel {
+    +learn()
+    +choose_action()
+    +predict()
+}
+
+class DeepQLearning {
+    +learn()
+    +choose_action()
+    +predict()
+    +memorize()
+}
+
+class DoubleDeepQLearning {
+    +learn()
+    +choose_action()
+    +predict()
+    +memorize()
+}
+
+' Notes
+
+note "Base Class for a Memory Representation.\nCould be a Neural Network, a table or any\nother possible representation." as N1
+
+note "Base Class for a Neural Network. Will have\nabstract methods for adding input, output,\ndense layers, etc. Also a generic method for\nbuilding itself." as N2
+
+note "Implementation of a Neural Network\narchitecture using Keras or any other ML\nLibrary. This will implement all abstract\nmethods defined in the above classes, such\nas learn, predict, add layer, etc.\n\nCan dynamically construct different NN\narchitectures based on a python dict." as N3
+
+note "Our Algorithms will inherit from Learning Model like before,\nbut now they are able to easily switch the\nbackend ML library to be one of our\nbase NN classes or use a new custom class\naltogether." as N4
+
+
+' Relations
+
+ABMemoryRepresentation <|-- ABNeuralNetwork
+ABMemoryRepresentation <|-- AnyOtherMemRep
+
+ABNeuralNetwork <|-- KerasDeepNeuralNetwork
+ABNeuralNetwork <|-- PyTorchDeepNeuralNetwork
+ABNeuralNetwork <|-- TensorFlowDeepNeuralNetwork
+KerasDeepNeuralNetwork <|-- MyCustomKerasNN
+
+LearningModel <|-- DeepQLearning
+LearningModel <|-- DoubleDeepQLearning
+
+ABNeuralNetwork <.. LearningModel
+
+N1 -- ABMemoryRepresentation
+N2 -down- ABNeuralNetwork
+N3 -right- KerasDeepNeuralNetwork
+N4 -up- DeepQLearning
+
+@enduml
