@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+message: "If you use this library, please cite it using these metadata."
+type: software
+authors:
+- family-names: "Silva Araújo"
+  given-names: "Marco Antônio"
+- family-names: "de Carvalho Alves"
+  given-names: "Luiz Paulo"
+- family-names: "Andrye Galvão Madeira"
+  given-names: "Charles"
+- family-names: "Martins Nóbrega"
+  given-names: "Marcos"
+title: "URNAI Tools is a modular Deep Reinforcement Learning (DRL) toolkit that supports multiple environments"
+version: 1.0.0
+doi: 10.1109/SBGames51465.2020.00032
+date-released: 2020-12-25
+url: "https://github.com/UFRN-URNAI/urnai-tools"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Silva Araújo"
+    given-names: "Marco Antônio"
+  - family-names: "de Carvalho Alves"
+    given-names: "Luiz Paulo"
+  - family-names: "Andrye Galvão Madeira"
+    given-names: "Charles"
+  - family-names: "Martins Nóbrega"
+    given-names: "Marcos"
+  doi: "10.1109/SBGames51465.2020.00032"
+  journal: "2020 19th Brazilian Symposium on Computer Games and Digital Entertainment (SBGames)"
+  publisher: "IEEE"
+  month: 11
+  year: 2020
+  start: 178 # First page number
+  end: 187 # Last page number
+  title: "URNAI: A Multi-Game Toolkit for Experimenting Deep Reinforcement Learning Algorithms"
+  keywords:
+    - "game environment"
+    - "toolkit"
+    - "deep reinforcement learning"
+    - "experimentation setup"
+  repository-code: "https://github.com/UFRN-URNAI/urnai-tools"
