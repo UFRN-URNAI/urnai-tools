@@ -23,8 +23,9 @@ class Logger(Savable):
                  is_episodic=True, render=True, generate_bar_graphs_every=100, log_actions=True,
                  episode_batch_avg_calculation=10, rolling_avg_window_size=20,
                  graph_size_in_inches_width=12.8,
-                 graph_size_in_inches_height=4.8):
-        super().__init__()
+                 graph_size_in_inches_height=4.8,
+                 threaded_saving=False):
+        super().__init__(threaded_saving=threaded_saving)
         # Adding rolling avg size to pickle black list to allow us to regenerate graphs with different rolling window sizes
         self.pickle_black_list.append("rolling_avg_window_size")
         

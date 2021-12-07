@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: tensorflow/tensorflow:2.2.0-gpu
+%help
+    This is a Singularity Recipe to build an URNAI capable Singularity Container.
+
+%labels
+    Maintainer marcocspc
+    Version 0.2
+
+%post
+    sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+    sed -i -e 's/archive.ubuntu.com/br.archive.ubuntu.com/g' /etc/apt/sources.list
+    sed -i -e 's/security.ubuntu.com/br.security.ubuntu.com/g' /etc/apt/sources.list
+    sed -i -e '/archive.canonical.com/d' /etc/apt/sources.list
+    DEBIAN_FRONTEND=noninteractive apt-get clean && apt-get update && apt-get install -y locales
+    locale
+    DEBIAN_FRONTEND=noninteractive locale-gen "en_US.UTF-8"
+    DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
+    DEBIAN_FRONTEND=noninteractive apt-get install wget git python3 python3-pip build-essential zlib1g-dev libsdl2-dev libjpeg-dev nasm tar libbz2-dev libgtk2.0-dev cmake git libfluidsynth-dev libgme-dev libopenal-dev timidity libwildmidi-dev unzip build-essential zlib1g-dev libsdl2-dev libjpeg-dev nasm tar libbz2-dev libgtk2.0-dev cmake git libfluidsynth-dev libgme-dev libopenal-dev timidity libwildmidi-dev unzip libboost-all-dev -y 
+    pip3 install numpy
+    DEBIAN_FRONTEND=noninteractive apt-get build-dep python-pygame -y
+    export TMPDIR=$HOME/tmp
+    mkdir -p $TMPDIR
+    cd / && URNAI_TF_CPU=1 pip3 install git+https://github.com/UFRN-URNAI/urnai-tools@master
+    rm -rf $TMPDIR
+
+%environment
+    SDL_VIDEODRIVER=dummy
+    LANG=en_US.UTF-8
+    LC_ALL=en_US.UTF-8
+    PYTHONIOENCODING=utf8
+    export SDL_VIDEODRIVER LANG PYTHONIOENCODING LC_ALL
+

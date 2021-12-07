@@ -3,6 +3,7 @@ import pickle
 import tempfile
 from abc import ABC, abstractmethod
 from urnai.utils.reporter import Reporter as rp
+from multiprocessing import Process
 
 class SavableAttr:
     def __init__(self, value):
@@ -15,7 +16,8 @@ class Savable(ABC):
     The heir class should define a constant or attribute as a default filename to save on disk.
     '''
 
-    def __init__(self):
+    def __init__(self, threaded_saving=False):
+        self.threaded_saving = threaded_saving
         self.pickle_black_list = []
 
     def get_default_save_stamp(self):
@@ -98,8 +100,20 @@ class Savable(ABC):
         and extra stuff needed
         '''
         rp.report("Saving {} object...".format(self.__class__.__name__), verbosity_lvl=1)
-        self.save_pickle(savepath)
+        if self.threaded_saving:
+            self.save_pickle(savepath)
+        else:
+            self.threaded_pickle_save(savepath)
+
         self.save_extra(savepath)
+
+    def threaded_pickle_save(self, savepath):
+        '''
+        This method saves pickle
+        stuff in a separate thread
+        '''
+        p = Process(target=self.save_pickle, args=(savepath,))
+        p.start()
 
     def load(self, loadpath):
         '''

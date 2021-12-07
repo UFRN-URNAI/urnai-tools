@@ -112,3 +112,4 @@ _vizdoom.ini
 *.json
 tmp/
 *.yml
+*.sif

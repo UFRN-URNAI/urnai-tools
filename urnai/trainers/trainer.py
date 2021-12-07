@@ -26,8 +26,9 @@ class TestParams():
 class Trainer(Savable):
     ## TODO: Add an option to play every x episodes, instead of just training non-stop
 
-    def __init__(self, env, agent, max_training_episodes, max_test_episodes, max_steps_training, max_steps_testing, save_path=os.path.expanduser("~") + os.path.sep + "urnai_saved_traingings", file_name=str(datetime.now()).replace(" ","_").replace(":","_").replace(".","_"), enable_save=True, save_every=10, relative_path=False, debug_level=0, reset_epsilon=False, tensorboard_logging=False, log_actions=True, episode_batch_avg_calculation=10, do_reward_test=False, reward_test_number_of_episodes=10, rolling_avg_window_size=20):
+    def __init__(self, env, agent, max_training_episodes, max_test_episodes, max_steps_training, max_steps_testing, save_path=os.path.expanduser("~") + os.path.sep + "urnai_saved_traingings", file_name=str(datetime.now()).replace(" ","_").replace(":","_").replace(".","_"), enable_save=True, save_every=10, relative_path=False, debug_level=0, reset_epsilon=False, tensorboard_logging=False, log_actions=True, episode_batch_avg_calculation=10, do_reward_test=False, reward_test_number_of_episodes=10, rolling_avg_window_size=20, threaded_logger_save=False):
         super().__init__()
+        self.threaded_logger_save = threaded_logger_save
         self.pickle_black_list = None 
         self.prepare_black_list()
         self.setup(env, agent, max_training_episodes, max_test_episodes, max_steps_training, max_steps_testing, save_path, file_name, enable_save, save_every, relative_path, debug_level, reset_epsilon, tensorboard_logging, log_actions, episode_batch_avg_calculation=episode_batch_avg_calculation, do_reward_test=do_reward_test, reward_test_number_of_episodes=reward_test_number_of_episodes, rolling_avg_window_size=rolling_avg_window_size)
@@ -60,7 +61,7 @@ class Trainer(Savable):
         self.rolling_avg_window_size = rolling_avg_window_size
         self.inside_training_test_loggers = []
 
-        self.logger = Logger(0, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size) 
+        self.logger = Logger(0, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size, threaded_saving=self.threaded_logger_save) 
 
         # Adding epsilon, learning rate and gamma factors to our pickle black list, 
         # so that they are not loaded when loading the model's weights.
@@ -134,7 +135,7 @@ class Trainer(Savable):
 
         rp.report("> Training")
         if self.logger.ep_count == 0:
-            self.logger = Logger(self.max_training_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size) 
+            self.logger = Logger(self.max_training_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size, threaded_saving=self.threaded_logger_save) 
 
         if test_params != None:
             test_params.logger = self.logger
@@ -261,7 +262,7 @@ class Trainer(Savable):
     def old_play(self, test_params=None, reward_from_agent = True):
         rp.report("\n\n> Playing")
 
-        self.logger = Logger(self.max_test_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size) 
+        self.logger = Logger(self.max_test_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size, threaded_saving=self.threaded_logger_save) 
 
         while self.curr_playing_episodes < self.max_test_episodes:
             self.curr_playing_episodes += 1
@@ -345,7 +346,7 @@ class Trainer(Savable):
             current_episodes = self.curr_training_episodes
         
         if self.logger.ep_count == 0 or is_testing:
-            self.logger = Logger(max_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size) 
+            self.logger = Logger(max_episodes, self.agent.__class__.__name__, self.agent.model.__class__.__name__, self.agent.model, self.agent.action_wrapper.__class__.__name__, self.agent.action_wrapper.get_action_space_dim(), self.agent.action_wrapper.get_named_actions(), self.agent.state_builder.__class__.__name__, self.agent.reward_builder.__class__.__name__, self.env.__class__.__name__, log_actions=self.log_actions, episode_batch_avg_calculation=self.episode_batch_avg_calculation, rolling_avg_window_size=self.rolling_avg_window_size, threaded_saving=self.threaded_logger_save) 
         
 
         while current_episodes < max_episodes:
