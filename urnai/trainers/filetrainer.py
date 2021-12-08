@@ -32,10 +32,12 @@ class FileTrainer(Trainer):
         self.reward_test_number_of_episodes = None
         self.inside_training_test_loggers = None
         self.rolling_avg_window_size = None
-
+        self.threaded_logger_save = None
         self.pickle_black_list = None
+        self.threaded_saving = False
         self.prepare_black_list()
         self.trainings = []
+
         if is_json_file(file_path):
             self.load_json_file(file_path)
         elif is_csv_file(file_path):

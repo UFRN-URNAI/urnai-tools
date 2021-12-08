@@ -82,6 +82,7 @@ setup(
         'pysc2' + VERSION_PYSC2,
         'pandas' + VERSION_PANDAS,
         'psutil' + VERSION_PSUTIL,
+        'GPUtil',
         ] + dep_list,
     dependency_links=dep_links,
     entry_points = {

@@ -1,9 +1,11 @@
 import os
 import pickle
 import tempfile
+import time
 from abc import ABC, abstractmethod
 from urnai.utils.reporter import Reporter as rp
 from multiprocessing import Process
+import copy
 
 class SavableAttr:
     def __init__(self, value):
@@ -100,18 +102,22 @@ class Savable(ABC):
         and extra stuff needed
         '''
         rp.report("Saving {} object...".format(self.__class__.__name__), verbosity_lvl=1)
-        if self.threaded_saving:
+        start_time = time.time()
+        if not self.threaded_saving:
             self.save_pickle(savepath)
         else:
             self.threaded_pickle_save(savepath)
 
         self.save_extra(savepath)
+        end_time = time.time()
+        rp.report("It took {} seconds to save {} object!".format(end_time - start_time, self.__class__.__name__), verbosity_lvl=2)
 
     def threaded_pickle_save(self, savepath):
         '''
         This method saves pickle
         stuff in a separate thread
         '''
+        rp.report("THREADED Saving {} object...".format(self.__class__.__name__), verbosity_lvl=1)
         p = Process(target=self.save_pickle, args=(savepath,))
         p.start()
 

@@ -9,6 +9,7 @@ from urnai.base.savable import Savable
 class Agent(Savable):
     
     def __init__(self, model: LearningModel, reward_builder: RewardBuilder):
+        super().__init__()
         self.model = model
         self.action_wrapper = model.action_wrapper
         self.state_builder = model.state_builder
