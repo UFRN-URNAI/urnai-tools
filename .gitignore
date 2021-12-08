@@ -113,3 +113,6 @@ _vizdoom.ini
 tmp/
 *.yml
 *.sif
+
+# Adds
+.idea/
