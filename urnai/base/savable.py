@@ -114,7 +114,7 @@ class Savable(ABC):
 
     def threaded_pickle_save(self, savepath):
         '''
-        This method saves pickle
+        This method saves pickleable
         stuff in a separate thread
         '''
         rp.report("THREADED Saving {} object...".format(self.__class__.__name__), verbosity_lvl=1)
