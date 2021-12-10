@@ -6,6 +6,7 @@ import os
 from time import time
 import psutil
 import GPUtil
+from multiprocessing import Process
 
 from urnai.utils.reporter import Reporter as rp
 from urnai.base.savable import Savable 
@@ -358,6 +359,18 @@ class Logger(Savable):
         return self.__plot_bar(self.play_ep_count, [self.play_rewards_avg], ['Play'], 'Episode', 'Reward avg.', 'Reward avg. over play testing')
 
     def save_extra(self, persist_path):
+        if not self.threaded_saving:
+            self.unthreaded_save_extra(persist_path)
+        else:
+            self.threaded_save_extra(persist_path)
+
+    def threaded_save_extra(self, persist_path):
+        rp.report("THREADED Saving extra Logger object...".format(self.__class__.__name__), verbosity_lvl=1)
+        p = Process(target=self.unthreaded_save_extra, args=(persist_path,))
+        p.start()
+
+
+    def unthreaded_save_extra(self, persist_path):
         if self.avg_reward_graph is None or self.avg_steps_graph is None or self.inst_reward_graph is None:
             self.render = False
 

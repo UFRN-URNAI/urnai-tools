@@ -142,7 +142,7 @@ class DqlTensorFlow(LearningModel):
         #If yes, load it
         if exists:
             self.saver.restore(self.sess, self.get_full_persistance_tensorflow_path(persist_path))
-            self.set_seeds()
+            self.set_seed()
 
     def make_model(self):
         #These are already inside make_model(), commenting out
@@ -189,3 +189,4 @@ class DqlTensorFlow(LearningModel):
 
     def memorize(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
+

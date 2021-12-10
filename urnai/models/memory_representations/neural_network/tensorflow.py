@@ -1,7 +1,7 @@
 from urnai.utils.error import DifferentModelSizeError
 from .abneuralnetwork import ABNeuralNetwork
 import tensorflow as tf
-from tf.python.framework import ops
+from tensorflow.python.framework import ops
 from tensorflow.compat.v1 import Session,ConfigProto,placeholder,layers,train,global_variables_initializer
 import os
 
@@ -63,8 +63,8 @@ class TensorflowDeepNeuralNetwork(ABNeuralNetwork):
 
     def add_fully_connected_layer(self, idx):
         layer_model = self.build_model[idx]
-        self.model_layers.append(
-                layers.dense(inputs=self.model_layers[-1], 
+        self.model.append(
+                layers.dense(inputs=self.model[-1], 
                 units=layer_model['nodes'], 
                 activation=tf.nn.relu, name=layer_model['name'])
                 )
@@ -95,7 +95,7 @@ class TensorflowDeepNeuralNetwork(ABNeuralNetwork):
         if exists:
             self.saver.restore(self.sess, self.get_full_persistance_tensorflow_path(persist_path))
             #is this needed?
-            #self.set_seeds()
+            self.set_seeds()
     
     def copy_model_weights(self, model_to_copy):
         #need to test
@@ -104,3 +104,8 @@ class TensorflowDeepNeuralNetwork(ABNeuralNetwork):
                 self.model[i].set_weights(model_to_copy[i].get_weights())
         else:
             raise DifferentModelSizeError("Model to copy has a different number of layers compared to target model.")
+
+    def set_seed(self, seed) -> None:  
+        if seed != None:
+            tf.random.set_seed(seed)
+        return seed
