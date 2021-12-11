@@ -2,9 +2,8 @@
 
 ## Function get_sc2_env()
 
-* Arguments: map_name
+- Arguments: map_name
 
 ## Function extract_specs()
 
-* Arguments: map_name
-
+- Arguments: map_name

@@ -2,27 +2,26 @@
 
 ## Class DeepRTSRunner
 
-## Method __init__()
+### Method __init__()
 
-* Arguments: parser, args
+- Arguments: parser, args
 
-## Method run()
+### Method run()
 
-* No Arguments.
+- No Arguments.
 
 ## Class TrainerRunner
 
-## Method __init__()
+### Method __init__()
 
-* Arguments: parser, args
+- Arguments: parser, args
 
-## Method run()
+### Method run()
 
-* No Arguments.
+- No Arguments.
 
 ## Class SC2Runner
 
-## Method run()
+### Method run()
 
-* No Arguments.
-
+- No Arguments.

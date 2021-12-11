@@ -4,5 +4,4 @@
 
 ## Method get_reward()
 
-* Arguments: obs, reward, done
-
+- Arguments: obs, reward, done

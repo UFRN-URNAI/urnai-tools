@@ -2,33 +2,32 @@
 
 ## Class DefeatEnemiesDeepRTSActionWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method solve_action()
+### Method solve_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method get_army_mean()
+### Method get_army_mean()
 
-* Arguments: player, obs
+- Arguments: player, obs
 
-## Method run_()
+### Method run_()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Class DefeatEnemiesStarcraftIIActionWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method solve_action()
+### Method solve_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method run_()
+### Method run_()
 
-* Arguments: obs
-
+- Arguments: obs

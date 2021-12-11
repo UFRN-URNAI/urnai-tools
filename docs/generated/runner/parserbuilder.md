@@ -4,9 +4,8 @@
 
 ## Method DefaultParser()
 
-* No Arguments.
+- No Arguments.
 
 ## Method check_unique_entries()
 
-* Arguments: lst
-
+- Arguments: lst

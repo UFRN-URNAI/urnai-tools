@@ -2,27 +2,22 @@
 
 ## Class VizDoomDefaultReward
 
-## Method get_reward()
+### Method get_reward()
 
-* Arguments: obs, reward, done
+- Arguments: obs, reward, done
 
 ## Class VizDoomHealthGatheringReward
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method __init__()
+### Method get_reward()
 
-* Arguments: method
-
-## Method get_reward()
-
-* Arguments: obs, reward, done
+- Arguments: obs, reward, done
 
 ## Class VizDoom2CustomReward
 
-## Method get_reward()
+### Method get_reward()
 
-* Arguments: obs, reward, done
-
+- Arguments: obs, reward, done

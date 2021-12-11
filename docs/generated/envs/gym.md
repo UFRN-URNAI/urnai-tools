@@ -4,29 +4,28 @@
 
 ## Method __init__()
 
-* Arguments: id, render, reset_done, num_steps
+- Arguments: id, render, reset_done, num_steps
 
 ## Method start()
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
-* Arguments: action
+- Arguments: action
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method close()
 
-* No Arguments.
+- No Arguments.
 
 ## Method restart()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_action_wrapper()
 
-* No Arguments.
-
+- No Arguments.

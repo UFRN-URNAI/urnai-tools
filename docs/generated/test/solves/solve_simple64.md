@@ -2,5 +2,4 @@
 
 ## Function main()
 
-* Arguments: unused_argv
-
+- Arguments: unused_argv

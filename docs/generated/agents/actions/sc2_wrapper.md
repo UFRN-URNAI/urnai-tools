@@ -2,81 +2,80 @@
 
 ## Class SC2Wrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method is_action_done()
+### Method is_action_done()
 
-* No Arguments.
+- No Arguments.
 
-## Method reset()
+### Method reset()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_actions()
+### Method get_actions()
 
-* No Arguments.
+- No Arguments.
 
-## Method split_action()
+### Method split_action()
 
 Breaks out (x, y) coordinates from a named action, if there are any.
 
-* Arguments: smart_action
+- Arguments: smart_action
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
 ## Class TerranWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
 ## Class SimpleTerranWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Class ProtossWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
 ## Class ZergWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
-
+- Arguments: action_idx, obs

@@ -2,5 +2,4 @@
 
 ## Function set_collectable_list()
 
-* Arguments: width, height
-
+- Arguments: width, height

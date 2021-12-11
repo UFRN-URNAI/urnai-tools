@@ -4,13 +4,12 @@
 
 ## Method __init__()
 
-* Arguments: model, reward_builder
+- Arguments: model, reward_builder
 
 ## Method step()
 
-* Arguments: obs, obs_reward, done
+- Arguments: obs, obs_reward, done
 
 ## Method play()
 
-* Arguments: obs
-
+- Arguments: obs
