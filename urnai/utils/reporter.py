@@ -1,6 +1,7 @@
 import os
 import pickle
 from datetime import datetime
+import multiprocessing
 
 class Reporter():
 
@@ -23,7 +24,7 @@ class Reporter():
 
     @staticmethod
     def report(message, verbosity_lvl = 0, end = "\n"):
-        date = "[URNAI REPORT AT " + str(datetime.now()) + "] "
+        date = "[ (THREAD {}) URNAI REPORT AT {} ] ".format(multiprocessing.current_process().name, str(datetime.now()))
         if not type(message) == str:
             message = str(message)
         message = date + message

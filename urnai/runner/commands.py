@@ -87,6 +87,7 @@ class TrainerRunner(Runner):
             {'command': '--convert', 'help': 'Training file to convert. Must be used with --output-format option.', 'action' : 'store'},
             {'command': '--output-format', 'help': 'Converted file format . Must be used with --convert option. Accepted values are \'CSV\' and \'JSON\'.', 'action' : 'store'},
             {'command': '--play', 'help': 'Test agent, without training it, it will ignore train entry on json file.', 'action' : 'store_true'},
+            {'command': '--threaded', 'help': 'If there is more than one training in the file, it will be executed in a separated thread.', 'action' : 'store_true'},
             ]
 
     def __init__(self, parser, args):
@@ -103,10 +104,7 @@ class TrainerRunner(Runner):
                 arg = "--{}".format(arg.replace("_", "-"))
                 if arg in sys.argv: sys.argv.remove(arg)
 
-            if self.args.play:
-                trainer.start_training(play_only=True)
-            else:
-                trainer.start_training()
+            trainer.start_training(play_only=self.args.play, threaded_training=self.args.threaded)
         #TODO
         #elif self.args.build_training_file:
         elif self.args.convert is not None:

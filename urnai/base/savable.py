@@ -69,7 +69,7 @@ class Savable(ABC):
                 with open(pickle_path, "rb") as pickle_in: 
                     pickle_dict = pickle.load(pickle_in)
                     self.restore_pickleable_attributes(pickle_dict)
-                    rp.report("**************************************** \n Pickle for " + self.get_default_save_stamp() + " loaded. \n****************************************", 1)
+                    rp.report("**************************************** \n Loaded pickle for " + self.get_default_save_stamp() + " loaded. \n****************************************", 2)
 
     def load_extra(self, persist_path):
         '''

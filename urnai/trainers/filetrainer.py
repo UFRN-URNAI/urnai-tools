@@ -6,6 +6,7 @@ import inspect
 import json, csv
 import os
 import pandas as pd
+from multiprocessing import Process
 
 class FileTrainer(Trainer):
 
@@ -45,53 +46,62 @@ class FileTrainer(Trainer):
         else:
             raise FileFormatNotSupportedError("FileTrainer only supports JSON and CSV formats.")
 
-    def start_training(self, play_only=False, setup_only=False):
-        scenario = False
+    def start_training(self, play_only=False, setup_only=False, threaded_training=False):
         self.check_trainings()
         for training in self.trainings:
-            try:
-                env_cls = get_cls("urnai.envs", training["env"]["class"])
-                self.remove_nonused_class_attrs(env_cls, training["env"]["params"])
-                env = env_cls(**training["env"]["params"]) 
-            except ClassNotFoundError as cnfe:
-                if "was not found in urnai.envs" in str(cnfe):
-                    env_cls = get_cls("urnai.scenarios", training["env"]["class"])
-                    self.remove_nonused_class_attrs(env_cls, training["env"]["params"])
-                    env = env_cls(**training["env"]["params"])
-                    scenario = True
-
-            if not scenario:
-                action_wrapper_cls = get_cls("urnai.agents.actions", training["action_wrapper"]["class"])
-                self.remove_nonused_class_attrs(action_wrapper_cls, training["action_wrapper"]["params"])
-                action_wrapper = action_wrapper_cls(**training["action_wrapper"]["params"])
-
-                state_builder_cls = get_cls("urnai.agents.states", training["state_builder"]["class"])
-                self.remove_nonused_class_attrs(state_builder_cls, training["state_builder"]["params"])
-                state_builder = state_builder_cls(**training["state_builder"]["params"])
-
-                reward_cls = get_cls("urnai.agents.rewards", training["reward"]["class"])
-                self.remove_nonused_class_attrs(reward_cls, training["reward"]["params"])
-                reward = reward_cls(**training["reward"]["params"])
+            if threaded_training:
+                p = Process(target=self.process_training, args=(training, setup_only, play_only,))
+                p.start()
             else:
-                action_wrapper = env.get_default_action_wrapper() 
-                state_builder = env.get_default_state_builder() 
-                reward = env.get_default_reward_builder() 
+                self.process_training(training, setup_only, play_only)
 
-            model_cls = get_cls("urnai.models", training["model"]["class"])
-            self.remove_nonused_class_attrs(model_cls, training["model"]["params"])
-            model = model_cls(action_wrapper=action_wrapper, state_builder=state_builder, **training["model"]["params"])
 
-            agent_cls = get_cls("urnai.agents", training["agent"]["class"])
-            self.remove_nonused_class_attrs(agent_cls, training["agent"]["params"])
-            agent = agent_cls(model, reward, **training["agent"]["params"])
 
-            self.setup(env, agent, **training["trainer"]["params"])
+    def process_training(self, training_dict, setup_only, play_only):
+        scenario = False
+        try:
+            env_cls = get_cls("urnai.envs", training_dict["env"]["class"])
+            self.remove_nonused_class_attrs(env_cls, training_dict["env"]["params"])
+            env = env_cls(**training_dict["env"]["params"]) 
+        except ClassNotFoundError as cnfe:
+            if "was not found in urnai.envs" in str(cnfe):
+                env_cls = get_cls("urnai.scenarios", training_dict["env"]["class"])
+                self.remove_nonused_class_attrs(env_cls, training_dict["env"]["params"])
+                env = env_cls(**training_dict["env"]["params"])
+                scenario = True
 
-            if not setup_only:
-                if not play_only:
-                    self.train()
+        if not scenario:
+            action_wrapper_cls = get_cls("urnai.agents.actions", training_dict["action_wrapper"]["class"])
+            self.remove_nonused_class_attrs(action_wrapper_cls, training_dict["action_wrapper"]["params"])
+            action_wrapper = action_wrapper_cls(**training_dict["action_wrapper"]["params"])
 
-                self.play()
+            state_builder_cls = get_cls("urnai.agents.states", training_dict["state_builder"]["class"])
+            self.remove_nonused_class_attrs(state_builder_cls, training_dict["state_builder"]["params"])
+            state_builder = state_builder_cls(**training_dict["state_builder"]["params"])
+
+            reward_cls = get_cls("urnai.agents.rewards", training_dict["reward"]["class"])
+            self.remove_nonused_class_attrs(reward_cls, training_dict["reward"]["params"])
+            reward = reward_cls(**training_dict["reward"]["params"])
+        else:
+            action_wrapper = env.get_default_action_wrapper() 
+            state_builder = env.get_default_state_builder() 
+            reward = env.get_default_reward_builder() 
+
+        model_cls = get_cls("urnai.models", training_dict["model"]["class"])
+        self.remove_nonused_class_attrs(model_cls, training_dict["model"]["params"])
+        model = model_cls(action_wrapper=action_wrapper, state_builder=state_builder, **training_dict["model"]["params"])
+
+        agent_cls = get_cls("urnai.agents", training_dict["agent"]["class"])
+        self.remove_nonused_class_attrs(agent_cls, training_dict["agent"]["params"])
+        agent = agent_cls(model, reward, **training_dict["agent"]["params"])
+
+        self.setup(env, agent, **training_dict["trainer"]["params"])
+
+        if not setup_only:
+            if not play_only:
+                self.train()
+
+            self.play()
 
     def check_trainings(self):
         for training in self.trainings:
