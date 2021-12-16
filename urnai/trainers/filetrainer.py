@@ -1,12 +1,13 @@
 from urnai.utils.module_specialist import get_cls
 from urnai.utils.error import ClassNotFoundError, FileFormatNotSupportedError
-from urnai.utils.file_util import is_json_file, is_csv_file 
+from urnai.utils.file_util import is_json_file, is_csv_file, is_yaml_file 
 from .trainer import Trainer
 import inspect
 import json, csv
 import os
 import pandas as pd
 from multiprocessing import Process
+import yaml
 
 class FileTrainer(Trainer):
 
@@ -43,8 +44,10 @@ class FileTrainer(Trainer):
             self.load_json_file(file_path)
         elif is_csv_file(file_path):
             self.load_csv_file(file_path)
+        elif is_yaml_file(file_path):
+            self.load_yaml_file(file_path)
         else:
-            raise FileFormatNotSupportedError("FileTrainer only supports JSON and CSV formats.")
+            raise FileFormatNotSupportedError("FileTrainer only supports JSON, YAML and CSV formats.")
 
     def start_training(self, play_only=False, setup_only=False, threaded_training=False):
         self.check_trainings()
@@ -128,6 +131,10 @@ class FileTrainer(Trainer):
         df = pd.read_csv(csv_file_path)  
         self.trainings = self.df_to_formatted_json(df)
 
+    def load_yaml_file(self, yaml_file_path):
+        with open(yaml_file_path, "r") as yaml_file:
+            self.trainings = yaml.safe_load(yaml_file)
+
     def save_trainings_as_csv(self, path):
         df = pd.json_normalize(self.trainings) 
         df.to_csv(path, index=False)
@@ -135,6 +142,10 @@ class FileTrainer(Trainer):
     def save_trainings_as_json(self, path):
         with open(path, "w+") as out_file:
             out_file.write(json.dumps(self.trainings, indent=4))
+
+    def save_trainings_as_yaml(self, path):
+        with open(path, "w+") as out_file:
+            out_file.write(yaml.dump(self.trainings, default_flow_style=False))
 
     def save_extra(self, save_path):
         super().save_extra(save_path)

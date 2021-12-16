@@ -85,7 +85,7 @@ class TrainerRunner(Runner):
             {'command': '--train-file', 'help': 'JSON or CSV solve file, with all the parameters to start the training.', 'type' : str, 'metavar' : 'TRAIN_FILE_PATH', 'action' : 'store'},
 #TODO            {'command': '--build-training-file', 'help': 'Helper to build a solve json-file.', 'action' : 'store_true'},
             {'command': '--convert', 'help': 'Training file to convert. Must be used with --output-format option.', 'action' : 'store'},
-            {'command': '--output-format', 'help': 'Converted file format . Must be used with --convert option. Accepted values are \'CSV\' and \'JSON\'.', 'action' : 'store'},
+            {'command': '--output-format', 'help': 'Converted file format . Must be used with --convert option. Accepted values are \'CSV\', \'YAML\' and \'JSON\'.', 'action' : 'store'},
             {'command': '--play', 'help': 'Test agent, without training it, it will ignore train entry on json file.', 'action' : 'store_true'},
             {'command': '--threaded', 'help': 'If there is more than one training in the file, it will be executed in a separated thread.', 'action' : 'store_true'},
             ]
@@ -124,8 +124,11 @@ class TrainerRunner(Runner):
                 elif self.args.output_format == 'JSON':
                     trainer.save_trainings_as_json(output_path.replace('.file_format', '.json'))
                     rp.report(output_text.replace('.file_format', '.json'))
+                elif self.args.output_format == 'YAML':
+                    trainer.save_trainings_as_yaml(output_path.replace('.file_format', '.yaml'))
+                    rp.report(output_text.replace('.file_format', '.yaml'))
                 else:
-                    raise Exception("--out-format must be 'CSV' or 'JSON'.")
+                    raise Exception("--out-format must be 'CSV', 'JSON' or 'YAML'.")
             else:
                 raise Exception("You must specify --output-format.")
         else:

@@ -1,5 +1,6 @@
 import json
 import csv
+import yaml
 
 def is_json_file(file_path):
     try:
@@ -24,3 +25,11 @@ def is_csv_file(file_path):
         except csv.Error:
             # File appears not to be in CSV format; move along
             return False 
+
+def is_yaml_file(file_path):
+    try:
+        with open(file_path, newline='') as yamlfile:
+            yaml.safe_load(yamlfile)
+            return True
+    except yaml.YAMLError as e:
+        return False
