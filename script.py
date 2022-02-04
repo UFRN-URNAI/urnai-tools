@@ -2,6 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from urnai.urnai import main
- 
+
 if __name__ == '__main__':
     main()
