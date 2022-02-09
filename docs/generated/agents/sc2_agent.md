@@ -4,17 +4,16 @@
 
 ## Method __init__()
 
-* Arguments: model, reward_builder, observation_spec, action_spec
+- Arguments: model, reward_builder, observation_spec, action_spec
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
-* Arguments: obs, reward, done
+- Arguments: obs, reward, done
 
 ## Method play()
 
-* Arguments: obs
-
+- Arguments: obs

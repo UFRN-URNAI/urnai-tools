@@ -2,5 +2,4 @@
 
 ## Function main()
 
-* No Arguments.
-
+- No Arguments.

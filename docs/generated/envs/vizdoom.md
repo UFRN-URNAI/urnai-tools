@@ -4,41 +4,40 @@
 
 ## Method __init__()
 
-* Arguments: wad, doommap, _id, render, reset_done, num_steps, res, auto_map
+- Arguments: wad, doommap, _id, render, reset_done, num_steps, res, auto_map
 
 ## Method start()
 
-Start vizdoom 
+Start vizdoom.
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
 Executes action and return observation, reward and done
 
-* Arguments: action
+- Arguments: action
 
 ## Method reset()
 
 Resets the game to a new episode
 
-* No Arguments.
+- No Arguments.
 
 ## Method close()
 
-Stops vizdoom
+Stops vizdoom.
 
-* No Arguments.
+- No Arguments.
 
 ## Method restart()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_screen_width()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_screen_height()
 
-* No Arguments.
-
+- No Arguments.

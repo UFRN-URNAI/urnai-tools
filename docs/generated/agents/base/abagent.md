@@ -4,41 +4,40 @@
 
 ## Method __init__()
 
-* Arguments: model, reward_builder
+- Arguments: model, reward_builder
 
 ## Method build_state()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Method get_reward()
 
-* Arguments: obs, reward, done
+- Arguments: obs, reward, done
 
 ## Method get_state_dim()
 
-* No Arguments.
+- No Arguments.
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method learn()
 
-* Arguments: obs, reward, done
+- Arguments: obs, reward, done
 
 ## Method step()
 
-* Arguments: obs, obs_reward, done
+- Arguments: obs, obs_reward, done
 
 ## Method play()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Method save_extra()
 
-* Arguments: save_path
+- Arguments: save_path
 
 ## Method load_extra()
 
-* Arguments: load_path
-
+- Arguments: load_path

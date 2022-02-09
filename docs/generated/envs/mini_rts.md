@@ -4,43 +4,42 @@
 
 ## Method __init__()
 
-* Arguments: elf_path, enemyAI, ai_fskip, model_fskip, gpu, num_games, max_ticks
+- Arguments: elf_path, enemyAI, ai_fskip, model_fskip, gpu, num_games, max_ticks
 
 ## Method start()
 
 Register action callback
 Start minirts
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
 Executes action and return observation, done
 
-* Arguments: action
+- Arguments: action
 
 ## Method close()
 
 Stops minirts
 
-* No Arguments.
+- No Arguments.
 
 ## Method reset()
 
 Restart environment and returns initial observation
 TODO: check if self.start() modifies self.observation value
 
-* No Arguments.
+- No Arguments.
 
 ## Method restart()
 
-* No Arguments.
+- No Arguments.
 
 ## Method _act_callback()
 
-* Arguments: batch
+- Arguments: batch
 
 ## Method _dummy_train_function()
 
-* Arguments: batch
-
+- Arguments: batch

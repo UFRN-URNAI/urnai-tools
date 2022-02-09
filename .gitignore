@@ -111,5 +111,7 @@ _vizdoom.ini
 .fuse_hidden*
 *.json
 tmp/
-*.yml
 *.sif
+
+# Adds
+.idea/

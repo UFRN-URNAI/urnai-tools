@@ -4,13 +4,12 @@
 
 ## Method __init__()
 
-* No Arguments.
+- No Arguments.
 
 ## Method build_state()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Method get_state_dim()
 
-* No Arguments.
-
+- No Arguments.

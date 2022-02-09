@@ -4,37 +4,36 @@
 
 ## Method __init__()
 
-* No Arguments.
+- No Arguments.
 
 ## Method add_input_layer()
 
-* Arguments: size, nodes, custom_shape
+- Arguments: size, nodes, custom_shape
 
 ## Method add_convolutional_layer()
 
-* Arguments: filters, filter_shape, padding, name, input_shape, max_pooling_pool_size_shape, dropout
+- Arguments: filters, filter_shape, padding, name, input_shape, max_pooling_pool_size_shape, dropout
 
 ## Method add_fullyconn_layer()
 
-* Arguments: nodes, name
+- Arguments: nodes, name
 
 ## Method add_output_layer()
 
-* Arguments: length
+- Arguments: length
 
 ## Method get_model_layout()
 
-* No Arguments.
+- No Arguments.
 
 ## Method has_convolutional_layers()
 
-* Arguments: layers
+- Arguments: layers
 
 ## Method get_last_convolutional_layer_index()
 
-* Arguments: layers
+- Arguments: layers
 
 ## Method is_last_conv_layer()
 
-* Arguments: layer, layers
-
+- Arguments: layer, layers

@@ -3,4 +3,3 @@
 ## Class VizDoomCollectables
 
 No methods.
-

@@ -9,21 +9,20 @@ should still be used as a wrapper (e.g. implementing an environment for OpenAI g
 
 ## Method __init__()
 
-* Arguments: _id, render, reset_done
+- Arguments: _id, render, reset_done
 
 ## Method start()
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
-* Arguments: action
+- Arguments: action
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method close()
 
-* No Arguments.
-
+- No Arguments.

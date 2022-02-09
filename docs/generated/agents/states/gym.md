@@ -2,43 +2,42 @@
 
 ## Class FrozenLakeState
 
-## Method build_state()
+### Method build_state()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_state_dim()
+### Method get_state_dim()
 
-* No Arguments.
+- No Arguments.
 
 ## Class PureState
 
-## Method __init__()
+### Method __init__()
 
-* Arguments: state_dim
+- Arguments: state_dim
 
-## Method preprocess_obs()
+### Method preprocess_obs()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method build_state()
+### Method build_state()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_state_dim()
+### Method get_state_dim()
 
-* No Arguments.
+- No Arguments.
 
 ## Class GymState
 
-## Method __init__()
+### Method __init__()
 
-* Arguments: state_dim
+- Arguments: state_dim
 
-## Method build_state()
+### Method build_state()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_state_dim()
+### Method get_state_dim()
 
-* No Arguments.
-
+- No Arguments.

@@ -2,17 +2,16 @@
 
 ## Function print_unit()
 
-* Arguments: unit
+- Arguments: unit
 
 ## Function get_buildable_tile()
 
-* Arguments: drts_unit, drts_game
+- Arguments: drts_unit, drts_game
 
 ## Function set_collectable_list()
 
-* Arguments: width, height
+- Arguments: width, height
 
 ## Function random_spawn_unit()
 
-* Arguments: drts_unit, drts_game, player
-
+- Arguments: drts_unit, drts_game, player

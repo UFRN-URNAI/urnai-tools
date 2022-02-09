@@ -2,105 +2,104 @@
 
 ## Class CollectablesDeepRTSActionWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_player_units()
+### Method get_player_units()
 
-* Arguments: player, obs
+- Arguments: player, obs
 
-## Method enqueue_action_for_player_units()
+### Method enqueue_action_for_player_units()
 
-* Arguments: obs, action
+- Arguments: obs, action
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method solve_action()
+### Method solve_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method is_action_done()
+### Method is_action_done()
 
-* No Arguments.
+- No Arguments.
 
-## Method reset()
+### Method reset()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_actions()
+### Method get_actions()
 
-* No Arguments.
+- No Arguments.
 
-## Method move_up()
+### Method move_up()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_down()
+### Method move_down()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_left()
+### Method move_left()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_right()
+### Method move_right()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_action_name_str_by_int()
+### Method get_action_name_str_by_int()
 
-* Arguments: action_int
+- Arguments: action_int
 
 ## Class CollectablesStarcraftIIActionWrapper
 
-## Method __init__()
+### Method __init__()
 
-* No Arguments.
+- No Arguments.
 
-## Method is_action_done()
+### Method is_action_done()
 
-* No Arguments.
+- No Arguments.
 
-## Method reset()
+### Method reset()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_actions()
+### Method get_actions()
 
-* No Arguments.
+- No Arguments.
 
-## Method get_excluded_actions()
+### Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method get_action()
+### Method get_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method solve_action()
+### Method solve_action()
 
-* Arguments: action_idx, obs
+- Arguments: action_idx, obs
 
-## Method move_left()
+### Method move_left()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_right()
+### Method move_right()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_down()
+### Method move_down()
 
-* Arguments: obs
+- Arguments: obs
 
-## Method move_up()
+### Method move_up()
 
-* Arguments: obs
-
+- Arguments: obs

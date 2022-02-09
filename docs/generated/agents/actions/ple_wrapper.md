@@ -4,25 +4,24 @@
 
 ## Method __init__()
 
-* Arguments: action_set, action_space_size
+- Arguments: action_set, action_space_size
 
 ## Method is_action_done()
 
-* No Arguments.
+- No Arguments.
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_actions()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_excluded_actions()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Method get_action()
 
-* Arguments: action_idx, obs
-
+- Arguments: action_idx, obs

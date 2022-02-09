@@ -2,29 +2,28 @@
 
 ## Function print_army_mean()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Function move_left()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Function move_right()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Function move_down()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Function move_up()
 
-* Arguments: obs
+- Arguments: obs
 
 ## Function no_op()
 
-* No Arguments.
+- No Arguments.
 
 ## Function main()
 
-* No Arguments.
-
+- No Arguments.

@@ -15,13 +15,12 @@ rp.report("Debug message", 2)
 
 ## Method report()
 
-* Arguments: message, verbosity_lvl, end
+- Arguments: message, verbosity_lvl, end
 
 ## Method save()
 
-* Arguments: persist_path
+- Arguments: persist_path
 
 ## Method load()
 
-* Arguments: persist_path
-
+- Arguments: persist_path

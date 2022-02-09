@@ -51,4 +51,3 @@ No methods.
 ## Class MapNotFoundError
 
 No methods.
-

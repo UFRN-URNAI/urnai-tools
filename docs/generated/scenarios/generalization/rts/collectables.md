@@ -4,45 +4,45 @@
 
 ## Method __init__()
 
-* Arguments: game, render, drts_map, sc2_map, drts_number_of_players, drts_start_oil, drts_start_gold, drts_start_lumber, drts_start_food
+- Arguments: game, render, drts_map, sc2_map, drts_number_of_players, drts_start_oil,
+  drts_start_gold, drts_start_lumber, drts_start_food
 
 ## Method setup_map()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_player_units()
 
-* Arguments: player
+- Arguments: player
 
 ## Method start()
 
-* No Arguments.
+- No Arguments.
 
 ## Method step()
 
-* Arguments: action
+- Arguments: action
 
 ## Method close()
 
-* No Arguments.
+- No Arguments.
 
 ## Method reset()
 
-* No Arguments.
+- No Arguments.
 
 ## Method restart()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_default_reward_builder()
 
-* No Arguments.
+- No Arguments.
 
 ## Method get_default_action_wrapper()
 
-* No Arguments.
+- No Arguments.
 
 ## Method set_collectable_map()
 
-* No Arguments.
-
+- No Arguments.

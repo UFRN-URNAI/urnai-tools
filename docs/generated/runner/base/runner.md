@@ -4,9 +4,8 @@
 
 ## Method __init__()
 
-* Arguments: parser, args
+- Arguments: parser, args
 
 ## Method run()
 
-* No Arguments.
-
+- No Arguments.

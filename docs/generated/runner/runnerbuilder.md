@@ -4,5 +4,4 @@
 
 ## Method build()
 
-* Arguments: parser, args
-
+- Arguments: parser, args
