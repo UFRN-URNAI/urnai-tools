@@ -1,9 +1,0 @@
-
-   Agent: SC2Agent
-   ActionWrapper: SimpleTerranWrapper
-   StateBuilder: Simple64GridState
-   RewardBuilder: KilledUnitsReward
-   Environment: SC2Env
-   Model: DDQNKeras
-
-Current Reward Avg.: 8022.125 Win rate:     98.800% Avg number of steps: 543.9593826124606

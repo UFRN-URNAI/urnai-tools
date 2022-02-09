@@ -1,0 +1,102 @@
+- action_wrapper:
+    class: GymWrapper
+    params:
+      gym_env_actions: 2
+  agent:
+    class: GenericAgent
+    params: {}
+  env:
+    class: GymEnv
+    params:
+      id: CartPole-v1
+  model:
+    class: DoubleDeepQLearning
+    params:
+      build_model:
+      - nodes: 25
+        shape: []
+        type: input
+      - name: default0
+        nodes: 25
+        type: fullyconn
+      - length: 2
+        type: output
+      epsilon_decay: 0.9997
+      epsilon_min: 0.005
+      gamma: 0.99
+      learning_rate: 0.001
+      lib: keras
+      memory_maxlen: 50000
+      min_memory_size: 1000
+      use_memory: false
+  reward:
+    class: PureReward
+    params: {}
+  state_builder:
+    class: PureState
+    params:
+      state_dim: 4
+  trainer:
+    class: Trainer
+    params:
+      debug_level: 2
+      enable_save: true
+      file_name: cartpole-v1_ddql_25x25_json_threaded_saving_and_training1
+      max_steps_testing: 520
+      max_steps_training: 520
+      max_test_episodes: 100
+      max_training_episodes: 1000
+      rolling_avg_window_size: 50
+      save_every: 50
+      threaded_logger_save: true
+- action_wrapper:
+    class: GymWrapper
+    params:
+      gym_env_actions: 2
+  agent:
+    class: GenericAgent
+    params: {}
+  env:
+    class: GymEnv
+    params:
+      id: CartPole-v1
+  model:
+    class: DoubleDeepQLearning
+    params:
+      build_model:
+      - nodes: 25
+        shape: []
+        type: input
+      - name: default0
+        nodes: 25
+        type: fullyconn
+      - length: 2
+        type: output
+      epsilon_decay: 0.9997
+      epsilon_min: 0.005
+      gamma: 0.99
+      learning_rate: 0.001
+      lib: keras
+      memory_maxlen: 50000
+      min_memory_size: 1000
+      use_memory: false
+  reward:
+    class: PureReward
+    params: {}
+  state_builder:
+    class: PureState
+    params:
+      state_dim: 4
+  trainer:
+    class: Trainer
+    params:
+      debug_level: 2
+      enable_save: true
+      file_name: cartpole-v1_ddql_25x25_json_threaded_saving_and_training2
+      max_steps_testing: 520
+      max_steps_training: 520
+      max_test_episodes: 100
+      max_training_episodes: 1000
+      rolling_avg_window_size: 50
+      save_every: 50
+      threaded_logger_save: true

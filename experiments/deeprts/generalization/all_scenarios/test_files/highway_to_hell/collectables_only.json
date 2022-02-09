@@ -1,0 +1,71 @@
+[
+    {
+        "env": {
+            "class": "GeneralizedCollectablesScenario",
+            "params": {
+                "method": "single",
+                "state_builder_method": "map",
+                "map_reduction_factor": 4,
+                "game": "drts",
+                "trim_map": false,
+                "render": false
+            }
+        },
+        "model": {
+            "class": "DqlTensorFlow",
+            "params": {
+                "learning_rate": 0.001,
+                "learning_rate_decay": 1,
+                "gamma": 0.9,
+                "per_episode_epsilon_decay": false,
+                "use_memory": false,
+                "epsilon_decay": 0.999993,
+                "epsilon_min": 0.005,
+                "memory_maxlen": 10000,
+                "build_model": [
+                    {
+                        "type": "input",
+                        "nodes": 25,
+                        "shape": [
+                            null,
+                            4
+                        ]
+                    },
+                    {
+                        "type": "fullyconn",
+                        "nodes": 25,
+                        "name": "default0"
+                    },
+                    {
+                        "type": "fullyconn",
+                        "nodes": 25,
+                        "name": "default1"
+                    },
+                    {
+                        "type": "output",
+                        "length": 4
+                    }
+                ]
+            }
+        },
+        "agent": {
+            "class": "GenericAgent",
+            "params": {}
+        },
+        "trainer": {
+            "class": "Trainer",
+            "params": {
+                "file_name": "agent_drts_only_collectables_god_save_us_all1",
+                "max_training_episodes": 10000,
+                "max_steps_training": 50,
+                "max_test_episodes": 1000,
+                "max_steps_testing": 50,
+                "save_every": 100.0,
+                "do_reward_test" : true,
+                "reward_test_number_of_episodes" : 10,
+                "episode_batch_avg_calculation" : 50,
+                "enable_save": true
+            }
+        }
+    }
+]

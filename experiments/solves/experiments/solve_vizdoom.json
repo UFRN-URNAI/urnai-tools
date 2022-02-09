@@ -1,0 +1,88 @@
+[
+    {
+        "env" : {
+            "class" : "VizdoomEnv",
+            "params" : {
+                "wad" : "/Users/marcocspc/git/URNAI-Tools/urnai/utils/vizdoomwads/health_gathering.wad",
+                "render" : true,
+                "doommap" : null
+            }
+        },
+        "action_wrapper" : {
+            "class" : "VizdoomHealthGatheringWrapper",
+            "params" : {} 
+        },
+        "state_builder" : {
+            "class" : "VizDoomHealthGatheringState",
+            "params" : {
+                "screen_width" : 160,
+                "screen_height" : 120
+            }
+        },
+        "model" : {
+            "class" : "DQNKerasMem",
+            "params" : {
+                "learning_rate" : 0.005,
+                "gamma" : 0.9,
+                "use_memory" : false,
+                "per_episode_epsilon_decay" : true,
+                "build_model" : [
+                    {
+                        "type": "conv", 
+                        "filters": 32, 
+                        "filter_shape": [3, 3], 
+                        "padding": "same", 
+                        "name": "default0", 
+                        "input_shape": [120, 160, 1], 
+                        "max_pooling_pool_size_shape": [2, 2]
+                    }, 
+                    {
+                        "type": "conv", 
+                        "filters": 16, 
+                        "filter_shape": [3, 3], 
+                        "padding": "same", 
+                        "name": "default1", 
+                        "input_shape": null, 
+                        "max_pooling_pool_size_shape": [2, 2]
+                    }, 
+                    {
+                        "type": "fullyconn", 
+                        "nodes": 50, 
+                        "name": "default2"}, 
+                    {
+                        "type": "output", 
+                        "length": 3
+                    }
+                ]
+             }
+        },
+        "reward" : {
+            "class" : "VizDoomHealthGatheringReward",
+            "params" : {
+                "method" : "cumulative"
+            } 
+        },
+        "agent" : {
+            "class" : "GenericAgent",
+            "params" : {} 
+        },
+        "trainer" : {
+            "class" : "Trainer",
+            "params" : {
+                "file_name" : "vizdoom_jsontrainer_test",
+                "save_every" : "100",
+                "enable_save" : true
+            }
+        },
+        "json_trainer" : {
+            "train": {
+                "num_episodes" : 3000,
+                "reward_from_agent" : true,
+                "max_steps" : 500
+            },
+            "play" : {
+                "num_matches" : 100
+            }
+        }
+    }
+]

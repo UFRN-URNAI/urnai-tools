@@ -1,0 +1,68 @@
+[
+    {
+        "action_wrapper" : {
+            "class" : "SimpleTerranWrapper",
+            "params" : {
+                "use_atk_grid" : true
+            } 
+        },
+        "state_builder" : {
+            "class" : "Simple64GridState",
+            "params" : {}
+        },
+        "reward" : {
+            "class" : "KilledUnitsReward",
+            "params" : {}
+        },
+        "env" : {
+            "class" : "SC2Env",
+            "params" : {
+                "map_name" : "Simple64",
+                "render" : false,
+                "step_mul" : 16,
+                "player_race" : "terran",
+                "enemy_race" : "terran",
+                "difficulty" : "very_easy"
+            }
+        },
+        "model" : {
+            "class" : "DoubleDeepQLearning",
+            "params" : {
+                "epsilon_decay" : 0.99999, 
+                "epsilon_min" : 0.005,
+                "memory_maxlen" : 100000,
+                "min_memory_size" : 2000,
+                "build_model" : [
+                    {
+                        "type": "input", 
+                        "nodes": 60, 
+                        "shape": []
+                    }, 
+                    {
+                        "type": "output", 
+                        "length": 0
+                    }
+                ]
+             }
+        },
+        "agent" : {
+            "class" : "SC2Agent",
+            "params" : {}
+        },
+        "trainer" : {
+            "class" : "Trainer",
+            "params" : {
+                "save_path" : "urnai/models/saved",
+                "file_name" : "tvt_ddql_01",
+                "save_every" : 200,
+                "enable_save" : true,
+                "relative_path" : true,
+                "max_training_episodes" : 2,
+                "max_steps_training" : 600,
+                "max_test_episodes" : 1,
+                "max_steps_testing" : 600,
+                "rolling_avg_window_size" : 50
+            }
+        }
+    }
+]
