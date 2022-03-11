@@ -454,7 +454,7 @@ class Logger(Savable):
                         y_label = "How many times action was used"
                         title = "Action usage at episode {}.".format(episode)
                         bar_width = 0.2
-                        action_graph = self.__plot_bar(values, bar_labels, x_label, y_label, title, width=bar_width)
+                        action_graph = self.__plot_bar(values, bar_labels, x_label, y_label, title, width=bar_width,horizontal=True)
                         plt.savefig(persist_path + os.path.sep + "action_graphs" + os.path.sep + "per_episode_bars" + os.path.sep + str(episode) + ".png")
                         plt.close(action_graph)
 
@@ -592,27 +592,45 @@ class Logger(Savable):
 
         return fig
 
-    def __plot_bar(self, values, bar_labels, x_label, y_label, title, width=0.2):
-        fig, ax = plt.subplots(figsize=self.__get_graph_size_in_inches())
+    def __plot_bar(self, values, bar_labels, x_label, y_label, title, width=0.2,horizontal=False):
+        
+        
+        if not horizontal:
+            fig, ax = plt.subplots(figsize=self.__get_graph_size_in_inches())
 
-        x = np.arange(len(bar_labels))  # List of label locations for the x values
+            x = np.arange(len(bar_labels))  # List of label locations for the x values
+            rects = ax.bar(x, values, width)
 
-        rects = ax.bar(x, values, width)
-
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label)
-        ax.set_title(title)
-        ax.set_xticks(x)
-        ax.set_xticklabels(bar_labels)
-
-	#Attach a text label above each bar in *rects*, displaying its height.
-        for rect in rects:
-            height = rect.get_height()
-            ax.annotate('{}'.format(height),
+            ax.set_xlabel(x_label)
+            ax.set_ylabel(y_label)
+            ax.set_title(title)
+            ax.set_xticks(x)
+            ax.set_xticklabels(bar_labels)
+            #Attach a text label above each bar in *rects*, displaying its height.
+            for rect in rects:
+                height = rect.get_height()
+                ax.annotate('{}'.format(height),
                         xy=(rect.get_x() + rect.get_width() / 2, height),
                         xytext=(0, 3),  # 3 points vertical offset
                         textcoords="offset points",
                         ha='center', va='bottom')
+        
+        else:
+            width_in_inches, height_in_inches = self.__get_graph_size_in_inches()
+            fig, ax = plt.subplots(figsize=(width_in_inches, height_in_inches + 5))
+
+            x = np.arange(len(bar_labels))  # List of label locations for the x values
+            rects = ax.barh(x, values, width)
+            ax.set_xlabel(y_label)
+            ax.set_ylabel(x_label)
+            ax.set_title(title)
+            ax.set_yticks(x)
+            ax.set_yticklabels(bar_labels)
+           
+       
+
+
+	
 
         if self.render: 
             plt.ion()
