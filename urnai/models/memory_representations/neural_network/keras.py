@@ -54,7 +54,7 @@ class KerasDeepNeuralNetwork(ABNeuralNetwork):
         self.model.add(Dense(self.build_model[idx]['nodes'], input_dim=self.build_model[idx]['shape'], activation='relu'))
 
     def add_output_layer(self, idx):
-        self.model.add(Dense(self.build_model[idx]['length'], activation='linear'))
+        self.model.add(Dense(self.action_output_size, activation='linear'))
 
     def add_fully_connected_layer(self, idx):
         self.model.add(Dense(self.build_model[idx]['nodes'], activation='relu'))

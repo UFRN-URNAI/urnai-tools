@@ -96,12 +96,6 @@ def main():
 
     generate_log(user, pip_freeze, output, err)
 
-    #handle if process returned error
-    #if p.returncode != 0: 
-    #       print()
-
-
-
 
 #aux functions
 def get_int_input(message, default_value):
