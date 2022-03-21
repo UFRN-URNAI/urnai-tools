@@ -134,7 +134,6 @@ class FileTrainer(Trainer):
     def load_yaml_file(self, yaml_file_path):
         with open(yaml_file_path, "r") as yaml_file:
             self.trainings = yaml.safe_load(yaml_file)
-            print(self.trainings)
 
     def save_trainings_as_csv(self, path):
         df = pd.json_normalize(self.trainings) 
