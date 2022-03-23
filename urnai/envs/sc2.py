@@ -9,7 +9,7 @@ from pysc2.lib import actions
 from pysc2.lib import features
 from pysc2.lib import protocol
 from pysc2.env.environment import StepType
-from pysc2.env import sc2_env
+from pysc2.env import sc2_env, run_loop
 
 class SC2Env(Env):
     def __init__(
@@ -26,19 +26,24 @@ class SC2Env(Env):
         game_steps_per_ep=0,
         obs_features=None,
         realtime=False,
+        self_play=False
     ):
         super().__init__(map_name, render, reset_done)
 
         FLAGS = flags.FLAGS
         FLAGS(sys.argv)
 
+        self.self_play = self_play
         self.step_mul = step_mul
         self.game_steps_per_ep = game_steps_per_ep
         self.spatial_dim = spatial_dim
         self.player_race = get_sc2_race(player_race)
         self.enemy_race = get_sc2_race(enemy_race)
         self.difficulty = get_sc2_difficulty(difficulty)
-        self.players = [sc2_env.Agent(self.player_race), sc2_env.Bot(self.enemy_race, self.difficulty)]
+        if self.self_play:
+            self.players = [sc2_env.Agent(self.player_race), sc2_env.Agent(self.enemy_race)]
+        else:
+            self.players = [sc2_env.Agent(self.player_race), sc2_env.Bot(self.enemy_race, self.difficulty)]
         self.realtime = realtime
         self.done = False
 
@@ -53,20 +58,18 @@ class SC2Env(Env):
                 map_name=self.id,
                 visualize=self.render,
                 players=self.players,
-                agent_interface_format=[
+                agent_interface_format=
                     features.AgentInterfaceFormat(
                         action_space=actions.ActionSpace.RAW,
                         use_raw_units=True,
                         raw_resolution=64,
                         use_feature_units=True,
                         feature_dimensions=features.Dimensions(screen=64, minimap=64),
-                    )
-                ],
+                    ),
                 step_mul=self.step_mul,
                 game_steps_per_episode=self.game_steps_per_ep,
                 realtime=self.realtime
             )
-
     
     def step(self, action):
         timestep = self.env_instance.step(action)
