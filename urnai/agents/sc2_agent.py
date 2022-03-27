@@ -1,13 +1,12 @@
-import os,sys
-sys.path.insert(0, os.getcwd())
+import os
+import sys
 
-from abc import abstractmethod
-from pysc2.lib import actions, features
-
-from urnai.models.base.abmodel import LearningModel
 from urnai.agents.base.abagent import Agent
 from urnai.agents.rewards.abreward import RewardBuilder
+from urnai.models.base.abmodel import LearningModel
 from urnai.utils import error
+
+sys.path.insert(0, os.getcwd())
 
 
 class SC2Agent(Agent):
@@ -27,14 +26,16 @@ class SC2Agent(Agent):
         if self.action_wrapper.is_action_done():
             current_state = self.build_state(obs)
             excluded_actions = self.action_wrapper.get_excluded_actions(obs)
-            predicted_action_idx = self.model.choose_action(current_state, excluded_actions, is_testing)
+            predicted_action_idx = self.model.choose_action(current_state, excluded_actions,
+                                                            is_testing)
             self.previous_action = predicted_action_idx
             self.previous_state = current_state
         selected_action = [self.action_wrapper.get_action(self.previous_action, obs)]
 
         try:
-            action_id = selected_action[0].function
-        except:
-            raise error.ActionError("Invalid function structure. Function name: %s." % selected_action[0])
+            ...
+            # action_id = selected_action[0].function
+        except Exception:
+            raise error.ActionError(
+                'Invalid function structure. Function name: %s.' % selected_action[0])
         return selected_action
-

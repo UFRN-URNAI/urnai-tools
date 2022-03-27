@@ -1,30 +1,36 @@
-from .base.abenv import Env
-from urnai.utils.reporter import Reporter as rp
+import importlib
 import os
+
+from urnai.utils.error import MapNotFoundError
+from urnai.utils.reporter import Reporter as rp
+
 try:
     import DeepRTS as drts
     from DeepRTS import Engine
-    from DeepRTS.Engine import Constants, UnitManager 
-    from DeepRTS.python import Config, Game 
-except ImportError as e:
-    rp.report("\n!!! An import of the DeepRTS environment file was done but DeepRTS is not installed as a module !!!")
+    from DeepRTS.Engine import Constants, UnitManager
+    from DeepRTS.python import Config, Game
+except ImportError:
+    rp.report(
+        '\n!!! An import of the DeepRTS environment file was done but DeepRTS is'
+        'not installed as a module !!!')
     pass
-from urnai.utils.error import MapNotFoundError, DeepRTSEnvError 
-import importlib
 
-#TODO: add enemy AI
+from .base.abenv import Env
+
+
+# TODO: add enemy AI
 
 class DeepRTSEnv(Env):
-
-    '''
-       DeepRTS.python.Config Defaults: https://github.com/cair/deep-rts/blob/master/DeepRTS/python/_py_config.py
-       DeepRTS.Engine.Config.defaults() : https://github.com/cair/deep-rts/blob/master/src/Config.h
-       Possible actions: https://github.com/cair/deep-rts/blob/master/src/Constants.h
-       Player class: https://github.com/cair/deep-rts/blob/master/bindings/Player.cpp
-       Unit class: https://github.com/cair/deep-rts/blob/master/bindings/Unit.cpp
-       Engine.Config.defaults(): https://github.com/cair/deep-rts/blob/master/src/Config.h
-       Engine.Config options: https://github.com/cair/deep-rts/blob/master/bindings/Config.cpp
-    '''
+    """
+    DeepRTS.python.Config Defaults:
+      https://github.com/cair/deep-rts/blob/master/DeepRTS/python/_py_config.py
+    DeepRTS.Engine.Config.defaults() : https://github.com/cair/deep-rts/blob/master/src/Config.h
+    Possible actions: https://github.com/cair/deep-rts/blob/master/src/Constants.h
+    Player class: https://github.com/cair/deep-rts/blob/master/bindings/Player.cpp
+    Unit class: https://github.com/cair/deep-rts/blob/master/bindings/Unit.cpp
+    Engine.Config.defaults(): https://github.com/cair/deep-rts/blob/master/src/Config.h
+    Engine.Config options: https://github.com/cair/deep-rts/blob/master/bindings/Config.cpp
+    """
 
     MAP_MICRO = Config.Map.TEN
     MAP_SMALL = Config.Map.FIFTEEN
@@ -32,18 +38,18 @@ class DeepRTSEnv(Env):
     MAP_BIG = Config.Map.THIRTYONE
     MAP_BIG_MORE_PLAYERS = Config.Map.THIRTYONE_FOUR
     MAO_BIG_MAX_PLAYERS = Config.Map.THIRTYONE_SIX
-    
-    def __init__(self, map = Config.Map.TEN, render = False, 
-            max_fps = 1000000, max_ups = 1000000, play_audio = False, 
-            number_of_players = 1, updates_per_action = 1, flatten_state = True,
-            drts_engine_config = None,
-            start_oil=0, start_gold=1500, start_lumber=750, start_food = 1,
-            fit_to_screen=False, deep_reset_every = 100):
+
+    def __init__(self, map=Config.Map.TEN, render=False,
+                 max_fps=1000000, max_ups=1000000, play_audio=False,
+                 number_of_players=1, updates_per_action=1, flatten_state=True,
+                 drts_engine_config=None,
+                 start_oil=0, start_gold=1500, start_lumber=750, start_food=1,
+                 fit_to_screen=False, deep_reset_every=100):
 
         if self.is_map_installed(map):
             self.map = map
         else:
-            err = "Map {map_name} was not found on DeepRTS maps folder.".format(map_name=map)
+            # err = 'Map {map_name} was not found on DeepRTS maps folder.'.format(map_name=map)
             raise MapNotFoundError(map)
 
         self.render = render
@@ -54,7 +60,7 @@ class DeepRTSEnv(Env):
         self.max_fps = max_fps
         self.max_ups = max_ups
         self.unit_manager = UnitManager
-        self.constants = Constants 
+        self.constants = Constants
         self.deep_reset_every = deep_reset_every
         self.episode_count = 0
         self.start_oil = start_oil
@@ -63,9 +69,9 @@ class DeepRTSEnv(Env):
         self.start_food = start_food
         self.fit_to_screen = fit_to_screen
 
-        #needed for self.setup()
-        self.gui_config = drts_engine_config 
-        self.engine_config = None 
+        # needed for self.setup()
+        self.gui_config = drts_engine_config
+        self.engine_config = None
         self.game = None
         self.players = None
 
@@ -81,10 +87,10 @@ class DeepRTSEnv(Env):
             unit_outline=True,
             unit_animation=True,
             audio=self.play_audio,
-            audio_volume=50
+            audio_volume=50,
         )
 
-        if self.engine_config == None:
+        if self.engine_config is None:
             self.engine_config = Engine.Config.defaults()
             self.engine_config.set_start_oil(self.start_oil)
             self.engine_config.set_start_gold(self.start_gold)
@@ -96,75 +102,71 @@ class DeepRTSEnv(Env):
 
         self.game = Game(
             self.map,
-            n_players = self.number_of_players,
-            engine_config = self.engine_config,
-            gui_config = self.gui_config,
-            terminal_signal = False,
-            fit_to_screen=self.fit_to_screen
+            n_players=self.number_of_players,
+            engine_config=self.engine_config,
+            gui_config=self.gui_config,
+            terminal_signal=False,
+            fit_to_screen=self.fit_to_screen,
         )
         self.game.set_max_fps(self.max_fps)
         self.game.set_max_ups(self.max_ups)
- 
+
         self.players = self.game.players
         self.done = False
 
     def start(self):
-        #Set done
+        # Set done
         self.done = False
 
-        #Start DeepRTS
+        # Start DeepRTS
         self.game.start()
         self.game.reset()
         obs, reward, done = self.step(int(self.constants.Action.NoAction) - 1)
         return obs
 
     def step(self, action):
-        #select first player
-        #you can do self.game.selected_player
+        # select first player
+        # you can do self.game.selected_player
         player = self.game.players[0]
 
-        #make player do that action
-        #actions are values between 1 and 16
-        #but in general models give values between
-        #0 and 15, so that's why action value
-        #is action + 1
+        # make player do that action
+        # actions are values between 1 and 16
+        # but in general models give values between
+        # 0 and 15, so that's why action value
+        # is action + 1
         player.do_action(action + 1)
 
-        #update game state
+        # update game state
         for i in range(self.updates_per_action):
             self.game.update()
 
-        #get game state, flattened or not
+        # get game state, flattened or not
         state = None
         if self.flatten_state:
             state = self.game.get_state().flatten()
         else:
             state = self.game.get_state()
 
-        #create a dict with all useful data from env
-        state = {"state" : state}
-        state["players"] = self.game.players
-        state["tilemap"] = self.game.tilemap
-        state["map"] = self.game.map
-        state["tiles"] = self.game.tilemap.tiles
-        state["units"] = self.game.units
+        # create a dict with all useful data from env
+        state = {'state': state, 'players': self.game.players, 'tilemap': self.game.tilemap,
+                 'map': self.game.map, 'tiles': self.game.tilemap.tiles, 'units': self.game.units}
 
-        #make game update its internal graphics
-        #and show windows, if it was configured to
+        # make game update its internal graphics
+        # and show windows, if it was configured to
         self.game.render()
         if self.render:
             self.game.view()
 
         reward = 0
 
-        #Return observation and done
+        # Return observation and done
         return state, reward, self.done
 
     def close(self):
-        #Stop DeepRTS
+        # Stop DeepRTS
         self.game.stop()
 
-        #Set done
+        # Set done
         self.done = True
 
     def reset(self):
@@ -183,9 +185,9 @@ class DeepRTSEnv(Env):
         del self.players
         importlib.reload(drts)
 
-        #needed for self.setup()
+        # needed for self.setup()
         self.gui_config = None
-        self.engine_config = None 
+        self.engine_config = None
         self.game = None
         self.players = None
 
@@ -195,5 +197,5 @@ class DeepRTSEnv(Env):
         return self.reset()
 
     def is_map_installed(self, map_name):
-        drts_map_dir = os.path.dirname(os.path.realpath(drts.python.__file__)) + '/assets/maps' 
+        drts_map_dir = os.path.dirname(os.path.realpath(drts.python.__file__)) + '/assets/maps'
         return os.path.exists(drts_map_dir + os.sep + map_name)

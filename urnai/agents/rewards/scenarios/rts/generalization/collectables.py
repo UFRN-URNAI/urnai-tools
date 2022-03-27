@@ -1,8 +1,9 @@
-from urnai.agents.rewards.abreward import RewardBuilder
-from urnai.utils.constants import RTSGeneralization, Games 
-import urnai.agents.actions.sc2 as sc2aux 
-from pysc2.lib import units as sc2units
 import numpy as np
+from pysc2.lib import units as sc2units
+import urnai.agents.actions.sc2 as sc2aux
+from urnai.agents.rewards.abreward import RewardBuilder
+from urnai.utils.constants import Games, RTSGeneralization
+
 
 class CollectablesGeneralizedRewardBuilder(RewardBuilder):
 
@@ -13,28 +14,30 @@ class CollectablesGeneralizedRewardBuilder(RewardBuilder):
 
     def get_game(self, obs):
         try:
-            a = obs.feature_minimap
+            # a = obs.feature_minimap
             return Games.SC2
         except AttributeError as ae:
-            if "feature_minimap" in str(ae):
+            if 'feature_minimap' in str(ae):
                 return Games.DRTS
 
     def get_reward(self, obs, reward, done):
         reward = 0
-        if self.previous_state != None: 
+        if self.previous_state is not None:
             game = self.get_game(obs)
             if game == Games.DRTS:
                 try:
-                    tmp = self.previous_state['units']
+                    # tmp = self.previous_state['units']
+                    ...
                 except KeyError as ke:
-                    if "units" in str(ke):
+                    if 'units' in str(ke):
                         self.previous_state = obs
                 reward = self.get_drts_reward(obs)
             else:
                 try:
-                    tmp = self.previous_state.feature_minimap
+                    # tmp = self.previous_state.feature_minimap
+                    ...
                 except AttributeError as ae:
-                    if "feature_minimap" in str(ae):
+                    if 'feature_minimap' in str(ae):
                         self.previous_state = obs
                 reward = self.get_sc2_reward(obs)
 
@@ -45,18 +48,18 @@ class CollectablesGeneralizedRewardBuilder(RewardBuilder):
         current = obs['collectables_map']
         curr = np.count_nonzero(current == 1)
         if curr != self.old_collectable_counter:
-            self.old_collectable_counter = curr 
-            #return 2 ** (RTSGeneralization.STATE_MAXIMUM_NUMBER_OF_MINERAL_SHARDS - curr)
+            self.old_collectable_counter = curr
+            # return 2 ** (RTSGeneralization.STATE_MAXIMUM_NUMBER_OF_MINERAL_SHARDS - curr)
             return 10
         else:
-            return -1 
+            return -1
 
     def get_sc2_reward(self, obs):
-        #layer 4 is units (1 friendly, 2 enemy, 16 mineral shards, 3 neutral 
+        # layer 4 is units (1 friendly, 2 enemy, 16 mineral shards, 3 neutral
         current = self.filter_non_mineral_shard_units(obs)
         curr = np.count_nonzero(current == 1)
         if curr != self.old_collectable_counter:
-            self.old_collectable_counter = curr 
+            self.old_collectable_counter = curr
             return 10
         else:
             return -1
@@ -68,11 +71,10 @@ class CollectablesGeneralizedRewardBuilder(RewardBuilder):
 
         return filtered_map
 
-
     def get_drts_player_units(self, obs, player):
         units = []
-        for unit in obs["units"]:
-            if unit.get_player() == obs["players"][player]:
+        for unit in obs['units']:
+            if unit.get_player() == obs['players'][player]:
                 units.append(unit)
 
         return units
@@ -82,13 +84,13 @@ class CollectablesGeneralizedRewardBuilder(RewardBuilder):
         specific_units = []
 
         for unit in all_units:
-            if int(unit.type) == unit_id: 
+            if int(unit.type) == unit_id:
                 specific_units.append(unit)
 
         return specific_units
 
     def get_drts_player_gold(self, obs, player):
-        return obs["players"][player].gold
+        return obs['players'][player].gold
 
     def get_drts_number_of_specific_units(self, obs, player, unit_id):
         return len(self.get_drts_player_specific_type_units(obs, player, unit_id))
@@ -114,5 +116,4 @@ class CollectablesGeneralizedRewardBuilder(RewardBuilder):
         return len(units)
 
     def get_sc2_player_minerals(self, obs):
-        return obs.player.minerals 
-
+        return obs.player.minerals

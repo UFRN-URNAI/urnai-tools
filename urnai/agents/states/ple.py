@@ -1,7 +1,9 @@
 import copy
+
 import numpy as np
+
 from .abstate import StateBuilder
-from envs.base.abenv import Env
+
 
 class FlappyBirdState(StateBuilder):
 
@@ -14,11 +16,10 @@ class FlappyBirdState(StateBuilder):
             'next_pipe_dist_to_player': 20,
             'next_pipe_top_y': 20,
             'player_vel': 4,
-            'player_y': 16
+            'player_y': 16,
         }
 
     def build_state(self, obs):
-
         # instead of using absolute position of pipe, use relative position
         state = copy.deepcopy(obs)
         state['next_next_pipe_bottom_y'] -= state['player_y']
