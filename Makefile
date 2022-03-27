@@ -13,5 +13,5 @@ lint:
 	@docker pull ${DOCKER_LINTER_IMAGE}
 	@docker run --rm -v ${ROOT}:/app ${DOCKER_LINTER_IMAGE} " \
 		lint-commit ${LINT_COMMIT_TARGET_BRANCH} \
-		&& lint-markdown"  # \
-#		&& lint-python"
+		&& lint-markdown \
+		&& lint-python"
