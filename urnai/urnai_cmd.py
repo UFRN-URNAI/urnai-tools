@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from urnai.runner.runnerbuilder import RunnerBuilder
 from urnai.runner.parserbuilder import ParserBuilder
 import os
 
@@ -8,6 +7,10 @@ def main():
 
     parser = ParserBuilder.DefaultParser()
     args = parser.parse_args()
-    runner = RunnerBuilder.build(parser, args)
-
-    runner.run()
+    try:
+        args.func(args)
+    except AttributeError as ae:
+        if "'Namespace' object has no attribute 'func'" in str(ae):
+            parser.print_help()
+        else:
+            raise
