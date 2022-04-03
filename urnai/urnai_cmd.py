@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from urnai.runner.parserbuilder import ParserBuilder
 import os
+
+from urnai.runner.parserbuilder import ParserBuilder
+
 
 def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
