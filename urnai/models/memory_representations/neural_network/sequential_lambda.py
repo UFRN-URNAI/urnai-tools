@@ -1,14 +1,14 @@
-import numpy as np
-import tensorflow.keras as keras
 import tensorflow as tf
-from tensorflow.python.keras.engine import data_adapter
+import tensorflow.keras as keras
 from tensorflow.python.eager import backprop
+from tensorflow.python.keras.engine import data_adapter
+
 
 class SequentialLambda(keras.models.Sequential):
     def __init__(self, gamma, lamb):
         super().__init__()
         self.e_trace = []
-        #self.e_trace = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        # self.e_trace = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
 
         self.gamma = gamma
         self.lamb = lamb
@@ -30,14 +30,14 @@ class SequentialLambda(keras.models.Sequential):
             gradients = self.modify_gradients(gradients)
             # update weights
             self.optimizer.apply_gradients(zip(gradients, trainable_variables))
-        
+
         # update metrics (loss, etc)
         self.compiled_metrics.update_state(y, y_pred, sample_weight)
         # return dict with current metrics
         return {m.name: m.result() for m in self.metrics}
 
     def modify_gradients(self, gradients):
-        if len(self.e_trace) == 0: # if we have not initialized e_trace before
+        if len(self.e_trace) == 0:  # if we have not initialized e_trace before
             self.e_trace = gradients
             # for g, i in enumerate(gradients):
             #     zero_tensor = tf.zeros(tf.shape(g))
@@ -46,9 +46,10 @@ class SequentialLambda(keras.models.Sequential):
         # we always want to diminish e_trace (which is basically our gradients)
         # by self.gamma*self.lamb to achieve the eligibility traces algorithm
         for i in range(len(self.e_trace)):
-                self.e_trace[i] = self.gamma * self.lamb * self.e_trace[i] + gradients[i] #e_trace calculation
-                assert(self.e_trace[i].shape == gradients[i].shape)
+            self.e_trace[i] = self.gamma * self.lamb * self.e_trace[i] + gradients[
+                i]  # e_trace calculation
+            assert (self.e_trace[i].shape == gradients[i].shape)
         return self.e_trace
-    
+
     def reset_e_trace(self):
         self.e_trace = []

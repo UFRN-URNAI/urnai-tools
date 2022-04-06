@@ -1,5 +1,6 @@
 import abc
 
+
 class Command(abc.ABC):
 
     def __init__(self, top_parser, subparser):

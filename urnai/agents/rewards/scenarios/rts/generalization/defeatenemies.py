@@ -1,4 +1,5 @@
-from .findanddefeat import FindAndDefeatGeneralizedRewardBuilder 
+from .findanddefeat import FindAndDefeatGeneralizedRewardBuilder
+
 
 class DefeatEnemiesGeneralizedRewardBuilder(FindAndDefeatGeneralizedRewardBuilder):
 

@@ -1,7 +1,7 @@
-from .findanddefeat import FindAndDefeatGeneralizedStatebuilder 
-from urnai.utils.constants import RTSGeneralization, Games 
-from pysc2.lib import units as sc2units
-import urnai.agents.actions.sc2 as sc2aux 
+from urnai.utils.constants import RTSGeneralization
+
+from .findanddefeat import FindAndDefeatGeneralizedStatebuilder
+
 
 class DefeatEnemiesGeneralizedStatebuilder(FindAndDefeatGeneralizedStatebuilder):
 

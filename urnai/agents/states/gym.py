@@ -1,11 +1,11 @@
-import warnings
 import numpy as np
+
 from .abstate import StateBuilder
-from envs.base.abenv import Env
+
 
 class FrozenLakeState(StateBuilder):
     def build_state(self, obs):
-        if obs != None:
+        if obs is not None:
             index = obs
             obs = np.zeros((1, 16))
             obs[0][index] = 1
@@ -16,10 +16,11 @@ class FrozenLakeState(StateBuilder):
     def get_state_dim(self):
         return 16
 
+
 class PureState(StateBuilder):
     def __init__(self, state_dim):
-        #you can get observation_space from gym_env.env_instance.observation_space.shape[0]
-        self.state_dim = state_dim 
+        # you can get observation_space from gym_env.env_instance.observation_space.shape[0]
+        self.state_dim = state_dim
 
     def preprocess_obs(self, obs):
         if type(obs) == int:
@@ -37,9 +38,10 @@ class PureState(StateBuilder):
     def get_state_dim(self):
         return self.state_dim
 
+
 class GymState(StateBuilder):
     def __init__(self, state_dim):
-        #you can get observation_space from gym_env.env_instance.observation_space.shape
+        # you can get observation_space from gym_env.env_instance.observation_space.shape
         self.state_dim = state_dim
 
     def build_state(self, obs):

@@ -1,28 +1,37 @@
-import tensorflow as tf
-import numpy as np
-import random
-import os, sys
 from collections import deque
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dropout, Activation
-from tensorflow.keras.optimizers import Adam
-from .base.abmodel import LearningModel
+import os
+import random
+
 from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder
+import numpy as np
+from tensorflow.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.optimizers import Adam
+from urnai.utils.error import IncoherentBuildModelError, UnsupportedBuildModelLayerTypeError
+
+from .base.abmodel import LearningModel
 from .model_builder import ModelBuilder
-from urnai.utils.error import IncoherentBuildModelError
-from urnai.utils.error import UnsupportedBuildModelLayerTypeError
+
 
 class DQNKeras(LearningModel):
 
-    def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99, 
-                learning_rate=0.001, learning_rate_min = 0.0001, learning_rate_decay = 0.99995, learning_rate_decay_ep_cutoff = 0,
-                name='DQN', epsilon_start=1.0, epsilon_min=0.01, epsilon_decay=0.995, batch_size=32, batch_training=False,
-                memory_maxlen=50000, use_memory=True, per_episode_epsilon_decay=False, build_model = ModelBuilder.DEFAULT_BUILD_MODEL,
-                seed_value=None, cpu_only=False, epsilon_linear_decay=False, lr_linear_decay=False):
-        
-        super(DQNKeras, self).__init__(action_wrapper, state_builder, gamma, learning_rate, learning_rate_min, learning_rate_decay, 
-                                        epsilon_start, epsilon_min, epsilon_decay, per_episode_epsilon_decay, learning_rate_decay_ep_cutoff, name, seed_value, cpu_only, epsilon_linear_decay, lr_linear_decay)
+    def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99,
+                 learning_rate=0.001, learning_rate_min=0.0001, learning_rate_decay=0.99995,
+                 learning_rate_decay_ep_cutoff=0,
+                 name='DQN', epsilon_start=1.0, epsilon_min=0.01, epsilon_decay=0.995,
+                 batch_size=32, batch_training=False,
+                 memory_maxlen=50000, use_memory=True, per_episode_epsilon_decay=False,
+                 build_model=ModelBuilder.DEFAULT_BUILD_MODEL,
+                 seed_value=None, cpu_only=False, epsilon_linear_decay=False,
+                 lr_linear_decay=False):
+
+        super(DQNKeras, self).__init__(action_wrapper, state_builder, gamma, learning_rate,
+                                       learning_rate_min, learning_rate_decay,
+                                       epsilon_start, epsilon_min, epsilon_decay,
+                                       per_episode_epsilon_decay, learning_rate_decay_ep_cutoff,
+                                       name, seed_value, cpu_only, epsilon_linear_decay,
+                                       lr_linear_decay)
         self.batch_size = batch_size
         self.batch_training = batch_training
 
@@ -33,21 +42,23 @@ class DQNKeras(LearningModel):
         if self.use_memory:
             self.memory = deque(maxlen=memory_maxlen)
             self.memory_maxlen = memory_maxlen
-        
+
     def make_model(self):
         model = Sequential()
 
-        if self.build_model[0]['type'] == ModelBuilder.LAYER_INPUT and self.build_model[-1]['type'] == ModelBuilder.LAYER_OUTPUT:
+        if self.build_model[0]['type'] == ModelBuilder.LAYER_INPUT \
+                and self.build_model[-1]['type'] == ModelBuilder.LAYER_OUTPUT:
             self.build_model[0]['shape'] = [None, self.state_size]
-        
+
         self.build_model[-1]['length'] = self.action_size
 
         for idx, (layer_model) in enumerate(self.build_model):
-            if layer_model['type'] == ModelBuilder.LAYER_INPUT: 
+            if layer_model['type'] == ModelBuilder.LAYER_INPUT:
                 if self.build_model.index(layer_model) == 0:
-                    model.add(Dense(layer_model['nodes'], input_dim=layer_model['shape'][1], activation='relu'))
+                    model.add(Dense(layer_model['nodes'], input_dim=layer_model['shape'][1],
+                                    activation='relu'))
                 else:
-                    raise IncoherentBuildModelError("Input Layer must be the first one.") 
+                    raise IncoherentBuildModelError('Input Layer must be the first one.')
 
             elif layer_model['type'] == ModelBuilder.LAYER_FULLY_CONNECTED:
                 # if previous layer is convolutional, add a Flatten layer before the fully connected
@@ -64,29 +75,32 @@ class DQNKeras(LearningModel):
                 model.add(Dense(layer_model['length'], activation='linear'))
 
             elif layer_model['type'] == ModelBuilder.LAYER_CONVOLUTIONAL:
-                # if convolutional layer is the first, it's going to have the input shape and be treated as the input layer
+                # if convolutional layer is the first, it's going to have the input shape
+                # and be treated as the input layer
                 if self.build_model.index(layer_model) == 0:
-                    model.add(Conv2D(layer_model['filters'], layer_model['filter_shape'], 
-                              padding=layer_model['padding'], activation='relu', input_shape=layer_model['input_shape']))
+                    model.add(Conv2D(layer_model['filters'], layer_model['filter_shape'],
+                                     padding=layer_model['padding'], activation='relu',
+                                     input_shape=layer_model['input_shape']))
                     model.add(Activation('relu'))
                     model.add(MaxPooling2D(pool_size=layer_model['max_pooling_pool_size_shape']))
                     try:
-                        #this code makes dropout layer optional
+                        # this code makes dropout layer optional
                         model.add(Dropout(layer_model['dropout']))
                     except KeyError:
                         pass
                 else:
-                    model.add(Conv2D(layer_model['filters'], layer_model['filter_shape'], 
-                              padding=layer_model['padding'], activation='relu'))
+                    model.add(Conv2D(layer_model['filters'], layer_model['filter_shape'],
+                                     padding=layer_model['padding'], activation='relu'))
                     model.add(Activation('relu'))
                     model.add(MaxPooling2D(pool_size=layer_model['max_pooling_pool_size_shape']))
                     try:
-                        #this code makes dropout layer optional
+                        # this code makes dropout layer optional
                         model.add(Dropout(layer_model['dropout']))
                     except KeyError:
                         pass
             else:
-                raise UnsupportedBuildModelLayerTypeError("Unsuported Layer Type " + layer_model['type'])
+                raise UnsupportedBuildModelLayerTypeError(
+                    'Unsuported Layer Type ' + layer_model['type'])
 
         model.compile(optimizer=Adam(lr=self.learning_rate), loss='mse', metrics=['accuracy'])
         return model
@@ -103,11 +117,12 @@ class DQNKeras(LearningModel):
                     target = (reward + self.gamma * np.amax(self.model(next_state).numpy()[0]))
                 target_f = self.model(state).numpy()
                 target_f[0][action] = target
-                self.model.fit(state, target_f, epochs=1, verbose=0, callbacks=self.tensorboard_callback)
+                self.model.fit(state, target_f, epochs=1, verbose=0,
+                               callbacks=self.tensorboard_callback)
         else:
             inputs = np.zeros((len(minibatch), self.state_size))
             targets = np.zeros((len(minibatch), self.action_size))
-            i=0
+            i = 0
 
             for state, action, reward, next_state, done in minibatch:
                 q_current_state = self.model(state).numpy()[0]
@@ -117,28 +132,28 @@ class DQNKeras(LearningModel):
                 targets[i] = q_current_state
 
                 if done:
-                    targets[i,np.argmax(action)] = reward
+                    targets[i, np.argmax(action)] = reward
                 else:
-                    targets[i,np.argmax(action)] = reward + self.gamma * np.max(q_next_state)
+                    targets[i, np.argmax(action)] = reward + self.gamma * np.max(q_next_state)
 
-                i+=1
+                i += 1
 
-            loss = self.model.train_on_batch(inputs, targets)
+            # loss = self.model.train_on_batch(inputs, targets)
 
-        #Epsilon decay operation was here, moved it to "decay_epsilon()" and to "learn()"
+        # Epsilon decay operation was here, moved it to 'decay_epsilon()' and to 'learn()'
 
     def no_memory_learning(self, s, a, r, s_, done):
-            target = r 
-            if not done:
-                target = (r + self.gamma * np.amax(self.model(s_).numpy()[0]))
-            target_f = self.model(s).numpy()
-            target_f[0][a] = target
-            self.model.fit(s, target_f, epochs=1, verbose=0, callbacks=self.tensorboard_callback)
+        target = r
+        if not done:
+            target = (r + self.gamma * np.amax(self.model(s_).numpy()[0]))
+        target_f = self.model(s).numpy()
+        target_f[0][a] = target
+        self.model.fit(s, target_f, epochs=1, verbose=0, callbacks=self.tensorboard_callback)
 
     def learn(self, s, a, r, s_, done):
         if self.use_memory:
             self.memorize(s, a, r, s_, done)
-            if(len(self.memory) > self.batch_size):
+            if (len(self.memory) > self.batch_size):
                 self.replay()
         else:
             self.no_memory_learning(s, a, r, s_, done)
@@ -160,12 +175,12 @@ class DQNKeras(LearningModel):
                 return random_action
             else:
                 return self.predict(state, excluded_actions)
-        
+
     def predict(self, state, excluded_actions=[]):
-        '''
-        model.predict returns an array of arrays, containing the Q-Values for the actions. This function should return the
-        corresponding action with the highest Q-Value.
-        '''
+        """
+        model.predict returns an array of arrays, containing the Q-Values for the actions.
+        This function should return the corresponding action with the highest Q-Value.
+        """
         q_values = self.model(state).numpy()[0]
         action_idx = int(np.argmax(q_values))
 
@@ -176,13 +191,13 @@ class DQNKeras(LearningModel):
         return action_idx
 
     def save_extra(self, persist_path):
-        self.model.save_weights(self.get_full_persistance_path(persist_path)+".h5")
+        self.model.save_weights(self.get_full_persistance_path(persist_path) + '.h5')
 
     def load_extra(self, persist_path):
-        exists = os.path.isfile(self.get_full_persistance_path(persist_path)+".h5")
+        exists = os.path.isfile(self.get_full_persistance_path(persist_path) + '.h5')
 
-        if(exists):
+        if exists:
             self.model = self.make_model()
-            self.model.load_weights(self.get_full_persistance_path(persist_path)+".h5")
-            
+            self.model.load_weights(self.get_full_persistance_path(persist_path) + '.h5')
+
             self.set_seeds()

@@ -1,28 +1,29 @@
-'''
-This file is a repository with reward classes for all StarCraft 2 games/minigames we've solved.
-'''
-from urnai.agents.rewards.abreward import RewardBuilder
-from urnai.agents.actions.sc2 import *
-#import urnai.agents.actions.sc2 as sc2
+"""
+This file is a repository with reward classes for all StarCraft 2
+games/minigames we've solved.
+"""
 from pysc2.lib import units
+from urnai.agents.actions.sc2 import unit_exists
+from urnai.agents.rewards.abreward import RewardBuilder
+
 
 class SparseReward(RewardBuilder):
     def get_reward(self, obs, reward, done):
-        '''
-        Always returns 0, unless the game has ended.
-        '''
+        """Always returns 0, unless the game has ended."""
         if not done:
             return 0
         return reward
 
+
 class GeneralReward(RewardBuilder):
-    '''
-    This reward function gives a reward value every step. The reward is a constant -1 value 
+    """
+    This reward function gives a reward value every step. The reward is a constant -1 value
     as long as the agent doesn't do anything. If the agent does something "positive" such as
-    creating more army, workers, structures or killing units, the reward value receives a positive 
-    value proportional to the score change of those categories. Every step the current reward is then
-    reset to -1.
-    '''
+    creating more army, workers, structures or killing units, the reward value receives a positive
+    value proportional to the score change of those categories. Every step the current reward is
+    then reset to -1.
+    """
+
     def __init__(self):
         self.reward = 0
 
@@ -42,11 +43,12 @@ class GeneralReward(RewardBuilder):
 
     def get_reward(self, obs, reward, done):
         currentscore = -1
-        currentscore += (obs.player.food_army - self.last_own_army_count)*50
-        currentscore += (obs.player.food_workers - self.last_own_worker_count)*25
+        currentscore += (obs.player.food_army - self.last_own_army_count) * 50
+        currentscore += (obs.player.food_workers - self.last_own_worker_count) * 25
         currentscore += obs.score_cumulative.total_value_structures - self.last_structures_score
         currentscore += (obs.score_cumulative.killed_value_units - self.last_killed_units_score)
-        currentscore += (obs.score_cumulative.killed_value_structures - self.last_killed_structures_score)*2
+        currentscore += (obs.score_cumulative.killed_value_structures -
+                         self.last_killed_structures_score) * 2
 
         self.last_own_army_count = obs.player.food_army
         self.last_own_worker_count = obs.player.food_workers
@@ -61,11 +63,13 @@ class GeneralReward(RewardBuilder):
 
         return self.reward
 
+
 class KilledUnitsReward(RewardBuilder):
-    '''
-    A simple reward function in which the reward value is the difference in score points from 
+    """
+    A simple reward function in which the reward value is the difference in score points from
     killing enemy units or structures at the current time step compared the previous time step.
-    '''
+    """
+
     def __init__(self):
 
         # Properties keep track of the change of values used in our reward system
@@ -82,7 +86,8 @@ class KilledUnitsReward(RewardBuilder):
         new_reward = 0
 
         new_reward += (obs.score_cumulative.killed_value_units - self._previous_killed_unit_score)
-        new_reward += (obs.score_cumulative.killed_value_structures - self._previous_killed_building_score)
+        new_reward += (
+                obs.score_cumulative.killed_value_structures - self._previous_killed_building_score)
 
         self._previous_killed_unit_score = obs.score_cumulative.killed_value_units
         self._previous_killed_building_score = obs.score_cumulative.killed_value_structures
@@ -95,11 +100,15 @@ class KilledUnitsReward(RewardBuilder):
 
         return new_reward
 
+
 class KilledUnitsRewardBoosted(RewardBuilder):
-    '''
-    A reward class similar to KilledUnitsReward but with added reward bonuses for constructing certain structures
-    and training certain units. For example, constructing a Barrack, Factory or Starport is worth 300 reward points.
-    '''
+    """
+    A reward class similar to KilledUnitsReward but with added reward bonuses for constructing
+    certain structures
+    and training certain units. For example, constructing a Barrack, Factory or Starport is
+    worth 300 reward points.
+    """
+
     def __init__(self):
 
         self.construction_reward = 1000
@@ -160,7 +169,8 @@ class KilledUnitsRewardBoosted(RewardBuilder):
             self._trained_hellion = True
 
         new_reward += (obs.score_cumulative.killed_value_units - self._previous_killed_unit_score)
-        new_reward += (obs.score_cumulative.killed_value_structures - self._previous_killed_building_score)
+        new_reward += (
+                obs.score_cumulative.killed_value_structures - self._previous_killed_building_score)
 
         self._previous_killed_unit_score = obs.score_cumulative.killed_value_units
         self._previous_killed_building_score = obs.score_cumulative.killed_value_structures
@@ -174,15 +184,17 @@ class KilledUnitsRewardBoosted(RewardBuilder):
         return new_reward
 
 
-'''
+"""
 Ideas for new reward builders or improvements for current ones:
 
-    - Use utils.sc2_utils.get_fog_of_war_percentage() as a part of a reward value. 
-    Ex: if the agent explored 25% of the map give some reward, if explored 50% give another reward, etc. 
+    - Use utils.sc2_utils.get_fog_of_war_percentage() as a part of a reward value.
+    Ex: if the agent explored 25% of the map give some reward, if explored 50% give another
+    reward, etc.
 
     - Try out GeneralReward again but without the constant -1, just either 0 or positive reward,
-    and try and balance different scores more (for instance, food_army score is multiplied by 50 and that may not be optimal)
+    and try and balance different scores more (for instance, food_army score is multiplied by 50
+    and that may not be optimal)
 
-    - Create a reward for researching technology, or for creating techlabs in factory, starport etc 
+    - Create a reward for researching technology, or for creating techlabs in factory, starport etc
     so we can encourage the agent to train more complex units and have better army composition
-'''
+"""

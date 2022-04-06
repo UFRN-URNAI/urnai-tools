@@ -1,27 +1,29 @@
-from os import name
+from inspect import signature
 import random
-import ast
 from types import SimpleNamespace
-from inspect import ismethod, signature
 
-from numpy.lib.nanfunctions import _nanmedian_small
-from urnai.agents.actions.sc2 import research_upgrade
 import numpy as np
-from .base.abwrapper import ActionWrapper
-from agents.actions.sc2 import *
-import agents.actions.sc2 as sc2     # importing our action set file so that we can use its constants
-
-from utils.agent_utils import one_hot_encode, transformDistance, transformLocation
-from pysc2.lib import features, units
 from pysc2.env import sc2_env
+from pysc2.lib import units
+# importing our action set file so that we can use its constants
+import urnai.agents.actions.sc2 as sc2
+from urnai.agents.actions.sc2 import attack_distribute_army, attack_target_point, \
+    attack_target_point_spatial, build_gas_structure_raw_unit, build_structure_raw, \
+    build_structure_raw_pt, build_structure_raw_pt_spatial, can_queue_unit_terran, effect_units, \
+    get_all_idle_workers, get_free_supply, get_units_by_type, harvest_gather_gas, \
+    harvest_gather_minerals, harvest_gather_minerals_idle, move_target_point_spatial, no_op, \
+    organize_queue, research_upgrade, select_army, train_unit, unit_exists
 
+from .base.abwrapper import ActionWrapper
 
-## Defining action constants. These are names of the actions our agent will try to use.
-## These are used merely to facilitate checking which actions are being called during code debugging
+# Defining action constants. These are names of the actions our agent will try to use.
+# These are used merely to facilitate checking which actions are being called during code debugging
 
 ACTION_BUILD_COMMAND_CENTER = 'buildcommandcenter'
-ACTION_BUILD_SUPPLY_DEPOT = 'buildsupplydepot'              # Selects SCV > builds supply depot > sends SCV to harvest minerals
-ACTION_BUILD_REFINERY = 'buildrefinery'                     # Selects SCV > finds closest vespene geyser and builds a refinery > sends SCV to harvest minerals
+# Selects SCV > builds supply depot > sends SCV to harvest minerals
+ACTION_BUILD_SUPPLY_DEPOT = 'buildsupplydepot'
+# Selects SCV > finds closest vespene geyser and builds a refinery > sends SCV to harvest minerals
+ACTION_BUILD_REFINERY = 'buildrefinery'
 ACTION_BUILD_ENGINEERINGBAY = 'buildengineeringbay'
 ACTION_BUILD_ARMORY = 'buildarmory'
 ACTION_BUILD_MISSILETURRET = 'buildmissileturret'
@@ -29,7 +31,8 @@ ACTION_BUILD_SENSORTOWER = 'buildsensortower'
 ACTION_BUILD_BUNKER = 'buildbunker'
 ACTION_BUILD_FUSIONCORE = 'buildfusioncore'
 ACTION_BUILD_GHOSTACADEMY = 'buildghostacademy'
-ACTION_BUILD_BARRACKS = 'buildbarracks'                     # Selects SCV > builds barracks > sends SCV to harvest minerals
+# Selects SCV > builds barracks > sends SCV to harvest minerals
+ACTION_BUILD_BARRACKS = 'buildbarracks'
 ACTION_BUILD_FACTORY = 'buildfactory'
 ACTION_BUILD_STARPORT = 'buildstarport'
 ACTION_BUILD_TECHLAB_BARRACKS = 'buildtechlabbarracks'
@@ -74,9 +77,9 @@ ACTION_EFFECT_STIMPACK = 'effectstimpack'
 ACTION_MORPH_SIEGEMODE_TANK = 'siegemodetanks'
 ACTION_MORPH_UNSIEGE_TANK = 'unsiegetanks'
 
-ACTION_TRAIN_SCV = 'trainscv'                               # Selects all command center > trains an scv > nothing
-ACTION_CALLDOWN_MULE = 'calldownmule'                      # Verify for orbital command > call down mule > nothing
-ACTION_TRAIN_MARINE = 'trainmarine'                         # Selects all barracks > trains marines > nothing
+ACTION_TRAIN_SCV = 'trainscv'  # Selects all command center > trains an scv > nothing
+ACTION_CALLDOWN_MULE = 'calldownmule'  # Verify for orbital command > call down mule > nothing
+ACTION_TRAIN_MARINE = 'trainmarine'  # Selects all barracks > trains marines > nothing
 ACTION_TRAIN_MARAUDER = 'trainmarauder'
 ACTION_TRAIN_REAPER = 'trainreaper'
 ACTION_TRAIN_GHOST = 'trainghost'
@@ -97,15 +100,15 @@ ACTION_TRAIN_BATTLECRUISER = 'trainbattlecruiser'
 ACTION_BUILD_PYLON = 'buildpylon'
 
 # General Actions used by any race
-ACTION_DO_NOTHING = 'donothing'                             # The agent does nothing
+ACTION_DO_NOTHING = 'donothing'  # The agent does nothing
 
-ACTION_ATTACK_ENEMY_BASE = 'attackenemybase'                                    # Selects army > attacks coordinates > nothing
+ACTION_ATTACK_ENEMY_BASE = 'attackenemybase'  # Selects army > attacks coordinates > nothing
 ACTION_ATTACK_ENEMY_SECOND_BASE = 'attackenemysecondbase'
 ACTION_ATTACK_MY_BASE = 'attackmybase'
 ACTION_ATTACK_MY_SECOND_BASE = 'attackmysecondbase'
 ACTION_ATTACK_DISTRIBUTE_ARMY = 'attackdistributearmy'
-
-ACTION_HARVEST_MINERALS_IDLE = 'harvestmineralsidle'        # Selects random idle scv > sends him to harvest minerals
+# Selects random idle scv > sends him to harvest minerals
+ACTION_HARVEST_MINERALS_IDLE = 'harvestmineralsidle'
 ACTION_HARVEST_MINERALS_FROM_GAS = 'harvestmineralsfromgas'
 ACTION_HARVEST_GAS_FROM_MINERALS = 'harvestgasfromminerals'
 
@@ -116,39 +119,58 @@ ACTION_MOVE_TROOPS_POINT = 'movetroopspoint'
 class SC2Wrapper(ActionWrapper):
 
     def __init__(self):
-        #self.move_number = 0                            # Variable used to sequentially execute different parts of code inside a function without having to worry about returns
-                                                        # For an example on how self.move_number works check out build_structure_raw{actions\sc2.py}
+        # self.move_number = 0  # Variable used to sequentially execute different parts
+        # of code inside a function without having to worry about returns
+        # For an example on how self.move_number works check out build_structure_raw{actions\sc2.py}
 
-        #self.last_worker = sc2._NO_UNITS                # self.last_worker is used to issue commands to the last worker used in the previous action
-                                                        # For example, to queue the action of harvesting minerals after the worker was sent to build a structure
+        # self.last_worker = sc2._NO_UNITS # self.last_worker is used to issue
+        # commands to the last worker used in the previous action
+        # For example, to queue the action of harvesting minerals after the worker
+        # was sent to build a structure
 
-        self.units_to_attack = sc2._NO_UNITS            # self.units_to_attack is used as a memory of units that are being used by an attack action, once an attack is issued this variable
-                                                        # will be filled with all available army units and the furthest away from the target will be removed from the array and sent to attack.
-                                                        # Once the array is empty the attack action has finished (all army units have been sent to the same attack point)
+        self.units_to_attack = sc2._NO_UNITS  # self.units_to_attack is used as a memory of
+        # units that are being used by an attack action, once an attack is issued this variable
+        # will be filled with all available army units and the furthest away from the target
+        # will be removed from the array and sent to attack.
+        # Once the array is empty the attack action has finished (all army units have been
+        # sent to the same attack point)
 
-        self.last_attack_action = ACTION_DO_NOTHING     # self.last_attack_action stores the last attack action used, so that every game step if there's still troops in units_to_attack
-                                                        # we can go back to the same attack action until all units have been issued the command to attack the same point
-        
-        self.units_to_effect = sc2._NO_UNITS            # self.units_to_effect and self.last_effect_action serve a very similar purpuse as self.units_to_attack and self.last_attack_action
-        self.last_effect_action = ACTION_DO_NOTHING     # both of these variables will be used to effect a group of units with an ability, for example effecting all marines with stimpack
-        
-        self.base_top_left = None                       # Variable used to verify if the initial players base is on the top left or bottom right part of the map (used mainly for internal calculations)
+        self.last_attack_action = ACTION_DO_NOTHING  # self.last_attack_action stores the last
+        # attack action used, so that every game step if there's still troops in units_to_attack
+        # we can go back to the same attack action until all units have been issued the command
+        # to attack the same point
 
-        self.my_base_xy = [19, 23]                      # Variable that represents the x,y position of the player's base in the simple64 map
-        self.my_second_base_xy = [43, 23]               # Variable that represents the x,y position of the enemy's base in the simple64 map
+        self.units_to_effect = sc2._NO_UNITS  # self.units_to_effect and self.last_effect_action
+        # serve a very similar purpuse as self.units_to_attack and self.last_attack_action
+        self.last_effect_action = ACTION_DO_NOTHING  # both of these variables will be used to
+        # effect a group of units with an ability, for example effecting all marines with stimpack
+
+        self.base_top_left = None  # Variable used to verify if the initial players base is on
+        # the top left or bottom right part of the map (used mainly for internal calculations)
+
+        self.my_base_xy = [19,
+                           23]  # Variable that represents the x,y position of
+        # the player's base in the simple64 map
+        self.my_second_base_xy = [43,
+                                  23]  # Variable that represents the x,y position of the
+        # enemy's base in the simple64 map
         self.enemy_base_xy = [38, 46]
         self.enemy_second_base_xy = [14, 46]
 
-        self.actions_queue = []                         # These are the actions that are stored by the wrapper to be done subsequently. The model will not be able to choose another 
-                                                        # action so long as this queue is not empty, allowing for an easy way to code multi-step actions.
+        self.actions_queue = []  # These are the actions that are stored by the wrapper to be
+        # done subsequently. The model will not be able to choose another
+        # action so long as this queue is not empty, allowing for an easy way to code multi-step
+        # actions.
 
-        '''
+        """
         We're defining names for our actions for two reasons:
-        1) Abstraction: By defining names for our actions as strings we can pour in extra info. EX: The ACTION_ATTACK_x_y action contains
+        1) Abstraction: By defining names for our actions as strings we can pour in extra info.
+        EX: The ACTION_ATTACK_x_y action contains
         can be parsed to retrieve (x, y) coordinates and pass them to the actual PySC2 action.
-         
-        2) Readability: Using names instead of literal numbers makes it easier to tell which action is which.
-        '''
+
+        2) Readability: Using names instead of literal numbers makes it easier to tell which action
+        is which.
+        """
         self.named_actions = [
             ACTION_DO_NOTHING,
 
@@ -163,21 +185,19 @@ class SC2Wrapper(ActionWrapper):
             ACTION_ATTACK_DISTRIBUTE_ARMY,
         ]
 
-        '''
-        This is an outdated method of creating a 4x4 grid for attack actions. This is not currently being used, since we went for a more simplistic method
-        of only four attack actions, but this could be adapted and reused in the future. For each (x, y) grid cell, we're defining an action called
-        ACTION_ATTACK_x_y. When this actions is selected, we parse this string to retrieve this coordinate info and pass it as a parameter to the actual PySC2 action.
-        '''
-        # for mm_x in range(0, 64):
-        #     for mm_y in range(0, 64):
-        #         if (mm_x + 1) % 32 == 0 and (mm_y + 1) % 32 == 0:
-        #             self.named_actions.append(ACTION_ATTACK + '_' + str(mm_x - 16) + '_' + str(mm_y - 16))
-   
+        """
+        This is an outdated method of creating a 4x4 grid for attack actions. This is not currently
+        being used, since we went for a more simplistic method
+        of only four attack actions, but this could be adapted and reused in the future. For each
+        (x, y) grid cell, we're defining an action called
+        ACTION_ATTACK_x_y. When this actions is selected, we parse this string to retrieve this
+        coordinate info and pass it as a parameter to the actual PySC2 action.
+        """
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
     def is_action_done(self):
         return len(self.actions_queue) == 0
-    
+
     def reset(self):
         self.actions_queue = []
 
@@ -186,11 +206,11 @@ class SC2Wrapper(ActionWrapper):
 
     def get_named_actions(self):
         return self.named_actions
-    
-    # Method that splits a "ACTION_ATTACK_x_y" string into three different variables
+
+    # Method that splits a 'ACTION_ATTACK_x_y' string into three different variables
     # However, this method is currently not in use
     def split_action(self, smart_action):
-        '''Breaks out (x, y) coordinates from a named action, if there are any.'''
+        """Breaks out (x, y) coordinates from a named action, if there are any."""
         x = 0
         y = 0
         if '_' in smart_action:
@@ -207,7 +227,7 @@ class SC2Wrapper(ActionWrapper):
 
 class TerranWrapper(SC2Wrapper):
     def __init__(self):
-        SC2Wrapper.__init__(self)       # Imports self variables from SC2Wrapper
+        SC2Wrapper.__init__(self)  # Imports self variables from SC2Wrapper
 
         self.named_actions = [
             ACTION_DO_NOTHING,
@@ -241,7 +261,7 @@ class TerranWrapper(SC2Wrapper):
             ACTION_RESEARCH_HISEC_AUTOTRACKING,
             ACTION_RESEARCH_NEOSTEEL_FRAME,
             ACTION_RESEARCH_STRUCTURE_ARMOR,
-            
+
             # ARMORY RESEARCH
             ACTION_RESEARCH_SHIPS_WEAPONS,
             ACTION_RESEARCH_VEHIC_WEAPONS,
@@ -308,37 +328,37 @@ class TerranWrapper(SC2Wrapper):
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
         self.building_positions = {
-            'command_center' : [[19, 23], [41, 21]],
-            'supply_depot' : [[16,27], [18,27], [20,27], [22,27], [16,29], [18,29], [20,29]],
-            'barracks' : [[25, 18], [24, 20], [30, 24]],
-            'factory' : [[25, 25], [26, 27]],
-            'starport' : [[35, 15], [37, 19]],
+            'command_center': [[19, 23], [41, 21]],
+            'supply_depot': [[16, 27], [18, 27], [20, 27], [22, 27], [16, 29], [18, 29], [20, 29]],
+            'barracks': [[25, 18], [24, 20], [30, 24]],
+            'factory': [[25, 25], [26, 27]],
+            'starport': [[35, 15], [37, 19]],
 
-            'engineering_bay' : [[37,25]],
-            'armory' : [[22,23]],
-            'fusion_core' : [[14, 18]],
-            'ghost_academy' : [[47, 16]],
-            
-            'missile_turret' : [[17,17], [12,20], [48,19], [42,14]],
-            'sensor_tower' : 1,
-            'bunker' : 4,
+            'engineering_bay': [[37, 25]],
+            'armory': [[22, 23]],
+            'fusion_core': [[14, 18]],
+            'ghost_academy': [[47, 16]],
+
+            'missile_turret': [[17, 17], [12, 20], [48, 19], [42, 14]],
+            'sensor_tower': 1,
+            'bunker': 4,
         }
 
         self.building_amounts = {
-            'command_center' : 2,
-            'supply_depot' : 18,
-            'barracks' : 3,
-            'factory' : 2,
-            'starport' : 2,
+            'command_center': 2,
+            'supply_depot': 18,
+            'barracks': 3,
+            'factory': 2,
+            'starport': 2,
 
-            'engineering_bay' : 1,
-            'armory' : 1,
-            'fusion_core' : 1,
-            'ghost_academy' : 1,
+            'engineering_bay': 1,
+            'armory': 1,
+            'fusion_core': 1,
+            'ghost_academy': 1,
 
-            'missile_turret' : 4,
-            'sensor_tower' : 1,
-            'bunker' : 4,
+            'missile_turret': 4,
+            'sensor_tower': 1,
+            'bunker': 4,
         }
 
     def get_excluded_actions(self, obs):
@@ -352,9 +372,11 @@ class TerranWrapper(SC2Wrapper):
         has_scv = unit_exists(obs, units.Terran.SCV)
         has_idle_scv = obs.player.idle_worker_count > 0
         has_army = select_army(obs, sc2_env.Race.terran) != sc2._NO_UNITS
-        has_marinemarauder = unit_exists(obs, units.Terran.Marine) or unit_exists(obs, units.Terran.Marauder)
-        has_tanks = unit_exists(obs, units.Terran.SiegeTank) or unit_exists(obs, units.Terran.SiegeTankSieged)
-        
+        has_marinemarauder = (unit_exists(obs, units.Terran.Marine)
+                              or unit_exists(obs, units.Terran.Marauder))
+        has_tanks = (unit_exists(obs, units.Terran.SiegeTank)
+                     or unit_exists(obs, units.Terran.SiegeTankSieged))
+
         has_barracks = unit_exists(obs, units.Terran.Barracks)
         has_queueable_barracks = can_queue_unit_terran(obs, units.Terran.Barracks)
         has_barracks_techlab = unit_exists(obs, units.Terran.BarracksTechLab)
@@ -366,55 +388,60 @@ class TerranWrapper(SC2Wrapper):
         has_starport = unit_exists(obs, units.Terran.Starport)
         has_queueable_starport = can_queue_unit_terran(obs, units.Terran.Starport)
         has_starport_techlab = unit_exists(obs, units.Terran.StarportTechLab)
-        
+
         has_engineeringbay = unit_exists(obs, units.Terran.EngineeringBay)
         has_armory = unit_exists(obs, units.Terran.Armory)
         has_fusioncore = unit_exists(obs, units.Terran.FusionCore)
         has_ghostacademy = unit_exists(obs, units.Terran.GhostAcademy)
-        
-        has_ccs = unit_exists(obs, units.Terran.CommandCenter) or unit_exists(obs, units.Terran.PlanetaryFortress) or unit_exists(obs, units.Terran.OrbitalCommand)
-        has_queueable_ccs = can_queue_unit_terran(obs, units.Terran.CommandCenter) or can_queue_unit_terran(obs, units.Terran.PlanetaryFortress) or \
-                            can_queue_unit_terran(obs, units.Terran.OrbitalCommand)
+
+        has_ccs = (unit_exists(obs, units.Terran.CommandCenter)
+                   or unit_exists(obs, units.Terran.PlanetaryFortress)
+                   or unit_exists(obs, units.Terran.OrbitalCommand))
+        has_queueable_ccs = (can_queue_unit_terran(obs, units.Terran.CommandCenter)
+                             or can_queue_unit_terran(obs, units.Terran.PlanetaryFortress)
+                             or can_queue_unit_terran(obs, units.Terran.OrbitalCommand))
         has_cc = unit_exists(obs, units.Terran.CommandCenter)
-        has_orbitalcommand = unit_exists(obs, units.Terran.OrbitalCommand) or unit_exists(obs, units.Terran.OrbitalCommandFlying)
+        has_orbitalcommand = (unit_exists(obs, units.Terran.OrbitalCommand)
+                              or unit_exists(obs, units.Terran.OrbitalCommandFlying))
         has_refinery = unit_exists(obs, units.Terran.Refinery)
-        has_supplydepot = unit_exists(obs, units.Terran.SupplyDepot) or unit_exists(obs, units.Terran.SupplyDepotLowered)
+        has_supplydepot = (unit_exists(obs, units.Terran.SupplyDepot)
+                           or unit_exists(obs, units.Terran.SupplyDepotLowered))
 
         game_info = {
-            'minerals' : minerals,
-            'vespene' : vespene,
-            'freesupply' : freesupply,
-            'has_scv' : has_scv,
-            'has_idle_scv' : has_idle_scv,
-            'has_army' : has_army,
-            'has_marinemarauder' : has_marinemarauder,
+            'minerals': minerals,
+            'vespene': vespene,
+            'freesupply': freesupply,
+            'has_scv': has_scv,
+            'has_idle_scv': has_idle_scv,
+            'has_army': has_army,
+            'has_marinemarauder': has_marinemarauder,
             'has_orbitalcommand': has_orbitalcommand,
-            'has_supplydepot' : has_supplydepot,
-            'has_barracks' : has_barracks,
-            'has_queueable_barracks' : has_queueable_barracks,
-            'has_barracks_techlab' : has_barracks_techlab,
-            'has_ghostacademy' : has_ghostacademy,
-            'has_factory' : has_factory,
-            'has_queueable_factory' : has_queueable_factory,
-            'has_factory_techlab' : has_factory_techlab,
-            'has_armory' : has_armory,
-            'has_starport' : has_starport,
-            'has_queueable_starport' : has_queueable_starport,
-            'has_starport_techlab' : has_starport_techlab,
-            'has_fusioncore' : has_fusioncore,
-            'has_ccs' : has_ccs,
-            'has_queueable_ccs' : has_queueable_ccs,
-            'has_cc' : has_cc,
-            'has_engineeringbay' : has_engineeringbay,
-            'has_refinery' : has_refinery,
-            'has_tanks' : has_tanks
+            'has_supplydepot': has_supplydepot,
+            'has_barracks': has_barracks,
+            'has_queueable_barracks': has_queueable_barracks,
+            'has_barracks_techlab': has_barracks_techlab,
+            'has_ghostacademy': has_ghostacademy,
+            'has_factory': has_factory,
+            'has_queueable_factory': has_queueable_factory,
+            'has_factory_techlab': has_factory_techlab,
+            'has_armory': has_armory,
+            'has_starport': has_starport,
+            'has_queueable_starport': has_queueable_starport,
+            'has_starport_techlab': has_starport_techlab,
+            'has_fusioncore': has_fusioncore,
+            'has_ccs': has_ccs,
+            'has_queueable_ccs': has_queueable_ccs,
+            'has_cc': has_cc,
+            'has_engineeringbay': has_engineeringbay,
+            'has_refinery': has_refinery,
+            'has_tanks': has_tanks,
         }
 
         game_info = SimpleNamespace(**game_info)
 
         for action in self.named_actions:
-            if action+"_exclude" in dir(self):
-                check_method = getattr(self.__class__, action+"_exclude")
+            if action + '_exclude' in dir(self):
+                check_method = getattr(self.__class__, action + '_exclude')
                 check_method(excluded_actions, game_info)
 
         id_excluded_actions = []
@@ -424,8 +451,9 @@ class TerranWrapper(SC2Wrapper):
 
         return id_excluded_actions
 
-    #region LIST OF EXCLUDE ACTIONS
-    '''LIST OF METHODS USED TO EXCLUDE ACTIONS FROM named_actions'''
+    # region LIST OF EXCLUDE ACTIONS
+    """LIST OF METHODS USED TO EXCLUDE ACTIONS FROM named_actions"""
+
     def buildcommandcenter_exclude(excluded_actions, gi):
         if not gi.has_scv or gi.minerals < 400:
             excluded_actions.append(ACTION_BUILD_COMMAND_CENTER)
@@ -467,7 +495,7 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_BUILD_GHOSTACADEMY)
 
     def buildbarracks_exclude(excluded_actions, gi):
-        if not gi.has_supplydepot or not gi.has_scv or gi.minerals < 150:            
+        if not gi.has_supplydepot or not gi.has_scv or gi.minerals < 150:
             excluded_actions.append(ACTION_BUILD_BARRACKS)
 
     def buildfactory_exclude(excluded_actions, gi):
@@ -481,7 +509,7 @@ class TerranWrapper(SC2Wrapper):
     def buildtechlabbarracks_exclude(excluded_actions, gi):
         if not gi.has_barracks or not gi.has_scv or gi.minerals < 50 or gi.vespene < 25:
             excluded_actions.append(ACTION_BUILD_TECHLAB_BARRACKS)
-        
+
     def buildtechlabfactory_exclude(excluded_actions, gi):
         if not gi.has_factory or not gi.has_scv or gi.minerals < 50 or gi.vespene < 25:
             excluded_actions.append(ACTION_BUILD_TECHLAB_FACTORY)
@@ -509,6 +537,7 @@ class TerranWrapper(SC2Wrapper):
     def researchinfantryweapons_exclude(excluded_actions, gi):
         if not gi.has_engineeringbay or gi.minerals < 100 or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_INF_WEAPONS)
+
     def researchinfantryarmor_exclude(excluded_actions, gi):
         if not gi.has_engineeringbay or gi.minerals < 100 or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_INF_ARMOR)
@@ -542,27 +571,32 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_RESEARCH_GHOST_CLOAK)
 
     def researchstimpack_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 100 or gi.vespene < 100:
+        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 100 \
+                or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_STIMPACK)
 
     def researchcombatshield_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 100 or gi.vespene < 100:
+        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 100 \
+                or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_COMBATSHIELD)
 
     def researchconcussiveshell_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 50 or gi.vespene < 50:
+        if not gi.has_barracks or not gi.has_barracks_techlab or gi.minerals < 50 \
+                or gi.vespene < 50:
             excluded_actions.append(ACTION_RESEARCH_CONCUSSIVESHELL)
 
     def researchinfernalpreigniter_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 150:
+        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 150 \
+                or gi.vespene < 150:
             excluded_actions.append(ACTION_RESEARCH_INFERNAL_PREIGNITER)
 
     def researchdrillingclaws_exclude(excluded_actions, gi):
         if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 75 or gi.vespene < 75:
             excluded_actions.append(ACTION_RESEARCH_DRILLING_CLAWS)
-    
+
     def researchcyclonelockondmg_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 100 or gi.vespene < 100:
+        if not gi.has_factory or not gi.has_factory_techlab or gi.minerals < 100 \
+                or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_CYCLONE_LOCKONDMG)
 
     def researchcyclonerapidfire_exclude(excluded_actions, gi):
@@ -570,23 +604,28 @@ class TerranWrapper(SC2Wrapper):
             excluded_actions.append(ACTION_RESEARCH_CYCLONE_RAPIDFIRE)
 
     def researchhighcapacityfuel_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 100 or gi.vespene < 100:
+        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 100 \
+                or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_HIGHCAPACITYFUEL)
-    
+
     def researchcorvidreactor_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 150:
+        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 \
+                or gi.vespene < 150:
             excluded_actions.append(ACTION_RESEARCH_CORVIDREACTOR)
 
     def researchbansheecloak_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 100 or gi.vespene < 100:
+        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 100 \
+                or gi.vespene < 100:
             excluded_actions.append(ACTION_RESEARCH_BANSHEECLOAK)
 
     def researchbansheehyperflight_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 150:
+        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 \
+                or gi.vespene < 150:
             excluded_actions.append(ACTION_RESEARCH_BANSHEEHYPERFLIGHT)
 
     def researchadvancedballistics_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 150:
+        if not gi.has_starport or not gi.has_starport_techlab or gi.minerals < 150 \
+                or gi.vespene < 150:
             excluded_actions.append(ACTION_RESEARCH_ADVANCEDBALLISTICS)
 
     def researchbattlecruiserweaponrefit_exclude(excluded_actions, gi):
@@ -614,67 +653,85 @@ class TerranWrapper(SC2Wrapper):
             exclude_actions.append(ACTION_CALLDOWN_MULE)
 
     def trainmarine_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 or gi.freesupply < 1:
+        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 \
+                or gi.freesupply < 1:
             excluded_actions.append(ACTION_TRAIN_MARINE)
 
     def trainmarauder_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab or gi.minerals < 100 or gi.vespene < 25 or gi.freesupply < 2:
+        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab \
+                or gi.minerals < 100 or gi.vespene < 25 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_MARAUDER)
 
     def trainreaper_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 or gi.vespene < 50 or gi.freesupply < 1:
+        if not gi.has_barracks or not gi.has_queueable_barracks or gi.minerals < 50 \
+                or gi.vespene < 50 or gi.freesupply < 1:
             excluded_actions.append(ACTION_TRAIN_REAPER)
 
     def trainghost_exclude(excluded_actions, gi):
-        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab or not gi.has_ghostacademy or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 2:
+        if not gi.has_barracks or not gi.has_queueable_barracks or not gi.has_barracks_techlab \
+                or not gi.has_ghostacademy or gi.minerals < 150 or gi.vespene < 125 \
+                or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_GHOST)
-    
+
     def trainhellion_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 100 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 100 \
+                or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_HELLION)
 
     def trainhellbat_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_armory or gi.minerals < 100 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_armory \
+                or gi.minerals < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_HELLBAT)
 
     def trainsiegetank_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 3:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab \
+                or gi.minerals < 150 or gi.vespene < 125 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_SIEGETANK)
 
     def traincyclone_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 3:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab \
+                or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_CYCLONE)
 
     def trainwidowmine_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 75 or gi.vespene < 25 or gi.freesupply < 2:
+        if not gi.has_factory or not gi.has_queueable_factory or gi.minerals < 75 \
+                or gi.vespene < 25 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_WIDOWMINE)
-    
+
     def trainthor_exclude(excluded_actions, gi):
-        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab or gi.minerals < 300 or gi.vespene < 200 or gi.freesupply < 6:
+        if not gi.has_factory or not gi.has_queueable_factory or not gi.has_factory_techlab \
+                or gi.minerals < 300 or gi.vespene < 200 or gi.freesupply < 6:
             excluded_actions.append(ACTION_TRAIN_THOR)
 
     def trainviking_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 or gi.vespene < 75 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 \
+                or gi.vespene < 75 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_VIKING)
 
     def trainmedivac_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 100 or gi.vespene < 100 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 100 \
+                or gi.vespene < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_MEDIVAC)
-    
+
     def trainliberator_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 or gi.vespene < 150 or gi.freesupply < 3:
+        if not gi.has_starport or not gi.has_queueable_starport or gi.minerals < 150 \
+                or gi.vespene < 150 or gi.freesupply < 3:
             excluded_actions.append(ACTION_TRAIN_LIBERATOR)
 
     def trainraven_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or gi.minerals < 100 or gi.vespene < 200 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab \
+                or gi.minerals < 100 or gi.vespene < 200 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_RAVEN)
 
     def trainbanshee_exclude(excluded_actions, gi):
-        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 2:
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab \
+                or gi.minerals < 150 or gi.vespene < 100 or gi.freesupply < 2:
             excluded_actions.append(ACTION_TRAIN_BANSHEE)
 
-    def trainbattlecruiser_exclude(excluded_actions, gi): 
-        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab or not gi.has_fusioncore or gi.minerals < 400 or gi.vespene < 300 or gi.freesupply < 6:
+    def trainbattlecruiser_exclude(excluded_actions, gi):
+        if not gi.has_starport or not gi.has_queueable_starport or not gi.has_starport_techlab \
+                or not gi.has_fusioncore or gi.minerals < 400 or gi.vespene < 300 \
+                or gi.freesupply < 6:
             excluded_actions.append(ACTION_TRAIN_BATTLECRUISER)
 
     def harvestmineralsidle_exclude(excluded_actions, gi):
@@ -688,24 +745,27 @@ class TerranWrapper(SC2Wrapper):
     def harvestgasfromminerals_exclude(excluded_actions, gi):
         if not gi.has_scv or not gi.has_refinery:
             excluded_actions.append(ACTION_HARVEST_GAS_FROM_MINERALS)
-    #endregion
 
-    #region LIST OF ACTIONS
-    
+    # endregion
+
+    # region LIST OF ACTIONS
+
     def donothing(self, obs):
         return no_op()
 
-    #region BUILD ACTIONS
+    # region BUILD ACTIONS
     def buildcommandcenter(self, obs, x=None, y=None):
         if x is None and y is None:
             targets = self.building_positions['command_center']
             amount = self.building_amounts['command_center']
-            actions = build_structure_raw_pt(obs, units.Terran.CommandCenter, sc2._BUILD_COMMAND_CENTER, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.CommandCenter,
+                                             sc2._BUILD_COMMAND_CENTER,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.CommandCenter, sc2._BUILD_COMMAND_CENTER, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.CommandCenter,
+                                                     sc2._BUILD_COMMAND_CENTER, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -713,30 +773,34 @@ class TerranWrapper(SC2Wrapper):
         if x is None and y is None:
             targets = self.building_positions['supply_depot']
             amount = self.building_amounts['supply_depot']
-            actions = build_structure_raw_pt(obs, units.Terran.SupplyDepot, sc2._BUILD_SUPPLY_DEPOT, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.SupplyDepot, sc2._BUILD_SUPPLY_DEPOT,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.SupplyDepot, sc2._BUILD_SUPPLY_DEPOT, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.SupplyDepot,
+                                                     sc2._BUILD_SUPPLY_DEPOT, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
     def buildrefinery(self, obs):
-        actions = build_gas_structure_raw_unit(obs, units.Terran.Refinery, sc2._BUILD_REFINERY, sc2_env.Race.terran)
-        action, self.actions_queue = organize_queue(actions, self.actions_queue)     
+        actions = build_gas_structure_raw_unit(obs, units.Terran.Refinery, sc2._BUILD_REFINERY,
+                                               sc2_env.Race.terran)
+        action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
     def buildengineeringbay(self, obs, x=None, y=None):
         if x is None and y is None:
             targets = self.building_positions['engineering_bay']
             amount = self.building_amounts['engineering_bay']
-            actions = build_structure_raw_pt(obs, units.Terran.EngineeringBay, sc2._BUILD_ENGINEERINGBAY,
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.EngineeringBay,
+                                             sc2._BUILD_ENGINEERINGBAY,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.EngineeringBay, sc2._BUILD_ENGINEERINGBAY, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.EngineeringBay,
+                                                     sc2._BUILD_ENGINEERINGBAY, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -744,12 +808,13 @@ class TerranWrapper(SC2Wrapper):
         if x is None and y is None:
             targets = self.building_positions['armory']
             amount = self.building_amounts['armory']
-            actions = build_structure_raw_pt(obs, units.Terran.Armory, sc2._BUILD_ARMORY, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.Armory, sc2._BUILD_ARMORY,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.Armory, sc2._BUILD_ARMORY, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.Armory, sc2._BUILD_ARMORY,
+                                                     target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -757,34 +822,40 @@ class TerranWrapper(SC2Wrapper):
         if x is None and y is None:
             targets = self.building_positions['missile_turret']
             amount = self.building_amounts['missile_turret']
-            actions = build_structure_raw_pt(obs, units.Terran.MissileTurret, sc2._BUILD_MISSILETURRET, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.MissileTurret,
+                                             sc2._BUILD_MISSILETURRET,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.MissileTurret, sc2._BUILD_MISSILETURRET, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.MissileTurret,
+                                                     sc2._BUILD_MISSILETURRET, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
     def buildsensortower(self, obs, x=None, y=None):
         if x is None and y is None:
             amount = self.building_amounts['sensor_tower']
-            actions = build_structure_raw_pt(obs, units.Terran.SensorTower, sc2._BUILD_SENSORTOWER, self.base_top_left, max_amount=amount)
+            actions = build_structure_raw_pt(obs, units.Terran.SensorTower, sc2._BUILD_SENSORTOWER,
+                                             self.base_top_left, max_amount=amount)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.SensorTower, sc2._BUILD_SENSORTOWER, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.SensorTower,
+                                                     sc2._BUILD_SENSORTOWER, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
     def buildbunker(self, obs, x=None, y=None):
         if x is None and y is None:
             amount = self.building_amounts['bunker']
-            actions = build_structure_raw_pt(obs, units.Terran.Bunker, sc2._BUILD_BUNKER, self.base_top_left, max_amount=amount)
+            actions = build_structure_raw_pt(obs, units.Terran.Bunker, sc2._BUILD_BUNKER,
+                                             self.base_top_left, max_amount=amount)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.Bunker, sc2._BUILD_BUNKER, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.Bunker, sc2._BUILD_BUNKER,
+                                                     target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -792,12 +863,13 @@ class TerranWrapper(SC2Wrapper):
         if x is None and y is None:
             targets = self.building_positions['fusion_core']
             amount = self.building_amounts['fusion_core']
-            actions = build_structure_raw_pt(obs, units.Terran.FusionCore, sc2._BUILD_FUSIONCORE, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.FusionCore, sc2._BUILD_FUSIONCORE,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.FusionCore, sc2._BUILD_FUSIONCORE, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.FusionCore,
+                                                     sc2._BUILD_FUSIONCORE, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -805,12 +877,14 @@ class TerranWrapper(SC2Wrapper):
         if x is None and y is None:
             targets = self.building_positions['ghost_academy']
             amount = self.building_amounts['ghost_academy']
-            actions = build_structure_raw_pt(obs, units.Terran.GhostAcademy, sc2._BUILD_GHOSTACADEMY, 
-                                                self.base_top_left, max_amount=amount, targets=targets)
+            actions = build_structure_raw_pt(obs, units.Terran.GhostAcademy,
+                                             sc2._BUILD_GHOSTACADEMY,
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.GhostAcademy, sc2._BUILD_GHOSTACADEMY, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.GhostAcademy,
+                                                     sc2._BUILD_GHOSTACADEMY, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -819,11 +893,12 @@ class TerranWrapper(SC2Wrapper):
             targets = self.building_positions['barracks']
             amount = self.building_amounts['barracks']
             actions = build_structure_raw_pt(obs, units.Terran.Barracks, sc2._BUILD_BARRACKS,
-                                                self.base_top_left, max_amount=amount, targets=targets)
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.Barracks, sc2._BUILD_BARRACKS, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.Barracks,
+                                                     sc2._BUILD_BARRACKS, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -832,11 +907,12 @@ class TerranWrapper(SC2Wrapper):
             targets = self.building_positions['factory']
             amount = self.building_amounts['factory']
             actions = build_structure_raw_pt(obs, units.Terran.Factory, sc2._BUILD_FACTORY,
-                                                self.base_top_left, max_amount=amount, targets=targets)
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.Factory, sc2._BUILD_FACTORY, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.Factory, sc2._BUILD_FACTORY,
+                                                     target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -845,11 +921,12 @@ class TerranWrapper(SC2Wrapper):
             targets = self.building_positions['starport']
             amount = self.building_amounts['starport']
             actions = build_structure_raw_pt(obs, units.Terran.Starport, sc2._BUILD_STARPORT,
-                                                self.base_top_left, max_amount=amount, targets=targets)
+                                             self.base_top_left, max_amount=amount, targets=targets)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         else:
             target = [x, y]
-            actions = build_structure_raw_pt_spatial(obs, units.Terran.Starport, sc2._BUILD_STARPORT, target)
+            actions = build_structure_raw_pt_spatial(obs, units.Terran.Starport,
+                                                     sc2._BUILD_STARPORT, target)
             action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
@@ -857,7 +934,7 @@ class TerranWrapper(SC2Wrapper):
         actions = build_structure_raw(obs, units.Terran.Barracks, sc2._BUILD_TECHLAB_BARRACKS)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
-        
+
     def buildtechlabfactory(self, obs):
         actions = build_structure_raw(obs, units.Terran.Factory, sc2._BUILD_TECHLAB_FACTORY)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
@@ -882,9 +959,10 @@ class TerranWrapper(SC2Wrapper):
         actions = build_structure_raw(obs, units.Terran.Starport, sc2._BUILD_REACTOR_STARPORT)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
-    #endregion
 
-    #region MORPHING
+    # endregion
+
+    # region MORPHING
     def morphorbitalcommand(self, obs):
         # gets the command center unit list
         commands_center = get_units_by_type(obs, units.Terran.CommandCenter)
@@ -898,9 +976,10 @@ class TerranWrapper(SC2Wrapper):
             # the conditions for not executing this morphing action are in _excluded section
             return sc2._MORPH_ORBITAL_COMMAND('now', choosen_command_center.tag)
         return sc2._NO_OP()
-    #endregion
 
-    #region ENGINEERING BAY RESEARCH
+    # endregion
+
+    # region ENGINEERING BAY RESEARCH
     def researchinfantryweapons(self, obs):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_INF_WEAPONS, units.Terran.EngineeringBay)
 
@@ -908,16 +987,20 @@ class TerranWrapper(SC2Wrapper):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_INF_ARMOR, units.Terran.EngineeringBay)
 
     def researchhisecautotracking(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_HISEC_AUTOTRACKING, units.Terran.EngineeringBay)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_HISEC_AUTOTRACKING,
+                                units.Terran.EngineeringBay)
 
     def researchneosteelframe(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_NEOSTEEL_FRAME, units.Terran.EngineeringBay)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_NEOSTEEL_FRAME,
+                                units.Terran.EngineeringBay)
 
     def researchstructurearmor(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_STRUCTURE_ARMOR, units.Terran.EngineeringBay)
-    #endregion
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_STRUCTURE_ARMOR,
+                                units.Terran.EngineeringBay)
 
-    #region ARMORY RESEARCH
+    # endregion
+
+    # region ARMORY RESEARCH
     def researchshipsweapons(self, obs):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_SHIPS_WEAPONS, units.Terran.Armory)
 
@@ -926,61 +1009,79 @@ class TerranWrapper(SC2Wrapper):
 
     def researchshipvehicplates(self, obs):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_SHIPVEHIC_PLATES, units.Terran.Armory)
-    #endregion
 
-    #region GHOST ACADEMY RESEARCH
+    # endregion
+
+    # region GHOST ACADEMY RESEARCH
     def researchghostcloak(self, obs):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_GHOST_CLOAK, units.Terran.GhostAcademy)
-    #endregion
 
-    #region BARRACK RESEARCH
+    # endregion
+
+    # region BARRACK RESEARCH
     def researchstimpack(self, obs):
         return research_upgrade(obs, sc2._RESEARCH_TERRAN_STIMPACK, units.Terran.BarracksTechLab)
 
     def researchcombatshield(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_COMBATSHIELD, units.Terran.BarracksTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_COMBATSHIELD,
+                                units.Terran.BarracksTechLab)
 
     def researchconcussiveshell(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CONCUSSIVESHELL, units.Terran.BarracksTechLab)
-    #endregion
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CONCUSSIVESHELL,
+                                units.Terran.BarracksTechLab)
 
-    #region FACTORY RESEARCH
+    # endregion
+
+    # region FACTORY RESEARCH
     def researchinfernalpreigniter(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_INFERNAL_PREIGNITER, units.Terran.FactoryTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_INFERNAL_PREIGNITER,
+                                units.Terran.FactoryTechLab)
 
     def researchdrillingclaws(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_DRILLING_CLAWS, units.Terran.FactoryTechLab)
-    
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_DRILLING_CLAWS,
+                                units.Terran.FactoryTechLab)
+
     def researchcyclonelockondmg(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CYCLONE_LOCKONDMG, units.Terran.FactoryTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CYCLONE_LOCKONDMG,
+                                units.Terran.FactoryTechLab)
 
     def researchcyclonerapidfire(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CYCLONE_RAPIDFIRE, units.Terran.FactoryTechLab)
-    #endregion
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CYCLONE_RAPIDFIRE,
+                                units.Terran.FactoryTechLab)
 
-    #region STARPORT RESEARCH
+    # endregion
+
+    # region STARPORT RESEARCH
     def researchhighcapacityfuel(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_HIGHCAPACITYFUEL, units.Terran.StarportTechLab)
-    
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_HIGHCAPACITYFUEL,
+                                units.Terran.StarportTechLab)
+
     def researchcorvidreactor(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CORVIDREACTOR, units.Terran.StarportTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_CORVIDREACTOR,
+                                units.Terran.StarportTechLab)
 
     def researchbansheecloak(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BANSHEECLOAK, units.Terran.StarportTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BANSHEECLOAK,
+                                units.Terran.StarportTechLab)
 
     def researchbansheehyperflight(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BANSHEEHYPERFLIGHT, units.Terran.StarportTechLab)
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BANSHEEHYPERFLIGHT,
+                                units.Terran.StarportTechLab)
 
     def researchadvancedballistics(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_ADVANCEDBALLISTICS, units.Terran.StarportTechLab)
-    #endregion
-    
-    #region FUSION CORE RESEARCH
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_ADVANCEDBALLISTICS,
+                                units.Terran.StarportTechLab)
+
+    # endregion
+
+    # region FUSION CORE RESEARCH
     def researchbattlecruiserweaponrefit(self, obs):
-        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BATTLECRUISER_WEAPONREFIT, units.Terran.FusionCore)
-    #endregion
-    
-    #region EFFECT ACTIONS
+        return research_upgrade(obs, sc2._RESEARCH_TERRAN_BATTLECRUISER_WEAPONREFIT,
+                                units.Terran.FusionCore)
+
+    # endregion
+
+    # region EFFECT ACTIONS
     def effectstimpack(self, obs):
         army = get_units_by_type(obs, units.Terran.Marine)
         army.extend(get_units_by_type(obs, units.Terran.Marauder))
@@ -996,14 +1097,15 @@ class TerranWrapper(SC2Wrapper):
         siegedtanks = get_units_by_type(obs, units.Terran.SiegeTankSieged)
         action = effect_units(sc2._MORPH_UNSIEGE_TANK, siegedtanks)
         return action
-    #endregion
 
-    #region UNIT TRAINING ACTIONS
+    # endregion
+
+    # region UNIT TRAINING ACTIONS
     def trainscv(self, obs):
         return train_unit(obs, sc2._TRAIN_SCV, units.Terran.CommandCenter)
 
-    def calldownmule(self, obs):
-        return calldown_mule(obs)
+    # def calldownmule(self, obs):
+    #     return calldown_mule(obs)
 
     # BARRACKS UNITS
     def trainmarine(self, obs):
@@ -1017,7 +1119,7 @@ class TerranWrapper(SC2Wrapper):
 
     def trainghost(self, obs):
         return train_unit(obs, sc2._TRAIN_GHOST, units.Terran.Barracks)
-    
+
     # FACTORY UNITS
     def trainhellion(self, obs):
         return train_unit(obs, sc2._TRAIN_HELLION, units.Terran.Factory)
@@ -1033,7 +1135,7 @@ class TerranWrapper(SC2Wrapper):
 
     def trainwidowmine(self, obs):
         return train_unit(obs, sc2._TRAIN_WIDOWMINE, units.Terran.Factory)
-    
+
     def trainthor(self, obs):
         return train_unit(obs, sc2._TRAIN_THOR, units.Terran.Factory)
 
@@ -1043,7 +1145,7 @@ class TerranWrapper(SC2Wrapper):
 
     def trainmedivac(self, obs):
         return train_unit(obs, sc2._TRAIN_MEDIVAC, units.Terran.Starport)
-    
+
     def trainliberator(self, obs):
         return train_unit(obs, sc2._TRAIN_LIBERATOR, units.Terran.Starport)
 
@@ -1054,10 +1156,10 @@ class TerranWrapper(SC2Wrapper):
         return train_unit(obs, sc2._TRAIN_BANSHEE, units.Terran.Starport)
 
     def trainbattlecruiser(self, obs):
-        return train_unit(obs, sc2._TRAIN_BATTLECRUISER, units.Terran.Starport)      
-    #endregion
+        return train_unit(obs, sc2._TRAIN_BATTLECRUISER, units.Terran.Starport)
+        # endregion
 
-    #region HARVEST ACTIONS
+    # region HARVEST ACTIONS
     def harvestmineralsidle(self, obs):
         idle_workers = get_all_idle_workers(obs, sc2_env.Race.terran)
         if idle_workers != sc2._NO_UNITS:
@@ -1065,7 +1167,9 @@ class TerranWrapper(SC2Wrapper):
         return no_op()
 
     def harvestmineralsfromgas(self, obs):
-        if unit_exists(obs, units.Terran.CommandCenter) or unit_exists(obs, units.Terran.PlanetaryFortress) or unit_exists(obs, units.Terran.OrbitalCommand):
+        if unit_exists(obs, units.Terran.CommandCenter) \
+                or unit_exists(obs, units.Terran.PlanetaryFortress) \
+                or unit_exists(obs, units.Terran.OrbitalCommand):
             return harvest_gather_minerals(obs, sc2_env.Race.terran)
         return no_op()
 
@@ -1073,11 +1177,12 @@ class TerranWrapper(SC2Wrapper):
         if unit_exists(obs, units.Terran.Refinery):
             return harvest_gather_gas(obs, sc2_env.Race.terran)
         return no_op()
-    #endregion
 
-    #region ATTACK ACTIONS
+    # endregion
+
+    # region ATTACK ACTIONS
     def attackpoint(self, obs, x, y):
-        target = [float(x) + random.randint(-4,4), float(y) + random.randint(-4,4)]
+        target = [float(x) + random.randint(-4, 4), float(y) + random.randint(-4, 4)]
         army = select_army(obs, sc2_env.Race.terran)
         actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
@@ -1096,44 +1201,54 @@ class TerranWrapper(SC2Wrapper):
         return action
 
     def attackmybase(self, obs):
-        target=self.my_base_xy
-        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        target = self.my_base_xy
+        if not self.base_top_left:
+            target = (63 - target[0] - 5, 63 - target[1] + 5)
         army = select_army(obs, sc2_env.Race.terran)
         actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
+
     def attackmysecondbase(self, obs):
-        target=self.my_second_base_xy
-        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        target = self.my_second_base_xy
+        if not self.base_top_left:
+            target = (63 - target[0] - 5, 63 - target[1] + 5)
         army = select_army(obs, sc2_env.Race.terran)
         actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
+
     def attackenemybase(self, obs):
-        target=self.enemy_base_xy
-        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        target = self.enemy_base_xy
+        if not self.base_top_left:
+            target = (63 - target[0] - 5, 63 - target[1] + 5)
         army = select_army(obs, sc2_env.Race.terran)
         actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
+
     def attackenemysecondbase(self, obs):
-        target=self.enemy_second_base_xy
-        if not self.base_top_left: target = (63-target[0]-5, 63-target[1]+5)
+        target = self.enemy_second_base_xy
+        if not self.base_top_left:
+            target = (63 - target[0] - 5, 63 - target[1] + 5)
         army = select_army(obs, sc2_env.Race.terran)
         actions = attack_target_point_spatial(army, target)
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
-    #endregion
-    #endregion
+
+    # endregion
+    # endregion
 
     def get_action(self, action_idx, obs):
-        
+
         if len(self.actions_queue) > 0:
-            return self.actions_queue.pop(0) # returning the next action that's on queue without checking anything else
+            # returning the next action that's on queue without checking anything else
+            return self.actions_queue.pop(0)
         if obs.game_loop[0] < 80:
             command_center = get_units_by_type(obs, units.Terran.CommandCenter)[0]
-            self.base_top_left = (command_center.x < 32) # determining wether or not our base is in top left corner (simple64 map)
-        
+            # determining wether or not our base is in top left corner (simple64 map)
+            self.base_top_left = (command_center.x < 32)
+
         if self.units_to_attack != sc2._NO_UNITS:
             named_action = self.last_attack_action
         if self.units_to_effect != sc2._NO_UNITS:
@@ -1141,28 +1256,32 @@ class TerranWrapper(SC2Wrapper):
 
         # if type = list it means our action has the action itself and x, y position
         if type(action_idx) == list:
-            action_id, x, y = action_idx                    # separating the action id from x,y pos
-            named_action = self.named_actions[action_id]    # getting the string that represents our action
-            
-            if "_" in named_action:
+            action_id, x, y = action_idx  # separating the action id from x,y pos
+            named_action = self.named_actions[
+                action_id]  # getting the string that represents our action
+
+            if '_' in named_action:
                 named_action, group_i = named_action.split('_')
                 action_method = getattr(self.__class__, named_action)
                 return action_method(self, obs, x, y, int(group_i))
 
-            action_method = getattr(self.__class__, named_action)       # getting our class method with the same name as named_action
-            method_params = signature(action_method).parameters         # get a dict of the parameter names that our method receives
+            # getting our class method with the same name as named_action
+            action_method = getattr(self.__class__, named_action)
+            # get a dict of the parameter names that our method receives
+            method_params = signature(action_method).parameters
 
             # Calling our action methods using metaprogramming
-            if "x" in method_params and "y" in method_params:
+            if 'x' in method_params and 'y' in method_params:
                 return action_method(self, obs, x, y)
             else:
                 return action_method(self, obs)
-        # if type != list then we have an action without that either has x,y baked in the name (attakpoint_10_10) or doesn't have x,y
-        else:                                               
+        # if type != list then we have an action without that either has x,y
+        # baked in the name (attakpoint_10_10) or doesn't have x,y
+        else:
             named_action = self.named_actions[action_idx]
 
             # Calling our action methods using metaprogramming
-            if "_" in named_action:
+            if '_' in named_action:
                 named_action, x, y = self.split_action(named_action)
                 spatial_action_method = getattr(self.__class__, named_action)
                 return spatial_action_method(self, obs, x, y)
@@ -1173,8 +1292,8 @@ class TerranWrapper(SC2Wrapper):
 
 class SimpleTerranWrapper(TerranWrapper):
     def __init__(self, use_atk_grid=False, atk_grid_x=4, atk_grid_y=4):
-        SC2Wrapper.__init__(self)       # Imports self variables from SC2Wrapper
-        
+        SC2Wrapper.__init__(self)  # Imports self variables from SC2Wrapper
+
         self.use_atk_grid = use_atk_grid
         self.atk_grid_x = int(atk_grid_x)
         self.atk_grid_y = int(atk_grid_y)
@@ -1196,7 +1315,7 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_BUILD_BARRACKS,
             ACTION_BUILD_FACTORY,
             ACTION_BUILD_STARPORT,
-            
+
             ACTION_BUILD_TECHLAB_BARRACKS,
             ACTION_BUILD_TECHLAB_FACTORY,
             ACTION_BUILD_TECHLAB_STARPORT,
@@ -1212,7 +1331,7 @@ class SimpleTerranWrapper(TerranWrapper):
             # ACTION_RESEARCH_HISEC_AUTOTRACKING,
             # ACTION_RESEARCH_NEOSTEEL_FRAME,
             # ACTION_RESEARCH_STRUCTURE_ARMOR,
-            
+
             # # ARMORY RESEARCH
             # ACTION_RESEARCH_SHIPS_WEAPONS,
             # ACTION_RESEARCH_VEHIC_WEAPONS,
@@ -1252,13 +1371,13 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_TRAIN_MARINE,
             ACTION_TRAIN_MARAUDER,
             ACTION_TRAIN_REAPER,
-            #ACTION_TRAIN_GHOST,
+            # ACTION_TRAIN_GHOST,
 
             ACTION_TRAIN_HELLION,
             ACTION_TRAIN_HELLBAT,
             ACTION_TRAIN_SIEGETANK,
             ACTION_TRAIN_CYCLONE,
-            #ACTION_TRAIN_WIDOWMINE,
+            # ACTION_TRAIN_WIDOWMINE,
             ACTION_TRAIN_THOR,
 
             ACTION_TRAIN_VIKING,
@@ -1273,64 +1392,66 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_HARVEST_GAS_FROM_MINERALS,
         ]
 
-        # if true generate atk_grid_x*atk_grid_y attack actions to be appended into self.named_actions
+        # if true generate atk_grid_x*atk_grid_y attack actions to be appended into
+        # self.named_actions
         if self.use_atk_grid:
-            xgridsize = 64/self.atk_grid_x
-            ygridsize = 64/self.atk_grid_y
+            xgridsize = 64 / self.atk_grid_x
+            ygridsize = 64 / self.atk_grid_y
 
-            for i in range (self.atk_grid_x):
-                for j in range (self.atk_grid_y):
-                    x = xgridsize*(i+1) - (xgridsize/2)
-                    y = ygridsize*(j+1) - (ygridsize/2)
+            for i in range(self.atk_grid_x):
+                for j in range(self.atk_grid_y):
+                    x = xgridsize * (i + 1) - (xgridsize / 2)
+                    y = ygridsize * (j + 1) - (ygridsize / 2)
                     self.named_actions.append(ACTION_ATTACK_POINT + '_' + str(x) + '_' + str(y))
-        # if false just append four basic attack actions and a fifth action to distribute the army in an area
+        # if false just append four basic attack actions and a fifth action to
+        # distribute the army in an area
         else:
             self.named_actions.append(ACTION_ATTACK_ENEMY_BASE)
             self.named_actions.append(ACTION_ATTACK_ENEMY_SECOND_BASE)
             self.named_actions.append(ACTION_ATTACK_MY_BASE)
             self.named_actions.append(ACTION_ATTACK_MY_SECOND_BASE)
             self.named_actions.append(ACTION_ATTACK_DISTRIBUTE_ARMY)
-            
+
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
         self.building_positions = {
-            'command_center' : [[19, 23], [41, 21]],
-            'supply_depot' : [[16,27], [18,27], [20,27], [22,27], [16,29], [18,29], [20,29]],
-            'barracks' : [[25, 18], [24, 20], [30, 24]],
-            'factory' : [[25, 25], [26, 27]],
-            'starport' : [[35, 15], [37, 19]],
+            'command_center': [[19, 23], [41, 21]],
+            'supply_depot': [[16, 27], [18, 27], [20, 27], [22, 27], [16, 29], [18, 29], [20, 29]],
+            'barracks': [[25, 18], [24, 20], [30, 24]],
+            'factory': [[25, 25], [26, 27]],
+            'starport': [[35, 15], [37, 19]],
 
-            'engineering_bay' : [[37,25]],
-            'armory' : [[22,23]],
-            'fusion_core' : [[14, 18]],
-            'ghost_academy' : [[47, 16]],
-            
-            'missile_turret' : [[17,17], [12,20], [48,19], [42,14]],
-            'sensor_tower' : 1,
-            'bunker' : 4,
+            'engineering_bay': [[37, 25]],
+            'armory': [[22, 23]],
+            'fusion_core': [[14, 18]],
+            'ghost_academy': [[47, 16]],
+
+            'missile_turret': [[17, 17], [12, 20], [48, 19], [42, 14]],
+            'sensor_tower': 1,
+            'bunker': 4,
         }
 
         self.building_amounts = {
-            'command_center' : 2,
-            'supply_depot' : 18,
-            'barracks' : 3,
-            'factory' : 2,
-            'starport' : 2,
+            'command_center': 2,
+            'supply_depot': 18,
+            'barracks': 3,
+            'factory': 2,
+            'starport': 2,
 
-            'engineering_bay' : 1,
-            'armory' : 1,
-            'fusion_core' : 1,
-            'ghost_academy' : 1,
+            'engineering_bay': 1,
+            'armory': 1,
+            'fusion_core': 1,
+            'ghost_academy': 1,
 
-            'missile_turret' : 4,
-            'sensor_tower' : 1,
-            'bunker' : 4,
+            'missile_turret': 4,
+            'sensor_tower': 1,
+            'bunker': 4,
         }
 
 
 class ProtossWrapper(SC2Wrapper):
     def __init__(self):
-        SC2Wrapper.__init__(self)       # Imports self variables from SC2Wrapper
+        SC2Wrapper.__init__(self)  # Imports self variables from SC2Wrapper
 
         self.named_actions = [
             ACTION_DO_NOTHING,
@@ -1344,13 +1465,13 @@ class ProtossWrapper(SC2Wrapper):
             ACTION_ATTACK_MY_BASE,
             ACTION_ATTACK_MY_SECOND_BASE,
 
-            ACTION_BUILD_PYLON
+            ACTION_BUILD_PYLON,
         ]
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
     def get_action(self, action_idx, obs):
         named_action = self.named_actions[action_idx]
-        #named_action, x, y = self.split_action(named_action)
+        # named_action, x, y = self.split_action(named_action)
 
         if self.units_to_attack != sc2._NO_UNITS:
             named_action = self.last_attack_action
@@ -1358,15 +1479,18 @@ class ProtossWrapper(SC2Wrapper):
         if self.units_to_effect != sc2._NO_UNITS:
             named_action = self.last_effect_action
 
-        if obs.game_loop[0] < 80 and self.base_top_left == None:
+        if obs.game_loop[0] < 80 and self.base_top_left is None:
             nexus = get_units_by_type(obs, units.Protoss.Nexus)[0]
             self.base_top_left = (nexus.x < 32)
 
-        
         if named_action == ACTION_BUILD_PYLON:
-            action, self.last_worker, self.move_number = build_structure_raw_pt(obs, units.Protoss.Pylon, sc2._BUILD_PYLON, self.move_number, self.last_worker, self.base_top_left)
+            action, self.last_worker, self.move_number = build_structure_raw_pt(obs,
+                                                                                units.Protoss.Pylon,
+                                                                                sc2._BUILD_PYLON,
+                                                                                self.move_number,
+                                                                                self.last_worker,
+                                                                                self.base_top_left)
             return action
-        
 
         return no_op()
 
@@ -1547,10 +1671,9 @@ class ZergWrapper(SC2Wrapper):
             self.ACTION_TRAIN_INFESTEDTERRAN,
             self.ACTION_TRAIN_SPINECRAWLER,  # UPROOT FROM SPINECRAWLER
             self.ACTION_TRAIN_SPORECRAWLER,  # UPROOT FROM SPORECRAWLER
-            self.ACTION_TRAIN_NYDUSWORM  # SPAWNED FROM NYDUSNETWORK
+            self.ACTION_TRAIN_NYDUSWORM,  # SPAWNED FROM NYDUSNETWORK
         ]
         self.action_indices = [idx for idx in range(len(self.named_actions))]
-
 
     def get_excluded_actions(self, obs):
         # START
@@ -1561,7 +1684,7 @@ class ZergWrapper(SC2Wrapper):
 
         minerals = obs.player.minerals
         vespene = obs.player.vespene
-        freesupply = get_free_supply(obs)
+        # freesupply = get_free_supply(obs)
 
         # VERIFICATION
 
@@ -1796,7 +1919,6 @@ class ZergWrapper(SC2Wrapper):
 
         return id_excluded_actions
 
-
     def get_action(self, action_idx, obs):
         named_action = self.named_actions[action_idx]
         # named_action, x, y = self.split_action(named_action)
@@ -1807,7 +1929,7 @@ class ZergWrapper(SC2Wrapper):
         if self.units_to_effect != sc2._NO_UNITS:
             named_action = self.last_effect_action
 
-        if obs.game_loop[0] < 80 and self.base_top_left == None:
+        if obs.game_loop[0] < 80 and self.base_top_left is None:
             hatchery = get_units_by_type(obs, units.Zerg.Hatchery)[0]
             self.base_top_left = (hatchery.x < 32)
 
@@ -1820,11 +1942,14 @@ class ZergWrapper(SC2Wrapper):
                 return harvest_gather_minerals_idle(obs, sc2_env.Race.zerg, idle_workers)
             return no_op()
 
-        # TO DO: Create a harvest minerals with worker from refinery line so the bot can juggle workers from mineral lines to gas back and forth
+        # TO DO: Create a harvest minerals with worker from refinery line so the bot can juggle
+        # workers from mineral lines to gas back and forth
 
         # HARVEST MINERALS WITH WORKER FROM GAS LINE
         if named_action == ACTION_HARVEST_MINERALS_FROM_GAS:
-            if unit_exists(obs, units.Zerg.Hatchery) or unit_exists(obs, units.Zerg.Lair) or unit_exists(obs, units.Zerg.Hive):
+            if unit_exists(obs, units.Zerg.Hatchery) \
+                    or unit_exists(obs, units.Zerg.Lair) \
+                    or unit_exists(obs, units.Zerg.Hive):
                 return harvest_gather_minerals(obs, sc2_env.Race.zerg)
             return no_op()
 
@@ -1873,92 +1998,107 @@ class ZergWrapper(SC2Wrapper):
         # BUILD HATCHERY
         if named_action == self.ACTION_BUILD_HATCHERY:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.Hatchery, sc2._BUILD_HATCHERY, self.move_number, self.last_worker, self.base_top_left, max_amount=2)
+                obs, units.Zerg.Hatchery, sc2._BUILD_HATCHERY, self.move_number, self.last_worker,
+                self.base_top_left, max_amount=2)
             return action
 
         # BUILD EXTRACTOR
         if named_action == self.ACTION_BUILD_EXTRACTOR:
             action, self.last_worker, self.move_number = build_gas_structure_raw_unit(
-            obs, units.Zerg.Extractor, sc2._BUILD_EXTRACTOR, sc2_env.Race.zerg, self.move_number, self.last_worker)
+                obs, units.Zerg.Extractor, sc2._BUILD_EXTRACTOR, sc2_env.Race.zerg,
+                self.move_number, self.last_worker)
             return action
 
             # BUILD SPAWNING POOL
         if named_action == self.ACTION_BUILD_SPAWNINGPOOL:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.SpawningPool, sc2._BUILD_SPAWNINGPOOL, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.SpawningPool, sc2._BUILD_SPAWNINGPOOL, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD EVOLUTION CHAMBER
         if named_action == self.ACTION_BUILD_EVOLUTIONCHAMBER:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.EvolutionChamber, sc2._BUILD_EVOLUTIONCHAMBER, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.EvolutionChamber, sc2._BUILD_EVOLUTIONCHAMBER, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD ROACH WARREN
         if named_action == self.ACTION_BUILD_ROACHWARREN:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.RoachWarren, sc2._BUILD_ROACHWARREN, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.RoachWarren, sc2._BUILD_ROACHWARREN, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD BANELING NEST
         if named_action == self.ACTION_BUILD_BANELINGNEST:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.BanelingNest, sc2._BUILD_BANELINGNEST, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.BanelingNest, sc2._BUILD_BANELINGNEST, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD SPINE CRAWLER
         if named_action == self.ACTION_BUILD_SPINECRAWLER:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.SpineCrawler, sc2._BUILD_SPINECRAWLER, self.move_number, self.last_worker, self.base_top_left, max_amount=5)
+                obs, units.Zerg.SpineCrawler, sc2._BUILD_SPINECRAWLER, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=5)
             return action
 
         # BUILD SPORE CRAWLER
         if named_action == self.ACTION_BUILD_SPORECRAWLER:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.SporeCrawler, sc2._BUILD_SPORECRAWLER, self.move_number, self.last_worker, self.base_top_left, max_amount=5)
+                obs, units.Zerg.SporeCrawler, sc2._BUILD_SPORECRAWLER, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=5)
             return action
 
             # BUILD HYDRALISK DEN
         if named_action == self.ACTION_BUILD_HYDRALISKDEN:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.HydraliskDen, sc2._BUILD_HYDRALISKDEN, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.HydraliskDen, sc2._BUILD_HYDRALISKDEN, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD LURKER DEN
         if named_action == self.ACTION_BUILD_LURKERDEN:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.LurkerDen, sc2._BUILD_LURKERDEN, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.LurkerDen, sc2._BUILD_LURKERDEN, self.move_number, self.last_worker,
+                self.base_top_left, max_amount=1)
             return action
 
         # BUILD INFESTATION PIT
         if named_action == self.ACTION_BUILD_INFESTATIONPIT:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.InfestationPit, sc2._BUILD_INFESTATIONPIT, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.InfestationPit, sc2._BUILD_INFESTATIONPIT, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD SPIRE
         if named_action == self.ACTION_BUILD_SPIRE:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.Spire, sc2._BUILD_SPIRE, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.Spire, sc2._BUILD_SPIRE, self.move_number, self.last_worker,
+                self.base_top_left, max_amount=1)
             return action
 
         # BUILD NYDUS NETWORK
         if named_action == self.ACTION_BUILD_NYDUSNETWORK:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.NydusNetwork, sc2._BUILD_NYDUSNETWORK, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.NydusNetwork, sc2._BUILD_NYDUSNETWORK, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # BUILD ULTRALISK CAVERN
         if named_action == self.ACTION_BUILD_ULTRALISKCAVERN:
             action, self.last_worker, self.move_number = build_structure_raw_pt(
-            obs, units.Zerg.UltraliskCavern, sc2._BUILD_ULTRALISKCAVERN, self.move_number, self.last_worker, self.base_top_left, max_amount=1)
+                obs, units.Zerg.UltraliskCavern, sc2._BUILD_ULTRALISKCAVERN, self.move_number,
+                self.last_worker, self.base_top_left, max_amount=1)
             return action
 
         # -----------------------------------------------------------------------------------
 
         # RESEARCH PNEUMATIZEDCARAPACE
         if named_action == self.ACTION_RESEARCH_PNEUMATIZEDCARAPACE:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_PNEUMATIZEDCARAPACE, units.Zerg.Hatchery)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_PNEUMATIZEDCARAPACE,
+                                    units.Zerg.Hatchery)
 
         # RESEARCH METABOLICBOOST
         if named_action == self.ACTION_RESEARCH_METABOLICBOOST:
@@ -1970,19 +2110,23 @@ class ZergWrapper(SC2Wrapper):
 
         # RESEARCH MELEEATTACKS
         if named_action == self.ACTION_RESEARCH_MELEEATTACKS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_MELEEATTACKS, units.Zerg.EvolutionChamber)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_MELEEATTACKS,
+                                    units.Zerg.EvolutionChamber)
 
         # RESEARCH MISSILEATTACKS
         if named_action == self.ACTION_RESEARCH_MISSILEATTACKS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_MISSILEATTACKS, units.Zerg.EvolutionChamber)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_MISSILEATTACKS,
+                                    units.Zerg.EvolutionChamber)
 
         # RESEARCH GROUNDCARAPACE
         if named_action == self.ACTION_RESEARCH_GROUNDCARAPACE:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_GROUNDCARAPACE, units.Zerg.EvolutionChamber)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_GROUNDCARAPACE,
+                                    units.Zerg.EvolutionChamber)
 
         # RESEARCH GLIALRECONSTITUTION
         if named_action == self.ACTION_RESEARCH_GLIALRECONSTITUTION:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_GLIALRECONSTITUTION, units.Zerg.RoachWarren)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_GLIALRECONSTITUTION,
+                                    units.Zerg.RoachWarren)
 
         # RESEARCH TUNNELINGCLAWS
         if named_action == self.ACTION_RESEARCH_TUNNELINGCLAWS:
@@ -1990,7 +2134,8 @@ class ZergWrapper(SC2Wrapper):
 
         # RESEARCH CENTRIFUGALHOOKS
         if named_action == self.ACTION_RESEARCH_CENTRIFUGALHOOKS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_CENTRIFUGALHOOKS, units.Zerg.BanelingNest)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_CENTRIFUGALHOOKS,
+                                    units.Zerg.BanelingNest)
 
         # RESEARCH GROOVEDSPINES
         if named_action == self.ACTION_RESEARCH_GROOVEDSPINES:
@@ -1998,7 +2143,8 @@ class ZergWrapper(SC2Wrapper):
 
         # RESEARCH MUSCULARAUGMENTS
         if named_action == self.ACTION_RESEARCH_MUSCULARAUGMENTS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_MUSCULARAUGMENTS, units.Zerg.HydraliskDen)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_MUSCULARAUGMENTS,
+                                    units.Zerg.HydraliskDen)
 
         # RESEARCH ADAPTIVETALONS
         if named_action == self.ACTION_RESEARCH_ADAPTIVETALONS:
@@ -2010,11 +2156,13 @@ class ZergWrapper(SC2Wrapper):
 
         # RESEARCH PHATOGENGLANDS
         if named_action == self.ACTION_RESEARCH_PHATOGENGLANDS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_PHATOGENGLANDS, units.Zerg.InfestationPit)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_PHATOGENGLANDS,
+                                    units.Zerg.InfestationPit)
 
         # RESEARCH NEURALPARASITE
         if named_action == self.ACTION_RESEARCH_NEURALPARASITE:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_NEURALPARASITE, units.Zerg.InfestationPit)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_NEURALPARASITE,
+                                    units.Zerg.InfestationPit)
 
         # RESEARCH FLYERATTACKS
         if named_action == self.ACTION_RESEARCH_FLYERATTACKS:
@@ -2026,11 +2174,13 @@ class ZergWrapper(SC2Wrapper):
 
         # RESEARCH CHITINOUSPLATING
         if named_action == self.ACTION_RESEARCH_CHITINOUSPLATING:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_CHITINOUSPLATING, units.Zerg.UltraliskCavern)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_CHITINOUSPLATING,
+                                    units.Zerg.UltraliskCavern)
 
         # RESEARCH ANABOLICSYNTHESIS
         if named_action == self.ACTION_RESEARCH_ANABOLICSYNTHESIS:
-            return research_upgrade(obs, sc2._RESEARCH_ZERG_ANABOLICSYNTHESIS, units.Zerg.UltraliskCavern)
+            return research_upgrade(obs, sc2._RESEARCH_ZERG_ANABOLICSYNTHESIS,
+                                    units.Zerg.UltraliskCavern)
 
         # -----------------------------------------------------------------------------------
 

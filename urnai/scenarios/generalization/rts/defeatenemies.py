@@ -1,82 +1,86 @@
-from urnai.scenarios.base.abscenario import ABScenario
-from urnai.utils.constants import RTSGeneralization, Games 
-from .findanddefeat import GeneralizedFindAndDefeatScenario 
-from urnai.utils.error import EnvironmentNotSupportedError
-from urnai.agents.actions.scenarios.rts.generalization.defeatenemies import DefeatEnemiesDeepRTSActionWrapper, DefeatEnemiesStarcraftIIActionWrapper 
-from pysc2.lib import actions, features, units
-from urnai.agents.actions import sc2 as scaux
-from urnai.agents.rewards.default import PureReward
-import numpy as np
-from pysc2.env import sc2_env
-from statistics import mean
-import random, math
-from urnai.envs.deep_rts import DeepRTSEnv
+import random
 from sys import maxsize as maxint
+
+from urnai.utils.constants import RTSGeneralization
+
+from .findanddefeat import GeneralizedFindAndDefeatScenario
 
 
 class GeneralizedDefeatEnemiesScenario(GeneralizedFindAndDefeatScenario):
-
-    GAME_DEEP_RTS = "drts" 
-    GAME_STARCRAFT_II = "sc2" 
-    MAP_1 = "map1"
-    MAP_2 = "map2"
+    GAME_DEEP_RTS = 'drts'
+    GAME_STARCRAFT_II = 'sc2'
+    MAP_1 = 'map1'
+    MAP_2 = 'map2'
 
     MAP_1_PLAYER_X = 39
     MAP_2_PLAYER_X = 26
     Y_PLAYER_BASE = 30
     MAP_PLAYER_LOCATIONS = {
-            MAP_1 : [
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 1},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 2},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 3},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 4},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 5},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 6},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 7},
-                {"x" : MAP_1_PLAYER_X, "y" : Y_PLAYER_BASE + 8},
-                ],
-            MAP_2 : [
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 1},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 2},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 3},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 4},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 5},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 6},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 7},
-                {"x" : MAP_2_PLAYER_X, "y" : Y_PLAYER_BASE + 8},
-                ],
-            }
+        MAP_1: [
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 1},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 2},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 3},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 4},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 5},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 6},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 7},
+            {'x': MAP_1_PLAYER_X, 'y': Y_PLAYER_BASE + 8},
+        ],
+        MAP_2: [
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 1},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 2},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 3},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 4},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 5},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 6},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 7},
+            {'x': MAP_2_PLAYER_X, 'y': Y_PLAYER_BASE + 8},
+        ],
+    }
 
     MAP_1_ENEMY_X = 24
     MAP_2_ENEMY_X = 42
     Y_ENEMY_BASE = 36
     MAP_ENEMY_LOCATIONS = {
-            MAP_1 : [
-                {"x" : MAP_1_ENEMY_X, "y" : Y_ENEMY_BASE},
-                {"x" : MAP_1_ENEMY_X, "y" : Y_ENEMY_BASE + 1},
-                {"x" : MAP_1_ENEMY_X, "y" : Y_ENEMY_BASE + 2},
-                {"x" : MAP_1_ENEMY_X, "y" : Y_ENEMY_BASE + 3},
-                ],
-            MAP_2 : [
-                {"x" : MAP_2_ENEMY_X, "y" : Y_ENEMY_BASE},
-                {"x" : MAP_2_ENEMY_X, "y" : Y_ENEMY_BASE + 1},
-                {"x" : MAP_2_ENEMY_X, "y" : Y_ENEMY_BASE + 2},
-                {"x" : MAP_2_ENEMY_X, "y" : Y_ENEMY_BASE + 3},
-                ],
-            }
+        MAP_1: [
+            {'x': MAP_1_ENEMY_X, 'y': Y_ENEMY_BASE},
+            {'x': MAP_1_ENEMY_X, 'y': Y_ENEMY_BASE + 1},
+            {'x': MAP_1_ENEMY_X, 'y': Y_ENEMY_BASE + 2},
+            {'x': MAP_1_ENEMY_X, 'y': Y_ENEMY_BASE + 3},
+        ],
+        MAP_2: [
+            {'x': MAP_2_ENEMY_X, 'y': Y_ENEMY_BASE},
+            {'x': MAP_2_ENEMY_X, 'y': Y_ENEMY_BASE + 1},
+            {'x': MAP_2_ENEMY_X, 'y': Y_ENEMY_BASE + 2},
+            {'x': MAP_2_ENEMY_X, 'y': Y_ENEMY_BASE + 3},
+        ],
+    }
 
     MAP_X_CORNER_LEFT = 21
     MAP_X_CORNER_RIGHT = 44
     MAP_Y_CORNER_UP = 27
     MAP_Y_CORNER_DOWN = 50
 
-    TRAINING_METHOD_SINGLE_ENV = "single_environment"
-    TRAINING_METHOD_MULTIPLE_ENV = "multiple_environment"
+    TRAINING_METHOD_SINGLE_ENV = 'single_environment'
+    TRAINING_METHOD_MULTIPLE_ENV = 'multiple_environment'
 
-    def __init__(self, game = GAME_DEEP_RTS, render=False, drts_map="total-64x64-playable-22x16-defeatenemies.json", sc2_map="DefeatRoaches", drts_number_of_players=2, drts_start_oil=999999, drts_start_gold=999999, drts_start_lumber=999999, drts_start_food=999999, fit_to_screen=False, method=TRAINING_METHOD_SINGLE_ENV, state_builder_method=RTSGeneralization.STATE_MAP, updates_per_action = 12, step_mul=8, sc2_real_time_rendering=False):
-        super().__init__(game=game, render=render, drts_map=drts_map, sc2_map=sc2_map, drts_number_of_players=drts_number_of_players, drts_start_oil=drts_start_oil, drts_start_gold=drts_start_gold, drts_start_lumber=drts_start_lumber, drts_start_food=drts_start_food, fit_to_screen=fit_to_screen, method=method, state_builder_method=state_builder_method, updates_per_action=updates_per_action, step_mul=step_mul, sc2_real_time_rendering=sc2_real_time_rendering)
+    def __init__(self, game=GAME_DEEP_RTS, render=False,
+                 drts_map='total-64x64-playable-22x16-defeatenemies.json', sc2_map='DefeatRoaches',
+                 drts_number_of_players=2, drts_start_oil=999999, drts_start_gold=999999,
+                 drts_start_lumber=999999, drts_start_food=999999, fit_to_screen=False,
+                 method=TRAINING_METHOD_SINGLE_ENV,
+                 state_builder_method=RTSGeneralization.STATE_MAP, updates_per_action=12,
+                 step_mul=8, sc2_real_time_rendering=False):
+        super().__init__(game=game, render=render, drts_map=drts_map, sc2_map=sc2_map,
+                         drts_number_of_players=drts_number_of_players,
+                         drts_start_oil=drts_start_oil, drts_start_gold=drts_start_gold,
+                         drts_start_lumber=drts_start_lumber, drts_start_food=drts_start_food,
+                         fit_to_screen=fit_to_screen, method=method,
+                         state_builder_method=state_builder_method,
+                         updates_per_action=updates_per_action, step_mul=step_mul,
+                         sc2_real_time_rendering=sc2_real_time_rendering)
         self.drts_attack_radius = maxint
         self.drts_hor_threshold = 1
         self.drts_ver_threshold = 1
@@ -110,7 +114,7 @@ class GeneralizedDefeatEnemiesScenario(GeneralizedFindAndDefeatScenario):
         new_y = 0
 
         if p_army_x - e_army_x < 0:
-            new_x = GeneralizedDefeatEnemiesScenario.MAP_X_CORNER_LEFT 
+            new_x = GeneralizedDefeatEnemiesScenario.MAP_X_CORNER_LEFT
         else:
             new_x = GeneralizedDefeatEnemiesScenario.MAP_X_CORNER_RIGHT
 
@@ -120,7 +124,6 @@ class GeneralizedDefeatEnemiesScenario(GeneralizedFindAndDefeatScenario):
             new_y = GeneralizedDefeatEnemiesScenario.MAP_Y_CORNER_DOWN
 
         self.env.game.players[player].right_click(new_x, new_y)
-
 
     def spawn_army(self):
         for coords in GeneralizedDefeatEnemiesScenario.MAP_PLAYER_LOCATIONS[self.map_spawn]:
