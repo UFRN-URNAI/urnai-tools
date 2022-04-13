@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import app
 from urnai.agents.generic_agent import GenericAgent
 from urnai.agents.rewards.default import PureReward
@@ -10,8 +12,6 @@ from urnai.models.algorithms.dql import DeepQLearning
 from urnai.models.algorithms.dql_lambda import DeepQLearningLambda
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
 
 
 def declare_trainer():

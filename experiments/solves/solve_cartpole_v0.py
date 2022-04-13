@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
+
 from absl import app
 from urnai.agents.generic_agent import GenericAgent
 from urnai.agents.rewards.default import PureReward
@@ -9,8 +11,6 @@ from urnai.envs.gym import GymEnv
 from urnai.models.ddqn_keras import DDQNKeras
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 
 
 def declare_trainer():

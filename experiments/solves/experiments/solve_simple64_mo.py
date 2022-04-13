@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import app
 from urnai.agents.actions.mo_spatial_terran_wrapper import SimpleMOTerranWrapper
 from urnai.agents.rewards.sc2 import KilledUnitsReward
@@ -11,7 +13,7 @@ from urnai.models.ddqn_keras_mo import DDQNKerasMO
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 
 """ Change 'sc2_local_path' to your local SC2 installation path.
 If you used the default installation path, you may ignore this step.

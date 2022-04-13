@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from utils.returns import ActionIndex, List
+from urnai.utils.returns import ActionIndex, List
 
 
 class ActionWrapper(ABC):

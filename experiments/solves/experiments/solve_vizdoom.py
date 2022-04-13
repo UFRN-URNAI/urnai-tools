@@ -2,6 +2,8 @@ import os
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import app
 from urnai.agents.actions.vizdoom_wrapper import VizdoomHealthGatheringWrapper
 from urnai.agents.generic_agent import GenericAgent
@@ -12,7 +14,7 @@ from urnai.models.dqn_keras_mem import DQNKerasMem
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 
 
 def main(unused_argv):

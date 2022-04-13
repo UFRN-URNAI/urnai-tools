@@ -1,9 +1,9 @@
 from abc import abstractmethod
 
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
-from base.savable import Savable
-from utils.returns import ActionIndex
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
+from urnai.base.savable import Savable
+from urnai.utils.returns import ActionIndex
 
 
 class LearningModel(Savable):

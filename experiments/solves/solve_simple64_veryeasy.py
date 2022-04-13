@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
+
 from absl import app
 from urnai.agents.actions.sc2_wrapper import SimpleTerranWrapper
 from urnai.agents.rewards.sc2 import KilledUnitsReward
@@ -10,8 +12,6 @@ from urnai.envs.sc2 import SC2Env
 from urnai.models.ddqn_keras import DDQNKeras
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent))
 
 
 def declare_trainer():

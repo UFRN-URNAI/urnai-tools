@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import app
 from tensorflow.keras import layers, models, optimizers
 from urnai.agents.generic_agent import GenericAgent
@@ -12,7 +14,7 @@ from urnai.models.memory_representations.neural_network.keras import KerasDeepNe
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 
 
 class CustomKerasConvClass(KerasDeepNeuralNetwork):

@@ -1,6 +1,8 @@
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
+
 from absl import app
 import tensorflow as tf
 from urnai.agents.actions.sc2_wrapper import SimpleTerranWrapper
@@ -12,7 +14,6 @@ from urnai.models.algorithms.ddql import DoubleDeepQLearning
 from urnai.models.model_builder import ModelBuilder
 from urnai.trainers.trainer import Trainer
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
 
 """
 Change 'SC2PATH' to your local SC2 installation path.
