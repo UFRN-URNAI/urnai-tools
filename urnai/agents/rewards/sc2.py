@@ -2,6 +2,8 @@
 This file is a repository with reward classes for all StarCraft 2
 games/minigames we've solved.
 """
+import math
+from cmath import sqrt
 from pysc2.lib import units
 from urnai.agents.actions.sc2 import unit_exists
 from urnai.agents.rewards.abreward import RewardBuilder
@@ -183,6 +185,27 @@ class KilledUnitsRewardBoosted(RewardBuilder):
 
         return new_reward
 
+
+class MoveToBeaconProximity(RewardBuilder):
+    def __init__(self):
+        self.previous_distance = 100
+
+    def get_reward(self, obs, reward, done):
+        marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+        x1 = marine_and_beacon[0].x
+        y1 = marine_and_beacon[0].y
+        x2 = marine_and_beacon[1].x
+        y2 = marine_and_beacon[1].y
+
+        #curr_distance = sqrt( (x_2 - x_1)**2 + (y_2 - y_1)**2 )
+        curr_distance = math.hypot(x2-x1, y2-y1)
+
+        if curr_distance < self.previous_distance:
+            reward += 0.01
+
+        self.previous_distance = curr_distance
+
+        return reward
 
 """
 Ideas for new reward builders or improvements for current ones:

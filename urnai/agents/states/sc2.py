@@ -790,6 +790,52 @@ class MultipleUnitGridState(StateBuilder):
         return self._state_size
 
 
+class MoveToBeaconGridState(StateBuilder):
+    def __init__(self, grid_size=10):
+
+        self.grid_size = grid_size
+        self._state_size = grid_size*grid_size
+        #self._state_size = int(19 + 2*(self.grid_size**2))
+    
+    def build_state(self, obs):
+        #marine = [[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
+        #beacon = [[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units if unit.unit_type == 317][0]
+        # state_units = np.array([marine, beacon])
+        #state_units = np.array([[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units])
+        # flat_state = state_units.flatten()
+        # final_state = np.expand_dims(flat_state, axis=0)
+
+        x1=16
+        x2=48
+        y1=16
+        y2=48
+
+        cropped_x = x2-x1
+        cropped_y = y2-y1
+
+        unit_grid = np.zeros((self.grid_size,self.grid_size))
+        marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+
+        for i in range(0, len(marine_and_beacon)):
+            unit_x = marine_and_beacon[i].x - x1
+            unit_y = marine_and_beacon[i].y - y1
+
+            if( (unit_x < cropped_x) and (unit_y < cropped_y)):
+                y = int(math.ceil( (unit_x + 1) / (cropped_x/self.grid_size) ))
+                x = int(math.ceil( (unit_y + 1) / (cropped_y/self.grid_size) ))
+                if marine_and_beacon[i].unit_type == units.Terran.Marine:
+                    unit_grid[x-1][y-1] = 1
+                else:
+                    unit_grid[x-1][y-1] = 2
+
+        final_state = unit_grid.flatten()
+        final_state = np.expand_dims(final_state, axis=0)
+        return final_state
+
+    def get_state_dim(self):
+        return self._state_size
+
+
 def build_multiple_unit_grid(obs, player, grid, grid_size, unit_groups):
     for group_i, unit_group in enumerate(unit_groups):
 
