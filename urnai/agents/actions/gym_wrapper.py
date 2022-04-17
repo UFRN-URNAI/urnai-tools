@@ -1,4 +1,4 @@
-from utils.error import ActionError
+from urnai.utils.error import ActionError
 
 from .base.abwrapper import ActionWrapper
 

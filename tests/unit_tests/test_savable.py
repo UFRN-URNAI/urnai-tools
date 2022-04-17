@@ -3,7 +3,7 @@ import os
 import sys
 import unittest
 
-from base.savable import Savable
+from urnai.base.savable import Savable
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
