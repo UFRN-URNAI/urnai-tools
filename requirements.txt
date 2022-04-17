@@ -7,7 +7,7 @@ charset-normalizer==2.0.12
 clang==5.0
 cloudpickle==2.0.0
 cycler==0.11.0
-dataclasses==0.8
+dataclasses==0.6
 deepdiff==5.7.0
 enum34==1.1.10
 flatbuffers==1.12
