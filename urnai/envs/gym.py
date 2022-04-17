@@ -1,4 +1,4 @@
-from agents.actions.gym_wrapper import GymWrapper
+from urnai.agents.actions.gym_wrapper import GymWrapper
 import gym
 from gym.envs.registration import register
 
