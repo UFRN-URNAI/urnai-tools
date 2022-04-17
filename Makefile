@@ -6,6 +6,10 @@ ROOT=$(shell pwd)
 DOCKER_LINTER_IMAGE=urnai/linter:latest
 LINT_COMMIT_TARGET_BRANCH=origin/master
 
+## Test
+TEST_CONTAINER_NAME=${PACKAGE_NAME}_test
+TEST_COMMAND=coverage run -m pytest tests
+
 # Commands
 .PHONY: build
 build: install-hooks
@@ -26,6 +30,18 @@ lint:
 		lint-commit ${LINT_COMMIT_TARGET_BRANCH} \
 		&& lint-markdown \
 		&& lint-python urnai"
+
+.PHONY: test
+test:
+	@docker run --rm -v ${ROOT}:/app \
+		--name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
+		${TEST_COMMAND}
+
+.PHONY: test-coverage
+test-coverage:
+	@docker run --rm -v ${ROOT}:/app \
+		--name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
+		/bin/bash -c "${TEST_COMMAND} && coverage report -m"
 
 .PHONY: shell
 shell:
