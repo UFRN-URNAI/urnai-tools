@@ -790,6 +790,24 @@ class MultipleUnitGridState(StateBuilder):
         return self._state_size
 
 
+class MoveToBeaconState(StateBuilder):
+    # def __init__(self):
+
+    def build_state(self, obs):
+        
+        marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+        # marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+
+        state = [(marine.x-22)/21, (marine.y-28)/15, (beacon.x-22)/21, (beacon.y-28)/15]
+        # state = [x/21 for x in state]
+        final_state = np.expand_dims(state, axis=0)
+
+        return final_state
+
+    def get_state_dim(self):
+        return 4
+
 class MoveToBeaconGridState(StateBuilder):
     def __init__(self, grid_size=10):
 
@@ -805,10 +823,10 @@ class MoveToBeaconGridState(StateBuilder):
         # flat_state = state_units.flatten()
         # final_state = np.expand_dims(flat_state, axis=0)
 
-        x1=16
-        x2=48
-        y1=16
-        y2=48
+        x1=22
+        x2=43
+        y1=28
+        y2=43
 
         cropped_x = x2-x1
         cropped_y = y2-y1

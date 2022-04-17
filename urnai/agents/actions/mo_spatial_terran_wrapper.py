@@ -889,13 +889,18 @@ class SimpleMOTerranWrapper(TerranWrapper):
 
 
 class MoveToBeaconActionWrapper(TerranWrapper):
-    def __init__(self, x_gridsize=10, y_gridsize=10, map_size_x=64, map_size_y=64):
+    def __init__(self, x_gridsize=10, y_gridsize=10, map_size_x=64, map_size_y=64, random_uniform=True):
         SC2Wrapper.__init__(self)
 
         self.x_gridsize = int(x_gridsize)
         self.y_gridsize = int(y_gridsize)
         self.map_size_x = int(map_size_x)
         self.map_size_y = int(map_size_y)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
 
         self.named_actions = []
 
@@ -918,12 +923,17 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         adjusted_x = x - self.multi_output_ranges[0]
         adjusted_y = y - self.multi_output_ranges[1]
 
-        gridwidth = self.map_size_x/self.x_gridsize
-        gridheight = self.map_size_y/self.y_gridsize
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
 
-        xtarget = int((adjusted_x*gridwidth) + random.uniform(0, gridwidth))
-        ytarget = int(adjusted_y*gridheight + random.uniform(0, gridheight))
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
 
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        #return sc2.no_op()
         return self.attackpoint(obs, xtarget, ytarget)
 
     def attackpoint(self, obs, x, y):

@@ -2,7 +2,9 @@
 This file is a repository with reward classes for all StarCraft 2
 games/minigames we've solved.
 """
+from email.policy import default
 import math
+import numpy as np
 from cmath import sqrt
 from pysc2.lib import units
 from urnai.agents.actions.sc2 import unit_exists
@@ -187,23 +189,60 @@ class KilledUnitsRewardBoosted(RewardBuilder):
 
 
 class MoveToBeaconProximity(RewardBuilder):
-    def __init__(self):
+    def __init__(self, default=False, boost=0.01):
         self.previous_distance = 100
+        self.default = default
+        self.boost = boost
 
     def get_reward(self, obs, reward, done):
-        marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
-        x1 = marine_and_beacon[0].x
-        y1 = marine_and_beacon[0].y
-        x2 = marine_and_beacon[1].x
-        y2 = marine_and_beacon[1].y
+        if not self.default:
+            marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+            x1 = marine_and_beacon[0].x
+            y1 = marine_and_beacon[0].y
+            x2 = marine_and_beacon[1].x
+            y2 = marine_and_beacon[1].y
 
-        #curr_distance = sqrt( (x_2 - x_1)**2 + (y_2 - y_1)**2 )
-        curr_distance = math.hypot(x2-x1, y2-y1)
+            curr_distance = math.hypot(x2-x1, y2-y1)
 
-        if curr_distance < self.previous_distance:
-            reward += 0.01
+            if curr_distance < self.previous_distance:
+                reward += self.boost
 
-        self.previous_distance = curr_distance
+            self.previous_distance = curr_distance
+
+        return reward
+
+class MoveToBeaconDirection(RewardBuilder):
+    def __init__(self, boost=0.01):
+        self.previous_x = 0
+        self.previous_y = 0
+        self.boost = boost
+
+    def get_reward(self, obs, reward, done):
+        marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+        
+        # Defining points for angle calculation, p1 = previous marine pos, p2 = current marine pos, q = beacon pos
+        p1 = np.array([self.previous_x, self.previous_y])
+        p2 = np.array([marine.x, marine.y])
+        q  = np.array([beacon.x, beacon.y])
+
+        # Calculating the angle from the marine direction vector and the beacon position using the vector dot product definition
+        v1 = p2-p1
+        v2 = q-p1
+        angle = np.lib.scimath.arccos( np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)) )
+
+        # angle goes from 0 (marine moving in the direction of the beacon)
+        # to pi (marine moving in the exact oposite direction of the beacon)
+        # we want to map that so when the marine is moving towards the beacon we get 1, and when its moving opposite we get 0
+        reward_angle = (angle - (math.pi/2)) * -1 / (math.pi/2)
+
+        if math.isnan(reward_angle):
+            reward_angle = 0
+
+        reward += reward_angle*self.boost
+
+        self.previous_x = marine.x
+        self.previous_y = marine.y
 
         return reward
 
