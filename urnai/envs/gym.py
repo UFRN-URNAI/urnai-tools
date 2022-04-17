@@ -1,6 +1,6 @@
-from urnai.agents.actions.gym_wrapper import GymWrapper
 import gym
 from gym.envs.registration import register
+from urnai.agents.actions.gym_wrapper import GymWrapper
 
 from .base.abenv import Env
 
