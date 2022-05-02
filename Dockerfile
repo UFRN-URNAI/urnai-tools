@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM tensorflow/tensorflow:2.6.1-gpu-jupyter
 
 # Install requirements
 RUN pip3 install --upgrade pip
