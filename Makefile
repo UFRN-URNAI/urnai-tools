@@ -1,4 +1,4 @@
-# Variables
+#Variables
 PACKAGE_NAME=urnai
 ROOT=$(shell pwd)
 
@@ -13,11 +13,22 @@ TEST_COMMAND=coverage run -m pytest tests
 # Commands
 .PHONY: build
 build: install-hooks
-	@docker build -t ${PACKAGE_NAME} .
+	@cp requirements.txt ./dockerfiles/test
+	@docker build -t ${PACKAGE_NAME} ./dockerfiles/test
+	@rm ./dockerfiles/test/requirements.txt
 
 .PHONY: build-no-cache
 build-no-cache: install-hooks
-	@docker build --no-cache -t ${PACKAGE_NAME} .
+	@cp requirements.txt ./dockerfiles/test
+	@docker build --no-cache -t ${PACKAGE_NAME} ./dockerfiles/test
+	@rm ./dockerfiles/test/requirements.txt
+
+.PHONY: build-full
+build-full: install-hooks
+	@cp requirements.txt ./dockerfiles/full
+	@docker build --no-cache -t ${PACKAGE_NAME} ./dockerfiles/full
+	@rm ./dockerfiles/full/requirements.txt
+
 
 .PHONY: install-hooks
 install-hooks:
