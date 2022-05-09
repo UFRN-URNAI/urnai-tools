@@ -15,7 +15,6 @@ setup(
         'psutil',
         'GPUtil',
     ],
-    dependency_links=dep_links,
     entry_points={
         'console_scripts': ['urnai=urnai.urnai_cmd:main'],
     },
