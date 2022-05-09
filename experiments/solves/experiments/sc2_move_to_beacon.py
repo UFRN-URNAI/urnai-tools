@@ -21,7 +21,7 @@ For more information consult https://github.com/deepmind/pysc2#get-starcraft-ii
 # sc2_local_path = "D:/Program Files (x86)/StarCraft II"
 
 def declare_trainer(): 
-    env = SC2Env(map_name="MoveToBeacon", realtime=True, render=False, step_mul=8, player_race="terran", enemy_race="terran", difficulty="very_easy")
+    env = SC2Env(map_name="MoveToBeacon", realtime=False, render=False, step_mul=8, player_race="terran", enemy_race="terran", difficulty="very_easy")
 
     map_size = env.env_instance._interface_formats[0]._raw_resolution
     action_wrapper = MoveToBeaconActionWrapper(10, 10, map_size.x, map_size.y, random_uniform=True)
@@ -44,16 +44,16 @@ def declare_trainer():
     #                 max_training_episodes=3000, max_steps_training=1200,
     #                 max_test_episodes=100, max_steps_testing=1200, rolling_avg_window_size=50)
 
-    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc', file_name="movetobeacon_xyobs_10x10act_500eps",
+    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc', file_name="movetobeacon_xyobs_10x10act_600eps",
                     save_every=100, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=500, max_steps_training=600,
-                    max_test_episodes=10, max_steps_testing=600, rolling_avg_window_size=20)
+                    max_training_episodes=600, max_steps_training=300,
+                    max_test_episodes=10, max_steps_testing=300, rolling_avg_window_size=20)
     return trainer
 
 def main(unused_argv):
     try:
         trainer = declare_trainer()
-        #trainer.train()
+        trainer.train()
         trainer.play()
 
     except KeyboardInterrupt:

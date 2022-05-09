@@ -212,10 +212,12 @@ class MoveToBeaconProximity(RewardBuilder):
         return reward
 
 class MoveToBeaconDirection(RewardBuilder):
-    def __init__(self, boost=0.01):
+    def __init__(self, boost=0.01, add_distance = False):
+        self.previous_distance = 100
         self.previous_x = 0
         self.previous_y = 0
         self.boost = boost
+        self.add_distance = add_distance
 
     def get_reward(self, obs, reward, done):
         marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
@@ -233,13 +235,23 @@ class MoveToBeaconDirection(RewardBuilder):
 
         # angle goes from 0 (marine moving in the direction of the beacon)
         # to pi (marine moving in the exact oposite direction of the beacon)
-        # we want to map that so when the marine is moving towards the beacon we get 1, and when its moving opposite we get 0
+        # we want to map that so when the marine is moving towards the beacon we get 1, and when its moving opposite we get -1
         reward_angle = (angle - (math.pi/2)) * -1 / (math.pi/2)
 
+        # If the marine pos doesn't change our calculations break and we get angle = NaN, so this solves that
         if math.isnan(reward_angle):
             reward_angle = 0
 
+        # Multiplying our angled_reward (goes from -1 to 1) by our boost factor (0.01 by default)
         reward += reward_angle*self.boost
+
+        if self.add_distance:
+            curr_distance = math.hypot(beacon.x-marine.x, beacon.y-marine.y)
+            # Adding half of our boost factor to the reward if we're closing the distance from the marine to the beacon
+            if curr_distance < self.previous_distance:
+                    reward += self.boost/2
+
+            self.previous_distance = curr_distance
 
         self.previous_x = marine.x
         self.previous_y = marine.y
