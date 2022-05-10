@@ -2,8 +2,9 @@ import ast
 import importlib
 import os
 import pkgutil
+import inspect
 
-from .error import ClassNotFoundError
+from .error import ClassNotFoundError, EnvironmentNotSupportedError
 
 
 def get_class_import_path(pkg_str, classname):
@@ -43,3 +44,61 @@ def get_cls(pkg, classname):
     cls = getattr(mod, cls_str)
 
     return cls
+
+def get_classes_recursively(pkg_path, ignore = []):
+    cls_list = []
+
+    try:
+        mod = importlib.import_module(pkg_path)
+        for module_info in pkgutil.iter_modules(mod.__path__):
+            if module_info.ispkg:
+                cls_list += get_classes_recursively(pkg_path + '.' + module_info.name, ignore)
+            else:
+                file_path = module_info.module_finder.path + os.path.sep + module_info.name + '.py'
+                with open(file_path, 'r') as input_file:
+                    node = ast.parse(input_file.read())
+                    cls_list += [n.name for n in node.body if isinstance(n, ast.ClassDef)]
+
+    except ModuleNotFoundError:
+        pass
+    except NameError:
+        pass
+
+    for cls_name in ignore:
+        try:
+            cls_list.remove(cls_name)
+        except ValueError:
+            continue
+
+    return cls_list
+
+def get_class_parameters(pkg_path, classname):
+    try:
+        cls = get_cls(pkg_path, classname)
+    except ModuleNotFoundError as mnfe:
+        if pkg_path == "urnai.envs":
+            raise EnvironmentNotSupportedError("{} returned a ModuleNotFoundError, is {} installed correctly?".format(classname, classname))
+        else:
+            raise
+
+    if cls is not None: 
+        params = inspect.getargspec(cls.__init__)
+        names = params.args
+        defaults = params.defaults
+
+        default_names = names[(len(names) - len(defaults)) :]
+        names = names[0 : (len(names) - len(defaults)) ]
+        names.pop(0)
+
+        param_data = {
+                "params_without_defaults" : names, 
+                "params_with_deaults" : []
+                }
+
+        for param, default_value in zip(default_names, defaults):
+            param_data["params_with_deaults"].append({
+                "param" : param,
+                "default_value" : default_value
+                })
+
+        return param_data
