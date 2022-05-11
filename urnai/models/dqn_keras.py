@@ -2,8 +2,8 @@ from collections import deque
 import os
 import random
 
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
 import numpy as np
 from tensorflow.keras.layers import Activation, Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.keras.models import Sequential

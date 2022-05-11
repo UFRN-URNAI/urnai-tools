@@ -1,6 +1,6 @@
-from utils import constants
-from utils.error import UnsuportedLibraryError
-from utils.module_specialist import get_cls
+from urnai.utils import constants
+from urnai.utils.error import UnsuportedLibraryError
+from urnai.utils.module_specialist import get_cls
 
 
 class NeuralNetworkFactory:

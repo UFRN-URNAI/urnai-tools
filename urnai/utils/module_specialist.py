@@ -3,6 +3,7 @@ import importlib
 import inspect
 import os
 import pkgutil
+from urnai.utils.reporter import Reporter as rp
 
 from .error import ClassNotFoundError, EnvironmentNotSupportedError
 
@@ -97,32 +98,37 @@ def get_classes_recursively(pkg_path, ignore=[]):
 
 
 def get_class_parameters(pkg_path, classname):
+    cls = None
+
     try:
         cls = get_cls(pkg_path, classname)
-    except ModuleNotFoundError:
+    except (ModuleNotFoundError, NameError):
         if pkg_path == 'urnai.envs':
-            raise EnvironmentNotSupportedError(
-                '{} returned a ModuleNotFoundError, is {} installed correctly?'.format(
+            rp.report('{} returned an error, is {} installed correctly?'.format(
                     classname, classname))
+            exit(1)
         else:
             raise
 
     if cls is not None:
-        params = inspect.getargspec(cls.__init__)
+        params = inspect.getfullargspec(cls.__init__)
         names = params.args
+        names.pop(0)
         defaults = params.defaults
 
-        default_names = names[(len(names) - len(defaults)):]
-        names = names[0: (len(names) - len(defaults))]
-        names.pop(0)
-
         param_data = {
+            'name': classname,
             'params_without_defaults': names,
-            'params_with_deaults': []}
+            'params_with_defaults': []}
 
-        for param, default_value in zip(default_names, defaults):
-            param_data['params_with_deaults'].append(
-                {'param': param, 'default_value': default_value},
+        if defaults is not None:
+            default_names = names[(len(names) - len(defaults)):]
+            names = names[0: (len(names) - len(defaults))]
+
+            for param, default_value in zip(default_names, defaults):
+                param_data['params_with_defaults'].append(
+                    {'param': param, 'default_value': default_value},
+
             )
 
         return param_data

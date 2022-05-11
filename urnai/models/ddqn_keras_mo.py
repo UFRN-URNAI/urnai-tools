@@ -1,9 +1,9 @@
 from collections import deque
 import random
 
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
-from models.ddqn_keras import DDQNKeras
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
+from urnai.models.ddqn_keras import DDQNKeras
 import numpy as np
 
 from .model_builder import ModelBuilder

@@ -1,10 +1,10 @@
 from collections import deque
 import random
 
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
-from models.base.abmodel import LearningModel
-from models.memory_representations.neural_network.nnfactory import NeuralNetworkFactory
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
+from urnai.models.base.abmodel import LearningModel
+from urnai.models.memory_representations.neural_network.nnfactory import NeuralNetworkFactory
 import numpy
 
 

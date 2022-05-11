@@ -4,6 +4,7 @@ import os
 import time
 
 from urnai.runner.base.command import Command
+from urnai.utils.module_specialist import get_cls
 from urnai.utils.reporter import Reporter as rp
 
 

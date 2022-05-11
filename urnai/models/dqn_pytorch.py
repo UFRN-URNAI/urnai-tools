@@ -1,8 +1,8 @@
 from collections import deque, namedtuple
 import random
 
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
 import numpy as np
 import torch
 import torch.nn as nn

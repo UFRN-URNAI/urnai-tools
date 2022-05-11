@@ -36,6 +36,139 @@ class RTSGeneralization:
     MAXIMUM_NUMBER_OF_BARRACKS = 1
     MAXIMUM_NUMBER_OF_ARCHERS_MARINES = 20
 
+class Trainings:
+    DEFAULT_TRAINING = {
+        "env" : {
+            "class" : "GymEnv",
+            "params" : {
+                "id" : "CartPole-v1"
+            }
+        },
+        "action_wrapper" : {
+            "class" : "GymWrapper",
+            "params" : {
+                "gym_env_actions" : 2
+            } 
+        },
+        "state_builder" : {
+            "class" : "PureState",
+            "params" : {
+                "state_dim" : 4 
+            }
+        },
+        "model" : {
+            "class" : "DoubleDeepQLearning",
+            "params" : {
+                "learning_rate" : 0.001,
+                "gamma" : 0.99,
+                "epsilon_decay" : 0.9997, 
+                "epsilon_min" : 0.005,
+                "memory_maxlen" : 50000,
+                "min_memory_size" : 1000,
+                "build_model" : [
+                    {
+                        "type": "input", 
+                        "nodes": 25, 
+                        "shape": []
+                    }, 
+                    {
+                        "type": "fullyconn",
+                        "nodes": 25,
+                        "name": "default0"
+                    },
+                    {
+                        "type": "output", 
+                        "length": 2
+                    }
+                ]
+             }
+        },
+        "reward" : {
+            "class" : "PureReward",
+            "params" : {} 
+        },
+        "agent" : {
+            "class" : "GenericAgent",
+            "params" : {} 
+        },
+        "trainer" : {
+            "class" : "Trainer",
+            "params" : {
+                "file_name" : "cartpole-v1_ddql_25x25_json",
+                "save_every" : 100,
+                "enable_save" : True,
+                "max_training_episodes" : 1000,
+                "max_steps_training" : 520,
+                "max_test_episodes" : 100,
+                "max_steps_testing" : 520,
+                "rolling_avg_window_size" : 50
+            }
+        }
+    }
+
+    DUMMY_TRAINING = {
+        "env" : {
+            "class" : "ExampleEnv",
+            "params" : {
+                "example_param" : "example_value",
+            }
+        },
+        "action_wrapper" : {
+            "class" : "ExampleActionWrapper",
+            "params" : {
+                "example_param" : "example_value",
+            } 
+        },
+        "state_builder" : {
+            "class" : "ExampleStateBuilder",
+            "params" : {
+                "example_param" : "example_value",
+            }
+        },
+        "model" : {
+            "class" : "ExampleModel",
+            "params" : {
+                "example_param" : "example_value",
+                "build_model" : [
+                    {
+                        "type": "input", 
+                        "nodes": 25, 
+                        "shape": []
+                    }, 
+                    {
+                        "type": "fullyconn",
+                        "nodes": 25,
+                        "name": "default0"
+                    },
+                    {
+                        "type": "output", 
+                        "length": 2
+                    }
+                ]
+             }
+        },
+        "reward" : {
+            "class" : "PureReward",
+            "params" : {} 
+        },
+        "agent" : {
+            "class" : "GenericAgent",
+            "params" : {} 
+        },
+        "trainer" : {
+            "class" : "Trainer",
+            "params" : {
+                "file_name" : "example",
+                "save_every" : 0,
+                "enable_save" : True,
+                "max_training_episodes" : 0,
+                "max_steps_training" : 0,
+                "max_test_episodes" : 0,
+                "max_steps_testing" : 0,
+            }
+        }
+    }
+
 
 # geting list of keys in Libraries.__dict__ that do not start with _ to exclude internal atributes
 # returns: ['KERAS', 'PYTORCH', 'TENSORFLOW']

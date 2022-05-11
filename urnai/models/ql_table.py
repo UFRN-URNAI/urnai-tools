@@ -1,5 +1,5 @@
-from agents.actions.base.abwrapper import ActionWrapper
-from agents.states.abstate import StateBuilder
+from urnai.agents.actions.base.abwrapper import ActionWrapper
+from urnai.agents.states.abstate import StateBuilder
 import numpy as np
 import pandas as pd
 

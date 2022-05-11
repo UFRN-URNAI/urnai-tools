@@ -23,9 +23,13 @@ class Reporter:
     MESSAGES = []
 
     @staticmethod
-    def report(message, verbosity_lvl=0, end='\n'):
-        date = '[ (THREAD {}) URNAI REPORT AT {} ] '.format(multiprocessing.current_process().name,
+    def report(message, verbosity_lvl=0, end='\n', clean=False):
+        if not clean:
+            date = '[ (THREAD {}) URNAI REPORT AT {} ] '.format(multiprocessing.current_process().name,
                                                             str(datetime.now()))
+        else:
+            date = ''
+
         if not type(message) == str:
             message = str(message)
         message = date + message

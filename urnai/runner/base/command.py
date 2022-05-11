@@ -15,6 +15,7 @@ class Command(abc.ABC):
         subcommand = self.subparser.add_parser(self.command, help=self.help)
 
         for flag in self.flags:
-            subcommand.add_argument(flag['command'], help=flag['help'])
+            command = flag.pop('command')
+            subcommand.add_argument(command, **flag)
 
         subcommand.set_defaults(func=self.run)

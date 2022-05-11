@@ -1,6 +1,7 @@
 import argparse
 
 from urnai.runner.commands.drts import DeepRTSCommand
+from urnai.runner.commands.get import GetCommand
 from urnai.runner.commands.sc2 import SC2Command
 from urnai.runner.commands.trainer import TrainerCommand
 
@@ -8,7 +9,7 @@ from urnai.runner.commands.trainer import TrainerCommand
 class ParserBuilder:
     DESCRIPTION = 'A modular Deep Reinforcement Learning library that supports multiple' \
                   + ' environments, such as PySC2, OpenAI Gym, and PyGame Learning Environment.'
-    COMMANDS = [DeepRTSCommand, SC2Command, TrainerCommand]
+    COMMANDS = [DeepRTSCommand, SC2Command, TrainerCommand, GetCommand]
 
     @staticmethod
     def DefaultParser():

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from models.memory_representations.base.abmem import ABMemoryRepresentation
-from models.model_builder import ModelBuilder
+from urnai.models.memory_representations.base.abmem import ABMemoryRepresentation
+from urnai.models.model_builder import ModelBuilder
 from urnai.utils.error import IncoherentBuildModelError, UnsupportedBuildModelLayerTypeError
 from urnai.utils.reporter import Reporter as rp
 
