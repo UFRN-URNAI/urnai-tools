@@ -941,3 +941,201 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         marines = get_units_by_type(obs, units.Terran.Marine)
         action = attack_target_point_spatial(marines, target)[0]
         return action
+
+class DefeatRoachesSimplified(TerranWrapper):
+    def __init__(self, x_gridsize=10, y_gridsize=10, random_uniform=True):
+        SC2Wrapper.__init__(self)
+
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+
+        self.named_actions = []
+
+        self.named_actions.append("movepoint")
+        self.named_actions.append("attackpoint")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, 2, 2+self.x_gridsize, 2+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        action, x, y = action_idx
+
+        adjusted_x = x - self.multi_output_ranges[1]
+        adjusted_y = y - self.multi_output_ranges[2]
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        #return sc2.no_op()
+
+        if action == 0:
+            return self.movepoint(obs, xtarget, ytarget)
+        else:
+            return self.attackpoint(obs, xtarget, ytarget)
+
+    def movepoint(self, obs, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+    
+    def attackpoint(self, obs, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = move_target_point_spatial(marines, target)[0]
+        return action
+
+class DefeatRoachesSimplified_noop(TerranWrapper):
+    def __init__(self, x_gridsize=10, y_gridsize=10, random_uniform=True):
+        SC2Wrapper.__init__(self)
+
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+
+        self.named_actions = []
+
+        self.named_actions.append("movepoint")
+        self.named_actions.append("attackpoint")
+        self.named_actions.append("noop")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, 3, 3+self.x_gridsize, 3+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        action, x, y = action_idx
+
+        adjusted_x = x - self.multi_output_ranges[1]
+        adjusted_y = y - self.multi_output_ranges[2]
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        if action == 0:
+            return self.movepoint(obs, xtarget, ytarget)
+        elif action == 1:
+            return self.attackpoint(obs, xtarget, ytarget)
+        else:
+            return sc2.no_op()
+
+    def attackpoint(self, obs, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+    
+    def movepoint(self, obs, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = move_target_point_spatial(marines, target)[0]
+        return action
+
+class DefeatRoachesFull(TerranWrapper):
+    def __init__(self, own_unit_maxamount=14, x_gridsize=10, y_gridsize=10, map_size_x=64, map_size_y=64, random_uniform=True):
+        SC2Wrapper.__init__(self)
+
+        self.own_unit_maxamout = own_unit_maxamount
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+
+        self.named_actions = []
+
+        for i in range (self.own_unit_maxamout):
+            self.named_actions.append("select_unit_"+str(i))
+
+        self.named_actions.append("movepoint")
+        self.named_actions.append("attackpoint")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, self.own_unit_maxamout, self.own_unit_maxamout+2,  self.own_unit_maxamout+2+self.x_gridsize, self.own_unit_maxamout+2+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        unit_id, action, x, y = action_idx
+
+        adjusted_x = x - self.multi_output_ranges[2]
+        adjusted_y = y - self.multi_output_ranges[3]
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        if action == 0:
+            return self.movepoint(obs, unit_id, xtarget, ytarget)
+        else:
+            return self.attackpoint(obs, unit_id, xtarget, ytarget)
+
+    def movepoint(self, obs, unit_id, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+    
+    def attackpoint(self, obs, unit_id, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = move_target_point_spatial(marines, target)[0]
+        return action

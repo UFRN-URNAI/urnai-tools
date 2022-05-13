@@ -1,4 +1,5 @@
 import math
+from os import stat
 
 import numpy as np
 from pysc2.env import sc2_env
@@ -808,51 +809,29 @@ class MoveToBeaconState(StateBuilder):
     def get_state_dim(self):
         return 4
 
-class MoveToBeaconGridState(StateBuilder):
-    def __init__(self, grid_size=10):
-
-        self.grid_size = grid_size
-        self._state_size = grid_size*grid_size
-        #self._state_size = int(19 + 2*(self.grid_size**2))
-    
+class DefeatRoachesState(StateBuilder):
     def build_state(self, obs):
-        #marine = [[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
-        #beacon = [[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units if unit.unit_type == 317][0]
-        # state_units = np.array([marine, beacon])
-        #state_units = np.array([[unit.unit_type, unit.x, unit.y] for unit in obs.raw_units])
-        # flat_state = state_units.flatten()
-        # final_state = np.expand_dims(flat_state, axis=0)
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:14]
+        roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach][:4]
 
-        x1=22
-        x2=43
-        y1=28
-        y2=43
+        state = np.zeros((18, 3))
 
-        cropped_x = x2-x1
-        cropped_y = y2-y1
+        for i in range(0, len(marines)):
+            state[i][0] = marines[i].health_ratio/255
+            state[i][1] = (marines[i].x-22)/21
+            state[i][2] = (marines[i].y-28)/15
 
-        unit_grid = np.zeros((self.grid_size,self.grid_size))
-        marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+        for i in range(0, len(roaches)):
+            state[14+i][0] = roaches[i].health_ratio/255
+            state[14+i][1] = (roaches[i].x-22)/21
+            state[14+i][2] = (roaches[i].y-28)/15
 
-        for i in range(0, len(marine_and_beacon)):
-            unit_x = marine_and_beacon[i].x - x1
-            unit_y = marine_and_beacon[i].y - y1
-
-            if( (unit_x < cropped_x) and (unit_y < cropped_y)):
-                y = int(math.ceil( (unit_x + 1) / (cropped_x/self.grid_size) ))
-                x = int(math.ceil( (unit_y + 1) / (cropped_y/self.grid_size) ))
-                if marine_and_beacon[i].unit_type == units.Terran.Marine:
-                    unit_grid[x-1][y-1] = 1
-                else:
-                    unit_grid[x-1][y-1] = 2
-
-        final_state = unit_grid.flatten()
-        final_state = np.expand_dims(final_state, axis=0)
+        flat_state = state.flatten()
+        final_state = np.expand_dims(flat_state, axis=0)
         return final_state
 
     def get_state_dim(self):
-        return self._state_size
-
+        return 18*3
 
 def build_multiple_unit_grid(obs, player, grid, grid_size, unit_groups):
     for group_i, unit_group in enumerate(unit_groups):
