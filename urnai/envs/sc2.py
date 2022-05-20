@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 
 from absl import flags
@@ -28,6 +29,7 @@ class SC2Env(Env):
             obs_features=None,
             realtime=False,
             self_play=False,
+            amount_each_map=5,
     ):
         super().__init__(map_name, render, reset_done)
 
@@ -54,13 +56,33 @@ class SC2Env(Env):
         self.realtime = realtime
         self.done = False
 
+        self.amount_each_map=amount_each_map
+        self.curr_map_count = 0
+        self.curr_map = 0
+
         self.start()
 
     def start(self):
         self.done = False
-        if self.env_instance is None:
+
+        change_map = False
+        if isinstance(self.id, list):
+            if self.curr_map_count > self.amount_each_map:
+                change_map = True
+                self.curr_map_count = 0
+                if self.curr_map == len(self.id)-1:
+                    self.curr_map = 0
+                else:
+                    self.curr_map += 1
+            my_map = self.id[self.curr_map]
+        else:
+            my_map = self.id
+        
+        self.curr_map_count += 1
+
+        if self.env_instance is None or change_map:
             self.env_instance = sc2_env.SC2Env(
-                map_name=self.id,
+                map_name=my_map,
                 visualize=self.render,
                 players=self.players,
                 agent_interface_format=features.AgentInterfaceFormat(

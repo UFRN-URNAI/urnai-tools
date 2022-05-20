@@ -812,7 +812,9 @@ class MoveToBeaconState(StateBuilder):
 class DefeatRoachesState(StateBuilder):
     def build_state(self, obs):
         marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:14]
+        marines = sorted(marines, key=lambda marine: marine.tag)
         roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach][:4]
+        roaches = sorted(roaches, key=lambda roach: roach.tag)
 
         state = np.zeros((18, 3))
 
@@ -832,6 +834,90 @@ class DefeatRoachesState(StateBuilder):
 
     def get_state_dim(self):
         return 18*3
+
+class DefeatRoachesState_simple(StateBuilder):
+    def build_state(self, obs):
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:10]
+        marines = sorted(marines, key=lambda marine: marine.tag)
+        roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach][:4]
+        roaches = sorted(roaches, key=lambda roach: roach.tag)
+
+        state = np.zeros((14, 3))
+
+        for i in range(0, len(marines)):
+            state[i][0] = marines[i].health/145
+            state[i][1] = (marines[i].x-22)/21
+            state[i][2] = (marines[i].y-28)/15
+
+        for i in range(0, len(roaches)):
+            state[10+i][0] = roaches[i].health/145
+            state[10+i][1] = (roaches[i].x-22)/21
+            state[10+i][2] = (roaches[i].y-28)/15
+
+        flat_state = state.flatten()
+        final_state = np.expand_dims(flat_state, axis=0)
+        return final_state
+
+    def get_state_dim(self):
+        return 14*3
+
+class TransferLearningState(StateBuilder):
+    def __init__(self, max_num_marines=10, max_num_other=10):
+        self.max_num_marines = max_num_marines
+        self.max_num_other = max_num_other
+
+    def build_state(self, obs):
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:self.max_num_marines]
+        marines = sorted(marines, key=lambda marine: marine.tag)
+
+        others = [unit for unit in obs.raw_units if unit.unit_type != units.Terran.Marine][:self.max_num_other]
+        others = sorted(others, key=lambda other: other.tag)
+
+        # roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach][:4]
+        # if len(roaches)>0:
+        #     roaches = sorted(roaches, key=lambda roach: roach.tag)
+
+        # beacon = [unit for unit in obs.raw_units if unit.unit_type == 317]
+        # mineral_shards = [unit for unit in obs.raw_units if unit.unit_type == 1680][:self.max_num_other]
+
+        state = np.zeros((self.max_num_marines+self.max_num_other, 4))
+
+        for i in range(0, len(marines)):
+            state[i][0] = marines[i].alliance
+            state[i][1] = marines[i].health_ratio/255
+            state[i][2] = (marines[i].x-22)/21
+            state[i][3] = (marines[i].y-28)/15
+
+        for i in range(0, len(others)):
+                state[self.max_num_marines+i][0] = others[i].alliance
+                state[self.max_num_marines+i][1] = others[i].health_ratio/255
+                state[self.max_num_marines+i][2] = (others[i].x-22)/21
+                state[self.max_num_marines+i][3] = (others[i].y-28)/15
+
+        # if len(beacon)>0:
+        #     state[self.max_num_marines][0] = beacon[0].unit_type
+        #     state[self.max_num_marines][1] = beacon[0].health_ratio/255
+        #     state[self.max_num_marines][2] = (beacon[0].x-22)/21
+        #     state[self.max_num_marines][3] = (beacon[0].x-22)/21
+        # elif len(roaches)>0:
+        #     for i in range(0, len(roaches)):
+        #         state[self.max_num_marines+i][0] = roaches[i].unit_type
+        #         state[self.max_num_marines+i][1] = roaches[i].health_ratio/255
+        #         state[self.max_num_marines+i][2] = (roaches[i].x-22)/21
+        #         state[self.max_num_marines+i][3] = (roaches[i].y-28)/15
+        # elif len(mineral_shards)>0:
+        #     for i in range(0, len(mineral_shards)):
+        #         state[self.max_num_marines+i][0] = mineral_shards[i].unit_type
+        #         state[self.max_num_marines+i][1] = mineral_shards[i].health_ratio/255
+        #         state[self.max_num_marines+i][2] = (mineral_shards[i].x-22)/21
+        #         state[self.max_num_marines+i][3] = (mineral_shards[i].y-28)/15
+
+        flat_state = state.flatten()
+        final_state = np.expand_dims(flat_state, axis=0)
+        return final_state
+
+    def get_state_dim(self):
+        return (self.max_num_marines+self.max_num_other)*4
 
 def build_multiple_unit_grid(obs, player, grid, grid_size, unit_groups):
     for group_i, unit_group in enumerate(unit_groups):

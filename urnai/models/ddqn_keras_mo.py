@@ -6,6 +6,13 @@ from agents.states.abstate import StateBuilder
 from models.ddqn_keras import DDQNKeras
 import numpy as np
 
+import tensorflow as tf
+
+from tensorflow.keras import layers
+from tensorflow.keras import activations
+from tensorflow.keras import models
+from tensorflow.keras import optimizers
+
 from .model_builder import ModelBuilder
 
 
@@ -16,7 +23,7 @@ class DDQNKerasMO(DDQNKeras):
                  name='DDQN', epsilon_start=1.0, epsilon_min=0.01, epsilon_decay=0.99995,
                  per_episode_epsilon_decay=False,
                  batch_size=32, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
-                 build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5,
+                 build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5, model_layers = [30, 30],
                  seed_value=None, cpu_only=False):
         super(DDQNKerasMO, self).__init__(
             action_wrapper,
@@ -34,9 +41,11 @@ class DDQNKerasMO(DDQNKeras):
             per_episode_epsilon_decay=per_episode_epsilon_decay,
             seed_value=seed_value,
             cpu_only=cpu_only,
+            model_layers=model_layers
         )
 
         self.build_model = build_model
+        self.model_layers = model_layers
         self.loss = 0
 
         # Main model, trained every step
@@ -52,6 +61,16 @@ class DDQNKerasMO(DDQNKeras):
             self.memory_maxlen = memory_maxlen
             self.min_memory_size = min_memory_size
             self.batch_size = batch_size
+
+    def make_model(self):
+        model = models.Sequential()
+        model.add(layers.Input((self.state_size,)))
+        for layer_size in self.model_layers:
+            model.add(layers.Dense(layer_size, activation=activations.swish))
+        model.add(layers.Dense(self.action_size, activation=activations.linear))
+
+        model.compile(optimizer=optimizers.Adam(lr=self.learning_rate), loss='mse', metrics=['accuracy'])
+        return model
 
     def memory_learn(self, s, a, r, s_, done):
         self.memorize(s, a, r, s_, done)

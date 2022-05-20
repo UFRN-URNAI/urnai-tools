@@ -258,6 +258,12 @@ class MoveToBeaconDirection(RewardBuilder):
 
         return reward
 
+class NegativeTimerReward(RewardBuilder):
+    def get_reward(self, obs, reward, done):
+        if reward == 0:
+            reward = -0.01
+        return reward
+
 """
 Ideas for new reward builders or improvements for current ones:
 

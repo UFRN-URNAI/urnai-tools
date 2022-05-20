@@ -19,7 +19,7 @@ class DDQNKeras(DQNKeras):
                  batch_size=64, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5,
                  seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False):
+                 lr_linear_decay=False, model_layers = [30, 30]):
         super(DDQNKeras, self).__init__(action_wrapper, state_builder, gamma=gamma,
                                         use_memory=use_memory, name=name,
                                         learning_rate=learning_rate,
@@ -32,9 +32,11 @@ class DDQNKeras(DQNKeras):
                                         seed_value=seed_value, cpu_only=cpu_only,
                                         build_model=build_model,
                                         epsilon_linear_decay=epsilon_linear_decay,
-                                        lr_linear_decay=lr_linear_decay)
+                                        lr_linear_decay=lr_linear_decay,
+                                        model_layers=model_layers)
 
         self.build_model = build_model
+        self.model_layers = model_layers
         self.loss = 0
 
         # Main model, trained every step

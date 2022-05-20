@@ -162,8 +162,10 @@ class FileTrainer(Trainer):
 
         json_path = save_path + os.path.sep + 'training_params.json'
         csv_path = json_path.replace('.json', '.csv')
+        yaml_path = json_path.replace('.json', '.yaml')
         self.save_trainings_as_json(json_path)
         self.save_trainings_as_csv(csv_path)
+        self.save_trainings_as_yaml(yaml_path)
 
     def df_to_formatted_json(self, df, sep='.'):
         """The opposite of json_normalize."""

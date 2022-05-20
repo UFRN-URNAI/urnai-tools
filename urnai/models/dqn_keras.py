@@ -24,7 +24,8 @@ class DQNKeras(LearningModel):
                  memory_maxlen=50000, use_memory=True, per_episode_epsilon_decay=False,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL,
                  seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False):
+                 lr_linear_decay=False,
+                 model_layers = [30, 30]):
 
         super(DQNKeras, self).__init__(action_wrapper, state_builder, gamma, learning_rate,
                                        learning_rate_min, learning_rate_decay,
@@ -35,6 +36,7 @@ class DQNKeras(LearningModel):
         self.batch_size = batch_size
         self.batch_training = batch_training
 
+        self.model_layers = model_layers
         self.build_model = build_model
         self.model = self.make_model()
         self.use_memory = use_memory

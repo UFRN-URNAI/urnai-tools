@@ -5,7 +5,9 @@ import sys
 import time
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+import wandb
 from urnai.base.savable import Savable
 from urnai.utils.logger import Logger
 from urnai.utils.reporter import Reporter as rp
@@ -56,7 +58,7 @@ class Trainer(Savable):
         self.pickle_black_list = ['save_path', 'file_name', 'full_save_path', 'full_save_play_path',
                                   'agent', 'max_training_episodes', 'max_test_episodes',
                                   'max_steps_training', 'max_steps_testing', 'save_every',
-                                  'rolling_avg_window_size']
+                                  'rolling_avg_window_size', 'reset_epsilon', 'enable_save']
 
     def setup(self, env, agent, max_training_episodes, max_test_episodes, max_steps_training,
               max_steps_testing,
@@ -607,9 +609,28 @@ class Trainer(Savable):
         # register reward avg:
         self.logger.inside_training_test_avg_rwds.append(rwd_avg)
 
+    def get_wandb_table(self, x_size, y_values):
+        data = [[x, y] for (x, y) in zip(range(x_size), y_values)]
+        table = wandb.Table(data=data, columns = ["x", "y"])
+        return table
+
+
     def save_extra(self, save_path):
         self.env.save(save_path)
         self.agent.save(save_path)
+        
+        reward_series = pd.Series(self.logger.ep_rewards)
+        reward_rolling_avg = reward_series.rolling(window=self.rolling_avg_window_size)
+        reward_avg_dropped = reward_rolling_avg.mean().dropna()
+        roll_avg_data = [[x, y] for (x, y) in zip(range(self.logger.rolling_avg_window_size - 1, self.logger.ep_count), reward_avg_dropped)]
+        roll_avg_table = wandb.Table(data=roll_avg_data, columns = ["x", "y"])
+
+        wandb.log({
+            'ep_rewards' : wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_rewards), "episodes", "reward", title="Episode Rewards"),
+            'ep_avg_rewards': wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_avg_rewards), "episodes", "avg. reward", title="Average Episode Rewards"),
+            'moving_avg_rewards': wandb.plot.line(roll_avg_table, "episodes", "rolling avg. reward", title='Rolling Average Reward (window size: {})'.format(self.logger.rolling_avg_window_size)),
+        })
+
         self.logger.save(save_path)
         self.versioner.save(save_path)
         rp.save(save_path)

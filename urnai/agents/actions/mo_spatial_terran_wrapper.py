@@ -1,4 +1,6 @@
 import random
+import math
+from matplotlib.pyplot import step
 
 from pysc2.env import sc2_env
 from pysc2.lib import features, units
@@ -1093,6 +1095,7 @@ class DefeatRoachesFull(TerranWrapper):
 
         self.named_actions.append("movepoint")
         self.named_actions.append("attackpoint")
+        self.named_actions.append("noop")
 
         for i in range (self.x_gridsize):
             self.named_actions.append("x"+str(i))
@@ -1100,7 +1103,7 @@ class DefeatRoachesFull(TerranWrapper):
         for i in range (self.y_gridsize):
             self.named_actions.append("y"+str(i))
 
-        self.multi_output_ranges = [0, self.own_unit_maxamout, self.own_unit_maxamout+2,  self.own_unit_maxamout+2+self.x_gridsize, self.own_unit_maxamout+2+self.x_gridsize+self.y_gridsize]
+        self.multi_output_ranges = [0, self.own_unit_maxamout, self.own_unit_maxamout+3,  self.own_unit_maxamout+3+self.x_gridsize, self.own_unit_maxamout+3+self.x_gridsize+self.y_gridsize]
 
         self.action_indices = [idx for idx in range(len(self.named_actions))]
 
@@ -1112,6 +1115,7 @@ class DefeatRoachesFull(TerranWrapper):
 
         adjusted_x = x - self.multi_output_ranges[2]
         adjusted_y = y - self.multi_output_ranges[3]
+        action = action - self.own_unit_maxamout
 
         gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
         gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
@@ -1123,19 +1127,113 @@ class DefeatRoachesFull(TerranWrapper):
             xtarget += random.uniform(0, gridwidth)
             ytarget += random.uniform(0, gridheight)
 
-        if action == 0:
-            return self.movepoint(obs, unit_id, xtarget, ytarget)
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:14]
+        marines = sorted(marines, key=lambda marine: marine.tag)
+        if unit_id+1 > len(marines):
+            action = 2
         else:
-            return self.attackpoint(obs, unit_id, xtarget, ytarget)
+            selected_marine_list = [marines[unit_id]]
 
-    def movepoint(self, obs, unit_id, x, y):
+        if action == 0:
+            return self.movepoint(selected_marine_list, xtarget, ytarget)
+        elif action == 1:
+            return self.attackpoint(selected_marine_list, xtarget, ytarget)
+        else:
+            return sc2.no_op()
+
+    def attackpoint(self, unit, x, y):
         target = [x, y]
-        marines = get_units_by_type(obs, units.Terran.Marine)
-        action = attack_target_point_spatial(marines, target)[0]
+        action = attack_target_point_spatial(unit, target)[0]
         return action
     
-    def attackpoint(self, obs, unit_id, x, y):
+    def movepoint(self, unit, x, y):
         target = [x, y]
-        marines = get_units_by_type(obs, units.Terran.Marine)
-        action = move_target_point_spatial(marines, target)[0]
+        action = move_target_point_spatial(unit, target)[0]
+        return action
+
+class DefeatRoachesActionGroup(TerranWrapper):
+    def __init__(self, max_group_amount=4, x_gridsize=10, y_gridsize=10, random_uniform=True):
+        SC2Wrapper.__init__(self)
+
+        self.max_group_amount = max_group_amount
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+
+        self.named_actions = []
+
+        for i in range (self.max_group_amount):
+            self.named_actions.append("number_of_groups_"+str(i))
+        
+        for i in range (self.max_group_amount):
+            self.named_actions.append("selected_group"+str(i))
+
+        self.named_actions.append("movepoint")
+        self.named_actions.append("attackpoint")
+        self.named_actions.append("noop")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, self.max_group_amount, self.max_group_amount*2, (self.max_group_amount*2)+3, (self.max_group_amount*2)+3+self.x_gridsize, (self.max_group_amount*2)+3+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        group_amount, group_selected, action, x, y = action_idx
+
+        group_amount = group_amount+1
+        group_selected = group_selected - self.multi_output_ranges[1]
+        action = action - self.multi_output_ranges[2]
+        adjusted_x = x - self.multi_output_ranges[3]
+        adjusted_y = y - self.multi_output_ranges[4]
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine]
+        marines = sorted(marines, key=lambda marine: marine.tag)
+        amount_of_marines_per_group = math.ceil(len(marines)/group_amount) if len(marines) >= group_amount else 1
+        
+        selected_marine_list = []
+        if group_selected >= group_amount:
+            group_selected = random.randrange(0, group_amount)
+
+        for i in range(0, len(marines)):
+            if i >= group_selected*amount_of_marines_per_group and i < group_selected*amount_of_marines_per_group + amount_of_marines_per_group :
+                selected_marine_list.append(marines[i])
+
+        if action == 0:
+            return self.movepoint(selected_marine_list, xtarget, ytarget)
+        elif action == 1:
+            return self.attackpoint(selected_marine_list, xtarget, ytarget)
+        else:
+            return sc2.no_op()
+
+    def attackpoint(self, unit, x, y):
+        target = [x, y]
+        action = attack_target_point_spatial(unit, target)[0]
+        return action
+    
+    def movepoint(self, unit, x, y):
+        target = [x, y]
+        action = move_target_point_spatial(unit, target)[0]
         return action
