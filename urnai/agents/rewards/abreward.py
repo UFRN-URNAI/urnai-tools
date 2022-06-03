@@ -9,6 +9,9 @@ class RewardBuilder(ABC):
     So every time we want to create a new agent,
     we should either use an existing RewardBase implementation or create a new one.
     """
+    def __init__(self):
+        self.last_action = 0
+
 
     @abstractmethod
     def get_reward(self, obs, reward, done) -> Reward: ...

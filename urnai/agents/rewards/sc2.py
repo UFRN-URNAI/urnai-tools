@@ -195,6 +195,7 @@ class MoveToBeaconProximity(RewardBuilder):
         self.boost = boost
 
     def get_reward(self, obs, reward, done):
+
         if not self.default:
             marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
             x1 = marine_and_beacon[0].x
@@ -206,6 +207,32 @@ class MoveToBeaconProximity(RewardBuilder):
 
             if curr_distance < self.previous_distance:
                 reward += self.boost
+
+            self.previous_distance = curr_distance
+
+        return reward
+
+class MoveToBeaconProximityNeg(RewardBuilder):
+    def __init__(self, default=False, boost=0.01):
+        self.previous_distance = 100
+        self.default = default
+        self.boost = boost
+
+    def get_reward(self, obs, reward, done):
+
+        if not self.default:
+            marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
+            x1 = marine_and_beacon[0].x
+            y1 = marine_and_beacon[0].y
+            x2 = marine_and_beacon[1].x
+            y2 = marine_and_beacon[1].y
+
+            curr_distance = math.hypot(x2-x1, y2-y1)
+
+            if curr_distance < self.previous_distance:
+                reward += self.boost
+            else:
+                reward -= self.boost
 
             self.previous_distance = curr_distance
 
@@ -256,6 +283,30 @@ class MoveToBeaconDirection(RewardBuilder):
         self.previous_x = marine.x
         self.previous_y = marine.y
 
+        return reward
+
+class MoveToBeaconClickProximity(RewardBuilder):
+    def __init__(self, boost=0.2):
+        self.previous_distance = 100
+        self.boost = boost
+
+    def get_reward(self, obs, reward, done):
+
+        target = self.last_action[1][2]
+
+        marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+
+        d = max(math.hypot(target[0] - beacon.x, target[1] - beacon.y), 1)
+        
+        # https://en.wikipedia.org/wiki/Distance_decay
+        curr_distance = math.hypot(marine.x - beacon.x, marine.y - beacon.y)
+
+        if curr_distance < self.previous_distance:
+            reward += 1 / math.pow((d), 2) * self.boost
+
+        self.previous_distance = curr_distance
+        
         return reward
 
 class NegativeTimerReward(RewardBuilder):

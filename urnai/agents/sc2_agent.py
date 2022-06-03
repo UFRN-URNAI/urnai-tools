@@ -30,7 +30,9 @@ class SC2Agent(Agent):
                                                             is_testing)
             self.previous_action = predicted_action_idx
             self.previous_state = current_state
-        selected_action = [self.action_wrapper.get_action(self.previous_action, obs)]
+            action = self.action_wrapper.get_action(self.previous_action, obs)
+            self.reward_builder.last_action = action
+        selected_action = [action]
 
         try:
             ...

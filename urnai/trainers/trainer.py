@@ -461,6 +461,7 @@ class Trainer(Savable):
             self.agent.reset(current_episodes)
 
             ep_reward = 0
+            ep_default_reward = 0
             victory = False
 
             ep_actions = np.zeros(self.agent.action_wrapper.get_action_space_dim())
@@ -490,6 +491,7 @@ class Trainer(Savable):
 
                 # Adding our step reward to the total count of the episode's reward
                 ep_reward += step_reward
+                ep_default_reward += default_reward
                 ep_actions[self.agent.previous_action] += 1
 
                 if done:
@@ -499,7 +501,7 @@ class Trainer(Savable):
                         'Gamma': self.agent.model.gamma,
                         'Epsilon': self.agent.model.epsilon_greedy,
                     }
-                    self.logger.record_episode(ep_reward, victory, step + 1, agent_info, ep_actions)
+                    self.logger.record_episode(ep_default_reward, ep_reward, victory, step + 1, agent_info, ep_actions)
                     break
 
             self.logger.log_ep_stats()
@@ -609,27 +611,21 @@ class Trainer(Savable):
         # register reward avg:
         self.logger.inside_training_test_avg_rwds.append(rwd_avg)
 
-    def get_wandb_table(self, x_size, y_values):
-        data = [[x, y] for (x, y) in zip(range(x_size), y_values)]
-        table = wandb.Table(data=data, columns = ["x", "y"])
-        return table
-
-
     def save_extra(self, save_path):
         self.env.save(save_path)
         self.agent.save(save_path)
         
-        reward_series = pd.Series(self.logger.ep_rewards)
-        reward_rolling_avg = reward_series.rolling(window=self.rolling_avg_window_size)
-        reward_avg_dropped = reward_rolling_avg.mean().dropna()
-        roll_avg_data = [[x, y] for (x, y) in zip(range(self.logger.rolling_avg_window_size - 1, self.logger.ep_count), reward_avg_dropped)]
-        roll_avg_table = wandb.Table(data=roll_avg_data, columns = ["x", "y"])
+        # reward_series = pd.Series(self.logger.ep_rewards)
+        # reward_rolling_avg = reward_series.rolling(window=self.rolling_avg_window_size)
+        # reward_avg_dropped = reward_rolling_avg.mean().dropna()
+        # roll_avg_data = [[x, y] for (x, y) in zip(range(self.logger.rolling_avg_window_size - 1, self.logger.ep_count), reward_avg_dropped)]
+        # roll_avg_table = wandb.Table(data=roll_avg_data, columns = ["x", "y"])
 
-        wandb.log({
-            'ep_rewards' : wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_rewards), "episodes", "reward", title="Episode Rewards"),
-            'ep_avg_rewards': wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_avg_rewards), "episodes", "avg. reward", title="Average Episode Rewards"),
-            'moving_avg_rewards': wandb.plot.line(roll_avg_table, "episodes", "rolling avg. reward", title='Rolling Average Reward (window size: {})'.format(self.logger.rolling_avg_window_size)),
-        })
+        # wandb.log({
+        #     'ep_rewards' : wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_rewards), "x", "y", title="Episode Rewards"),
+        #     'ep_avg_rewards': wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_avg_rewards), "x", "y", title="Average Episode Rewards"),
+        #     'moving_avg_rewards': wandb.plot.line(roll_avg_table, "x", "y", title='Rolling Average Reward (window size: {})'.format(self.logger.rolling_avg_window_size)),
+        # })
 
         self.logger.save(save_path)
         self.versioner.save(save_path)

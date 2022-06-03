@@ -12,6 +12,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import activations
 from tensorflow.keras import models
 from tensorflow.keras import optimizers
+from tensorflow.keras import backend
 
 from .model_builder import ModelBuilder
 
@@ -66,11 +67,22 @@ class DDQNKerasMO(DDQNKeras):
         model = models.Sequential()
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
-            model.add(layers.Dense(layer_size, activation=activations.swish))
+            model.add(layers.Dense(layer_size, activation=activations.sigmoid))
         model.add(layers.Dense(self.action_size, activation=activations.linear))
 
         model.compile(optimizer=optimizers.Adam(lr=self.learning_rate), loss='mse', metrics=['accuracy'])
         return model
+
+    # def make_model(self):
+    #     inp = layers.Input((self.state_size,))
+    #     x = layers.Dense(32, activation=activations.gelu)(inp)
+    #     x = layers.Dense(32, activation=activations.gelu)(x)
+    #     x = layers.Dense(self.action_size + 1, activation='linear')(x)
+    #     x = layers.Lambda(lambda i: backend.expand_dims(i[:,0],-1) + i[:,1:] - backend.mean(i[:,1:], keepdims=True), output_shape=(self.action_size,))(x)
+
+    #     model = models.Model(inp, x)
+    #     model.compile(optimizers.Adam(self.learning_rate), 'mse')
+    #     return model
 
     def memory_learn(self, s, a, r, s_, done):
         self.memorize(s, a, r, s_, done)
@@ -90,7 +102,8 @@ class DDQNKerasMO(DDQNKeras):
         next_current_states = np.array([transition[3] for transition in minibatch])
         next_current_states = np.squeeze(next_current_states)
         # array of Q-values for our next states
-        next_qs_list = self.target_model(next_current_states).numpy()
+        next_qs_list = self.model(next_current_states).numpy()
+        targ_qs_list = self.target_model(next_current_states).numpy()
 
         # inputs is going to be filled with all current states from the minibatch
         # targets is going to be filled with all of our outputs (Q-Values for each action)
@@ -101,12 +114,13 @@ class DDQNKerasMO(DDQNKeras):
             for j, (action) in enumerate(actions):
                 # if this step is not the last, we calculate the new Q-Value based on the next_state
                 if not done:
-                    max_next_q = np.max(next_qs_list[index][
-                                        self.action_wrapper.multi_output_ranges[j]:
-                                        self.action_wrapper.multi_output_ranges[j + 1]])
+                    q_action_list = next_qs_list[index][
+                                    self.action_wrapper.multi_output_ranges[j]:
+                                    self.action_wrapper.multi_output_ranges[j + 1]]
+                    max_next_q = np.argmax(q_action_list) + self.action_wrapper.multi_output_ranges[j]
                     # new Q-value is equal to the reward at that step + discount
                     # factor * the max q-value for the next_state
-                    new_q = reward + self.gamma * max_next_q
+                    new_q = reward + self.gamma * targ_qs_list[index][max_next_q]
                 else:
                     # if this is the last step, there is no future max q value,
                     # so the new_q is just the reward

@@ -24,10 +24,10 @@ For more information consult https://github.com/deepmind/pysc2#get-starcraft-ii
 # sc2_local_path = "D:/Program Files (x86)/StarCraft II"
 
 def declare_trainer(): 
-    env = SC2Env(map_name="DefeatRoaches", realtime=False, render=False, step_mul=8, player_race="terran", enemy_race="terran", difficulty="very_easy")
+    env = SC2Env(map_name="DefeatRoaches", realtime=True, render=False, step_mul=8, player_race="terran", enemy_race="terran", difficulty="very_easy")
 
     #action_wrapper = DefeatRoachesActionGroup(4, 10, 10, random_uniform=True)
-    action_wrapper = DefeatRoachesSimplified_noop(10, 10, random_uniform=True)
+    action_wrapper = DefeatRoachesSimplified(10, 10, random_uniform=True)
     state_builder = DefeatRoachesState()
 
     helper = ModelBuilder()
@@ -39,14 +39,15 @@ def declare_trainer():
     print(helper.get_model_layout())
 
     dq_network = DDQNKerasMO(action_wrapper=action_wrapper, state_builder=state_builder, build_model=helper.get_model_layout(), per_episode_epsilon_decay=True,
-                        learning_rate=0.001, epsilon_decay=0.995, epsilon_min=0.005, memory_maxlen=50000, min_memory_size=128, batch_size=32)
+                        learning_rate=0.001, epsilon_decay=0.995, epsilon_min=0.005, memory_maxlen=50000, min_memory_size=128, batch_size=32,
+                        model_layers=[38, 22])
     
     # Terran agent
     agent = SC2Agent(dq_network, PureReward())
 
-    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc/defeat-roaches', file_name="defeatroaches_simple10x10act_fixed",
+    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc/defeat-roaches', file_name="defeatroaches_simple10x10act",
                     save_every=100, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=600, max_steps_training=300,
+                    max_training_episodes=650, max_steps_training=300,
                     max_test_episodes=10, max_steps_testing=300, rolling_avg_window_size=20)
     return trainer
 

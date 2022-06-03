@@ -38,6 +38,20 @@ class PureState(StateBuilder):
     def get_state_dim(self):
         return self.state_dim
 
+class FlatState(StateBuilder):
+    def __init__(self, state_dim):
+        # you can get observation_space from gym_env.env_instance.observation_space.shape[0]
+        self.state_dim = state_dim
+
+    def build_state(self, obs):
+        # self.preprocess_obs(obs)
+        obs  = obs.flatten()
+        obs = np.expand_dims(obs, axis=0)
+        return obs
+
+    def get_state_dim(self):
+        return self.state_dim
+
 
 class GymState(StateBuilder):
     def __init__(self, state_dim):

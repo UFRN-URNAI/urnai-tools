@@ -1,20 +1,20 @@
 ---
 - action_wrapper:
-    class: DefeatRoachesSimplified
+    class: MoveToBeaconActionWrapper
     params:
       x_gridsize: 10
-      y_gridsize: 10
+      y_gridsize: 7
       random_uniform: true
   state_builder:
-    class: DefeatRoachesState_simple
+    class: MoveToBeaconState
     params: {}
   reward:
-    class: PureReward
+    class: MoveToBeaconProximityNeg
     params: {}
   env:
     class: SC2Env
     params:
-      map_name: DefeatRoaches
+      map_name: MoveToBeacon
       realtime: false
       render: false
       step_mul: 8
@@ -29,15 +29,15 @@
       epsilon_min: 0.005
       memory_maxlen: 50000
       min_memory_size: 128
-      model_layers: [38, 22]
+      model_layers: [12]
   agent:
     class: SC2Agent
     params: {}
   trainer:
     class: Trainer
     params:
-      save_path: "../agentes-treinados-tcc/defeat-roaches"
-      file_name: defeatroaches_simple_05_fixedDDQN
+      save_path: "../agentes-treinados-tcc/move-to-beacon"
+      file_name: movetobeacon_proximity_09
       save_every: 50
       enable_save: true
       relative_path: true

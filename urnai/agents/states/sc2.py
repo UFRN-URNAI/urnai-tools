@@ -809,6 +809,11 @@ class MoveToBeaconState(StateBuilder):
     def get_state_dim(self):
         return 4
 
+class MoveToBeaconStateNoZero(MoveToBeaconState):
+    def build_state(self, obs):
+        final_state = super().build_state(obs) + 1
+        return final_state
+
 class DefeatRoachesState(StateBuilder):
     def build_state(self, obs):
         marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][:14]

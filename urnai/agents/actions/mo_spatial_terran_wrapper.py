@@ -925,8 +925,8 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         adjusted_x = x - self.multi_output_ranges[0]
         adjusted_y = y - self.multi_output_ranges[1]
 
-        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
-        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+        gridwidth = (self.bottom_right_x - self.top_left_x)/(self.x_gridsize-1)
+        gridheight = (self.bottom_right_y - self.top_left_y)/(self.y_gridsize-1)
 
         xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
         ytarget = int((adjusted_y*gridheight) + self.top_left_y)
@@ -997,13 +997,13 @@ class DefeatRoachesSimplified(TerranWrapper):
         else:
             return self.attackpoint(obs, xtarget, ytarget)
 
-    def movepoint(self, obs, x, y):
+    def attackpoint(self, obs, x, y):
         target = [x, y]
         marines = get_units_by_type(obs, units.Terran.Marine)
         action = attack_target_point_spatial(marines, target)[0]
         return action
     
-    def attackpoint(self, obs, x, y):
+    def movepoint(self, obs, x, y):
         target = [x, y]
         marines = get_units_by_type(obs, units.Terran.Marine)
         action = move_target_point_spatial(marines, target)[0]

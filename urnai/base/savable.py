@@ -102,7 +102,9 @@ class Savable(ABC):
         """
         rp.report('Saving {} object...'.format(self.__class__.__name__), verbosity_lvl=1)
         start_time = time.time()
-        if not self.threaded_saving:
+        if not hasattr(self, 'threaded_saving'):
+            self.save_pickle(savepath)
+        elif not self.threaded_saving:
             self.save_pickle(savepath)
         else:
             self.threaded_pickle_save(savepath)
