@@ -1,5 +1,6 @@
 import math
 from os import stat
+from tkinter import Toplevel
 
 import numpy as np
 from pysc2.env import sc2_env
@@ -790,6 +791,37 @@ class MultipleUnitGridState(StateBuilder):
     def get_state_dim(self):
         return self._state_size
 
+class MiniGameGridState(StateBuilder):
+    def __init__(self, x_gridsize=10, y_gridsize=10, top_left=[22, 28], bottom_right=[43, 43]):
+        self.x_gridsize = x_gridsize
+        self.y_gridsize = y_gridsize
+        self.state_size = x_gridsize*y_gridsize
+        self.top_left = top_left
+        self.bottom_right = bottom_right
+    
+    def build_state(self, obs):
+        grid = np.zeros((self.x_gridsize, self.y_gridsize))
+
+        raw_units = [unit for unit in obs.raw_units]
+
+        gridwidth = (self.bottom_right[0] - self.top_left[0])/(self.x_gridsize-1) #2.333
+        gridheight = (self.bottom_right[1] - self.top_left[1])/(self.y_gridsize-1) #1.666
+
+        for i in range(0, len(raw_units)):
+            x = round((raw_units[i].x - self.top_left[0])/gridwidth)
+            y = round((raw_units[i].y - self.top_left[1])/gridheight)
+            
+            if raw_units[i].unit_type == units.Terran.Marine:
+                grid[y][x] += 0.1
+            else:
+                grid[y][x] += 1
+
+        state = grid.flatten()
+        state = np.expand_dims(state, axis=0)
+        return state
+
+    def get_state_dim(self):
+        return self.state_size
 
 class MoveToBeaconState(StateBuilder):
     # def __init__(self):

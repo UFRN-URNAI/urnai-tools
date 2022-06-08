@@ -7,7 +7,6 @@ import time
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-import wandb
 from urnai.base.savable import Savable
 from urnai.utils.logger import Logger
 from urnai.utils.reporter import Reporter as rp
@@ -41,7 +40,7 @@ class Trainer(Savable):
                  reset_epsilon=False, tensorboard_logging=False, log_actions=True,
                  episode_batch_avg_calculation=10, do_reward_test=False,
                  reward_test_number_of_episodes=10, rolling_avg_window_size=20,
-                 threaded_logger_save=False):
+                 threaded_logger_save=False, use_wandb=False):
         super().__init__()
         self.threaded_logger_save = threaded_logger_save
         self.pickle_black_list = None
@@ -52,7 +51,8 @@ class Trainer(Savable):
                    episode_batch_avg_calculation=episode_batch_avg_calculation,
                    do_reward_test=do_reward_test,
                    reward_test_number_of_episodes=reward_test_number_of_episodes,
-                   rolling_avg_window_size=rolling_avg_window_size)
+                   rolling_avg_window_size=rolling_avg_window_size, 
+                   use_wandb=use_wandb)
 
     def prepare_black_list(self):
         self.pickle_black_list = ['save_path', 'file_name', 'full_save_path', 'full_save_play_path',
@@ -68,7 +68,7 @@ class Trainer(Savable):
               reset_epsilon=False, tensorboard_logging=False, log_actions=True,
               episode_batch_avg_calculation=10, do_reward_test=False,
               reward_test_number_of_episodes=10, rolling_avg_window_size=20,
-              threaded_logger_save=False, threaded_saving=False):
+              threaded_logger_save=False, threaded_saving=False, use_wandb=False):
         self.versioner = Versioner()
         self.env = env
         self.agent = agent
@@ -94,6 +94,7 @@ class Trainer(Savable):
         self.inside_training_test_loggers = []
         self.threaded_logger_save = threaded_logger_save
         self.threaded_saving = threaded_saving
+        self.use_wandb = use_wandb
 
         self.logger = Logger(0, self.agent.__class__.__name__, self.agent.model.__class__.__name__,
                              self.agent.model, self.agent.action_wrapper.__class__.__name__,
@@ -104,7 +105,8 @@ class Trainer(Savable):
                              self.env.__class__.__name__, log_actions=self.log_actions,
                              episode_batch_avg_calculation=self.episode_batch_avg_calculation,
                              rolling_avg_window_size=self.rolling_avg_window_size,
-                             threaded_saving=self.threaded_logger_save)
+                             threaded_saving=self.threaded_logger_save,
+                             use_wandb=use_wandb)
 
         # Adding epsilon, learning rate and gamma factors to our pickle black list,
         # so that they are not loaded when loading the model's weights.
@@ -614,18 +616,6 @@ class Trainer(Savable):
     def save_extra(self, save_path):
         self.env.save(save_path)
         self.agent.save(save_path)
-        
-        # reward_series = pd.Series(self.logger.ep_rewards)
-        # reward_rolling_avg = reward_series.rolling(window=self.rolling_avg_window_size)
-        # reward_avg_dropped = reward_rolling_avg.mean().dropna()
-        # roll_avg_data = [[x, y] for (x, y) in zip(range(self.logger.rolling_avg_window_size - 1, self.logger.ep_count), reward_avg_dropped)]
-        # roll_avg_table = wandb.Table(data=roll_avg_data, columns = ["x", "y"])
-
-        # wandb.log({
-        #     'ep_rewards' : wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_rewards), "x", "y", title="Episode Rewards"),
-        #     'ep_avg_rewards': wandb.plot.line(self.get_wandb_table(self.logger.ep_count, self.logger.ep_avg_rewards), "x", "y", title="Average Episode Rewards"),
-        #     'moving_avg_rewards': wandb.plot.line(roll_avg_table, "x", "y", title='Rolling Average Reward (window size: {})'.format(self.logger.rolling_avg_window_size)),
-        # })
 
         self.logger.save(save_path)
         self.versioner.save(save_path)

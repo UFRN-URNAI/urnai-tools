@@ -19,21 +19,21 @@ from urnai.utils.reporter import Reporter as rp
 wandb.init(project="clickgame", name=str(datetime.datetime.now()), entity="lpdcalves")
 
 def declare_trainer(): 
-    env = ClickGameEnv(render=True, board_shape=[10, 10], max_steps=200)
+    env = ClickGameEnv(render=False, board_shape=[10, 10], max_steps=200)
 
     action_wrapper = ClickGameWrapper(10, 10)
     state_builder = FlatState(env.board_shape[0]*env.board_shape[1])
     
     dq_network = DDQNKerasMO(action_wrapper=action_wrapper, state_builder=state_builder, per_episode_epsilon_decay=True,
         learning_rate=0.001, epsilon_decay=0.992, epsilon_min=0.005, memory_maxlen=50000, min_memory_size=128, batch_size=32,
-        model_layers=[60])
+        model_layers=[60], epsilon_start=0.0898)
 
     agent = GenericAgent(dq_network, PureReward())
 
-    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc/click-game', file_name="clickgame-02-sigmoid",
-                    save_every=100, enable_save=True, relative_path=True, reset_epsilon=False,
-                    max_training_episodes=600, max_steps_training=300,
-                    max_test_episodes=10, max_steps_testing=300, rolling_avg_window_size=20)
+    trainer = Trainer(env, agent, save_path='../agentes-treinados-tcc/click-game', file_name="clickgame-04-sigmoid",
+                    save_every=50, enable_save=True, relative_path=True, reset_epsilon=False,
+                    max_training_episodes=300, max_steps_training=300,
+                    max_test_episodes=100, max_steps_testing=300, rolling_avg_window_size=20)
     return trainer
 
 def main(unused_argv):

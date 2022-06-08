@@ -3,13 +3,13 @@
     class: MoveToBeaconActionWrapper
     params:
       x_gridsize: 10
-      y_gridsize: 7
-      random_uniform: true
+      y_gridsize: 10
+      random_uniform: false
   state_builder:
-    class: MoveToBeaconState
+    class: MiniGameGridState
     params: {}
   reward:
-    class: MoveToBeaconProximityNeg
+    class: PureReward
     params: {}
   env:
     class: SC2Env
@@ -25,25 +25,27 @@
     class: DDQNKerasMO
     params:
       per_episode_epsilon_decay: true
-      epsilon_decay: 0.995
+      learning_rate: 0.001
+      epsilon_decay: 0.992
       epsilon_min: 0.005
       memory_maxlen: 50000
       min_memory_size: 128
-      model_layers: [12]
+      batch_size: 32
+      model_layers: [60]
   agent:
     class: SC2Agent
     params: {}
   trainer:
     class: Trainer
     params:
-      save_path: "../agentes-treinados-tcc/move-to-beacon"
-      file_name: movetobeacon_proximity_09
+      save_path: "../agentes-treinados-tcc/transfer-learning"
+      file_name: clickgame-movetobeacon-sigmoid-03
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 600
+      max_training_episodes: 800
       max_steps_training: 300
-      max_test_episodes: 10
+      max_test_episodes: 100
       max_steps_testing: 300
       rolling_avg_window_size: 20

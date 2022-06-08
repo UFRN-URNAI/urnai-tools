@@ -1,0 +1,49 @@
+---
+- action_wrapper:
+    class: MoveToBeaconActionWrapper
+    params:
+      x_gridsize: 10
+      y_gridsize: 10
+      random_uniform: false
+  state_builder:
+    class: MiniGameGridState
+    params: {}
+  reward:
+    class: MoveToBeaconProximityNeg
+    params: {}
+  env:
+    class: SC2Env
+    params:
+      map_name: MoveToBeacon
+      realtime: false
+      render: false
+      step_mul: 8
+      player_race: terran
+      enemy_race: terran
+      difficulty: very_easy
+  model:
+    class: DDQNKerasMO
+    params:
+      per_episode_epsilon_decay: true
+      epsilon_decay: 0.992
+      epsilon_min: 0.005
+      memory_maxlen: 50000
+      min_memory_size: 128
+      model_layers: [60]
+  agent:
+    class: SC2Agent
+    params: {}
+  trainer:
+    class: Trainer
+    params:
+      save_path: "../agentes-treinados-tcc/move-to-beacon"
+      file_name: movetobeacon-sigmoid-02
+      save_every: 50
+      enable_save: true
+      relative_path: true
+      reset_epsilon: false
+      max_training_episodes: 600
+      max_steps_training: 300
+      max_test_episodes: 10
+      max_steps_testing: 300
+      rolling_avg_window_size: 20
