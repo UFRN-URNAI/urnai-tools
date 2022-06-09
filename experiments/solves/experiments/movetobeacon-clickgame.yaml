@@ -38,13 +38,13 @@
   trainer:
     class: Trainer
     params:
-      save_path: "../agentes-treinados-tcc/transfer-learning"
-      file_name: clickgame-movetobeacon-sigmoid-03
+      save_path: "../agentes-treinados-tcc/click-game"
+      file_name: clickgame-nomarine-04-sigmoid
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 800
+      max_training_episodes: 400
       max_steps_training: 300
       max_test_episodes: 100
       max_steps_testing: 300

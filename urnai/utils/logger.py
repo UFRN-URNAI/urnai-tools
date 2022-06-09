@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import psutil
-
+#import wandb
 from urnai.base.savable import Savable
 from urnai.utils import constants
 from urnai.utils.reporter import Reporter as rp
@@ -33,6 +33,7 @@ class Logger(Savable):
         # Adding rolling avg size to pickle black list to allow us to regenerate graphs
         # with different rolling window sizes
         self.pickle_black_list.append('rolling_avg_window_size')
+        self.pickle_black_list.append('use_wandb')
 
         # Training information
         self.agent_name = agent_name
@@ -434,9 +435,8 @@ class Logger(Savable):
                 persist_path + os.path.sep + self.get_default_save_stamp() + 'avg_reward_graph.png')
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp() + 'avg_reward_graph.pdf')
-            if self.use_wandb:
-                import wandb
-                wandb.log({"Avg. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Episode Rewards")})
+            # if self.use_wandb:
+            #wandb.log({"Avg. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Episode Rewards")})
             plt.close(self.avg_reward_graph)
             self.avg_reward_graph = None
 
@@ -455,8 +455,8 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'inst_reward_graph.pdf')
-            if self.use_wandb:
-                wandb.log({"Instant Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Episode Rewards")})
+            # if self.use_wandb:
+            # wandb.log({"Instant Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Episode Rewards")})
             plt.close(self.inst_reward_graph)
             self.inst_reward_graph = None
 
@@ -467,8 +467,8 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'avg_winrate_graph.pdf')
-            if self.use_wandb:
-                wandb.log({"Avg. Win Rate": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Win Rate")})
+           #if self.use_wandb: 
+            # wandb.log({"Avg. Win Rate": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Win Rate")})
             plt.close(self.avg_winrate_graph)
             self.avg_winrate_graph = None
 
@@ -479,8 +479,8 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'rolling_avg_winrate_graph.pdf')
-            if self.use_wandb:
-                wandb.log({"Rolling Avg. Win Rate": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Win Rate")})
+            #if self.use_wandb:
+            # wandb.log({"Rolling Avg. Win Rate": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Win Rate")})
             plt.close(temp_fig)
 
             temp_fig, ax = self.plot_moving_avg_reward_graph()
@@ -490,16 +490,16 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'rolling_avg_reward_graph.pdf')
-            if self.use_wandb:
-                wandb.log({"Rolling Avg. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Reward")})
+            #if self.use_wandb:
+            #wandb.log({"Rolling Avg. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Reward")})
             plt.close(temp_fig)
 
             temp_fig, ax = self.plot_moving_avg_default_reward_graph()
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'rolling_avg_default_reward.png')
-            if self.use_wandb:
-                wandb.log({"Rolling Avg. Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Default Env. Rewards")})
+            #if self.use_wandb:
+            #wandb.log({"Rolling Avg. Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Rolling Average Default Env. Rewards")})
             plt.close(temp_fig)
 
             temp_fig, ax = self.generalized_curve_plot(self.ep_default_rewards,
@@ -508,8 +508,8 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'ep_default_reward.png')
-            if self.use_wandb:
-                wandb.log({"Default Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Default Env. Rewards")})
+            #if self.use_wandb:
+            #wandb.log({"Default Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Default Env. Rewards")})
             plt.close(temp_fig)
 
             temp_fig, ax = self.generalized_curve_plot(self.ep_default_avg_rewards,
@@ -518,8 +518,8 @@ class Logger(Savable):
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp()
                 + 'ep_default_avg_reward.png')
-            if self.use_wandb:
-                wandb.log({"Avg. Default Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Default Env. Rewards")})
+            #if self.use_wandb:
+            #wandb.log({"Avg. Default Env. Reward": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Default Env. Rewards")})
             plt.close(temp_fig)
 
             temp_fig, ax = self.generalized_curve_plot(self.episode_duration_list,
@@ -600,8 +600,8 @@ class Logger(Savable):
                             persist_path + os.path.sep + 'action_graphs' + os.path.sep
                             + 'per_episode_bars' + os.path.sep + str(
                                 episode) + '.png')
-                        if self.use_wandb:
-                            wandb.log({"Actions per Episode": wandb.plot.bar(self.get_wandb_table(bar_labels, values), "x", "y", title="Actions per Episode")})
+                        #if self.use_wandb:
+                        #wandb.log({"Actions per Episode": wandb.plot.bar(self.get_wandb_table(bar_labels, values), "x", "y", title="Actions per Episode")})
                         plt.close(action_graph)
 
                 # Plotting the instant rate of occurrence of all actions in one single graph

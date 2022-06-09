@@ -10,8 +10,8 @@ trainer.pickle_black_list.append("agent")
 
 my_config = trainer.trainings[0]
 
-if trainer.trainings[0]["trainer"]["params"]["use_wandb"]:
-    import wandb
-    wandb.init(project="movetobeacon", name=str(datetime.datetime.now()), entity="lpdcalves", config=my_config)
+# if trainer.trainings[0]["trainer"]["params"]["use_wandb"]:
+#import wandb
+#wandb.init(project="movetobeacon", name=trainer.trainings[0]["trainer"]["params"]["file_name"], entity="lpdcalves", config=my_config)
 
 trainer.start_training()

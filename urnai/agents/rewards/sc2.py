@@ -297,15 +297,44 @@ class MoveToBeaconClickProximity(RewardBuilder):
         marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
         beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
 
-        d = max(math.hypot(target[0] - beacon.x, target[1] - beacon.y), 1)
+        gridwidth = (43 - 22)/(9)
+        gridheight = (43 - 28)/(9)
+        x_beacon = round((beacon.x - 22)/gridwidth)
+        y_beacon = round((beacon.y - 28)/gridheight)
+        x_click = round((target[0] - 22)/gridwidth)
+        y_click = round((target[1] - 28)/gridheight)
+
+        if x_click == x_beacon and y_click == y_beacon:
+            reward += 1
+
+        # d = max(math.hypot(target[0] - beacon.x, target[1] - beacon.y), 1)
         
-        # https://en.wikipedia.org/wiki/Distance_decay
-        curr_distance = math.hypot(marine.x - beacon.x, marine.y - beacon.y)
+        # # https://en.wikipedia.org/wiki/Distance_decay
+        # curr_distance = math.hypot(marine.x - beacon.x, marine.y - beacon.y)
 
-        if curr_distance < self.previous_distance:
-            reward += 1 / math.pow((d), 2) * self.boost
+        # if curr_distance < self.previous_distance:
+        #     reward += 1 / math.pow((d), 2) * self.boost
 
-        self.previous_distance = curr_distance
+        # self.previous_distance = curr_distance
+        
+        return reward
+
+class MoveToBeaconClickAndPos(RewardBuilder):
+    def __init__(self, boost=0.1):
+        self.boost = boost
+
+    def get_reward(self, obs, reward, done):
+
+        target = self.last_action[1][2]
+
+        marine = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine][0]
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+
+        marine_dist = math.hypot(marine.x - beacon.x, marine.y - beacon.y)
+        click_dist = math.hypot(target[0] - beacon.x, target[1] - beacon.y)
+
+        if click_dist < marine_dist:
+            reward += self.boost
         
         return reward
 

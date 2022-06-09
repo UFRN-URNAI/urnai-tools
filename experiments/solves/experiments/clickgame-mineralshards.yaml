@@ -4,17 +4,17 @@
     params:
       x_gridsize: 10
       y_gridsize: 10
-      random_uniform: false
+      random_uniform: true
   state_builder:
     class: MiniGameGridState
     params: {}
   reward:
-    class: MoveToBeaconProximity
+    class: PureReward
     params: {}
   env:
     class: SC2Env
     params:
-      map_name: MoveToBeacon
+      map_name: CollectMineralShards
       realtime: false
       render: false
       step_mul: 8
@@ -26,8 +26,8 @@
     params:
       per_episode_epsilon_decay: true
       learning_rate: 0.001
-      epsilon_decay: 0.995
-      epsilon_min: 0.0
+      epsilon_decay: 0.992
+      epsilon_min: 0.005
       memory_maxlen: 50000
       min_memory_size: 128
       batch_size: 32
@@ -38,13 +38,13 @@
   trainer:
     class: Trainer
     params:
-      save_path: "../agentes-treinados-tcc/move-to-beacon"
-      file_name: movetobeacon_proximity_10
+      save_path: "../agentes-treinados-tcc/transfer-learning"
+      file_name: clickgame-mineralshards-sigmoid-01
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 1200
+      max_training_episodes: 700
       max_steps_training: 300
       max_test_episodes: 100
       max_steps_testing: 300

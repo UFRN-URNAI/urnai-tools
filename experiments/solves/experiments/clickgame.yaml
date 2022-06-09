@@ -17,6 +17,8 @@
       render: false
       board_shape: [10, 10]
       max_steps: 200
+      use_marine: false
+      marine_value: 0.1
   model:
     class: DDQNKerasMO
     params:
@@ -35,7 +37,7 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/click-game"
-      file_name: clickgame-04-sigmoid
+      file_name: clickgame-nomarine-04-sigmoid
       save_every: 50
       enable_save: true
       relative_path: true
