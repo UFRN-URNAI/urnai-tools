@@ -812,7 +812,7 @@ class MiniGameGridState(StateBuilder):
             y = round((raw_units[i].y - self.top_left[1])/gridheight)
             
             if raw_units[i].unit_type == units.Terran.Marine:
-                grid[y][x] += 0.1
+                grid[y][x] += 0
             else:
                 grid[y][x] += 1
 

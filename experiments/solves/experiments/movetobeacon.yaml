@@ -9,7 +9,7 @@
     class: MiniGameGridState
     params: {}
   reward:
-    class: MoveToBeaconProximity
+    class: MoveToBeaconProximityNeg
     params: {}
   env:
     class: SC2Env
@@ -17,7 +17,7 @@
       map_name: MoveToBeacon
       realtime: false
       render: false
-      step_mul: 8
+      step_mul: 24
       player_race: terran
       enemy_race: terran
       difficulty: very_easy
@@ -25,7 +25,7 @@
     class: DDQNKerasMO
     params:
       per_episode_epsilon_decay: true
-      learning_rate: 0.001
+      learning_rate: 0.0001
       epsilon_decay: 0.995
       epsilon_min: 0.0
       memory_maxlen: 50000
@@ -39,7 +39,7 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/move-to-beacon"
-      file_name: movetobeacon_proximity_10
+      file_name: proximityneg-gridstate-01-relu
       save_every: 50
       enable_save: true
       relative_path: true

@@ -43,15 +43,14 @@ class ClickGameEnv(Env):
             time.sleep(1)
 
         if x == self.x and y == self.y:
-            if random.random() > 0.8:
-                board = np.zeros((self.board_shape[0], self.board_shape[1]))
-                self.x = random.randint(0, self.board_shape[0]-1)
-                self.y = random.randint(0, self.board_shape[1]-1)
-                board[self.y][self.x] = 1
-                if self.use_marine:
-                    marine = [random.randint(0, self.board_shape[0]-1), random.randint(0, self.board_shape[1]-1)]
-                    board[marine[1]][marine[0]] = self.marine_value
-                self.env_instance = board
+            board = np.zeros((self.board_shape[0], self.board_shape[1]))
+            self.x = random.randint(0, self.board_shape[0]-1)
+            self.y = random.randint(0, self.board_shape[1]-1)
+            board[self.y][self.x] = 1
+            if self.use_marine:
+                marine = [random.randint(0, self.board_shape[0]-1), random.randint(0, self.board_shape[1]-1)]
+                board[marine[1]][marine[0]] = self.marine_value
+            self.env_instance = board
             reward = 1
 
         self.curr_steps += 1

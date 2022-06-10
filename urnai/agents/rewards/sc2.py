@@ -320,7 +320,7 @@ class MoveToBeaconClickProximity(RewardBuilder):
         return reward
 
 class MoveToBeaconClickAndPos(RewardBuilder):
-    def __init__(self, boost=0.1):
+    def __init__(self, boost=0.01):
         self.boost = boost
 
     def get_reward(self, obs, reward, done):
@@ -335,6 +335,8 @@ class MoveToBeaconClickAndPos(RewardBuilder):
 
         if click_dist < marine_dist:
             reward += self.boost
+        else:
+            reward -= self.boost
         
         return reward
 
