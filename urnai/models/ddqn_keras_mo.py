@@ -1,4 +1,6 @@
 from collections import deque
+from contextlib import redirect_stdout
+import os
 import random
 
 from agents.actions.base.abwrapper import ActionWrapper
@@ -12,7 +14,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import activations
 from tensorflow.keras import models
 from tensorflow.keras import optimizers
-from tensorflow.keras import backend
+from tensorflow import keras
 
 from .model_builder import ModelBuilder
 
@@ -22,7 +24,7 @@ class DDQNKerasMO(DDQNKeras):
                  learning_rate=0.001, learning_rate_min=0.0001, learning_rate_decay=0.99995,
                  learning_rate_decay_ep_cutoff=0,
                  name='DDQN', epsilon_start=1.0, epsilon_min=0.01, epsilon_decay=0.99995,
-                 per_episode_epsilon_decay=False,
+                 per_episode_epsilon_decay=False, epsilon_linear_decay=False,
                  batch_size=32, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5, model_layers = [30, 30],
                  seed_value=None, cpu_only=False):
@@ -40,6 +42,7 @@ class DDQNKerasMO(DDQNKeras):
             epsilon_min=epsilon_min,
             epsilon_decay=epsilon_decay,
             per_episode_epsilon_decay=per_episode_epsilon_decay,
+            epsilon_linear_decay=epsilon_linear_decay,
             seed_value=seed_value,
             cpu_only=cpu_only,
             model_layers=model_layers
@@ -67,10 +70,10 @@ class DDQNKerasMO(DDQNKeras):
         model = models.Sequential()
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
-            model.add(layers.Dense(layer_size, activation=activations.relu))
+            model.add(layers.Dense(layer_size, activation=activations.sigmoid))
         model.add(layers.Dense(self.action_size, activation=activations.linear))
 
-        model.compile(optimizer=optimizers.Adam(lr=self.learning_rate), loss='mse', metrics=['accuracy'])
+        model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
         return model
 
     # def make_model(self):
@@ -135,8 +138,11 @@ class DDQNKerasMO(DDQNKeras):
         np_inputs = np.squeeze(np.array(inputs))
         np_targets = np.array(targets)
 
-        self.loss = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
+        history = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
                                    shuffle=False, callbacks=self.tensorboard_callback)
+
+        self.loss = history.history['loss'][0]
+        self.mse = history.history['mean_squared_error'][0]
 
         # If it's the end of an episode, increase the target update counter
         if done:
@@ -229,3 +235,16 @@ class DDQNKerasMO(DDQNKeras):
                          self.action_wrapper.multi_output_ranges[i + 1]])))
 
         return action_idx
+
+    # def save_extra(self, persist_path):
+    #     self.model.save(self.get_full_persistance_path(persist_path))
+    #     with open(self.get_full_persistance_path(persist_path) + 'model_summary.txt', 'w') as f:
+    #         with redirect_stdout(f):
+    #             self.model.summary()
+
+    # def load_extra(self, persist_path):
+    #     exists = os.path.exists(self.get_full_persistance_path(persist_path))
+
+    #     if (exists):
+    #         self.model = keras.models.load_model(self.get_full_persistance_path(persist_path))
+    #         self.target_model = keras.models.load_model(self.get_full_persistance_path(persist_path))

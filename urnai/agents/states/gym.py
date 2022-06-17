@@ -16,6 +16,29 @@ class FrozenLakeState(StateBuilder):
     def get_state_dim(self):
         return 16
 
+class ConvState(StateBuilder):
+    def __init__(self, state_dim):
+        self.state_dim = state_dim
+
+    def build_state(self, obs):
+        return obs[0]
+
+    def get_state_dim(self):
+        return self.state_dim
+
+class SimpleClickState(StateBuilder):
+    def __init__(self, state_dim):
+        self.state_dim = state_dim
+
+    def build_state(self, obs):
+        x = obs[1]/9
+        y = obs[2]/9
+        state = [0, 0, x, y]
+        state = np.expand_dims(state, axis=0)
+        return state
+
+    def get_state_dim(self):
+        return self.state_dim
 
 class PureState(StateBuilder):
     def __init__(self, state_dim):
@@ -45,7 +68,7 @@ class FlatState(StateBuilder):
 
     def build_state(self, obs):
         # self.preprocess_obs(obs)
-        obs  = obs.flatten()
+        obs  = obs[0].flatten()
         obs = np.expand_dims(obs, axis=0)
         return obs
 

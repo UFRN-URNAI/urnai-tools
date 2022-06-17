@@ -20,14 +20,14 @@ class ClickGameEnv(Env):
 
     def start(self):
         if self.env_instance is None:
-            board = np.zeros((self.board_shape[0], self.board_shape[1]))
+            board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
             self.x = random.randint(0, self.board_shape[0]-1)
             self.y = random.randint(0, self.board_shape[1]-1)
             board[self.y][self.x] = 1
             if self.use_marine:
                 marine = [random.randint(0, self.board_shape[0]-1), random.randint(0, self.board_shape[1]-1)]
                 board[marine[1]][marine[0]] = self.marine_value
-            self.env_instance = board
+            self.env_instance = [board, self.x, self.y]
 
     def step(self, action):
         x, y = action
@@ -43,14 +43,14 @@ class ClickGameEnv(Env):
             time.sleep(1)
 
         if x == self.x and y == self.y:
-            board = np.zeros((self.board_shape[0], self.board_shape[1]))
+            board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
             self.x = random.randint(0, self.board_shape[0]-1)
             self.y = random.randint(0, self.board_shape[1]-1)
             board[self.y][self.x] = 1
             if self.use_marine:
                 marine = [random.randint(0, self.board_shape[0]-1), random.randint(0, self.board_shape[1]-1)]
                 board[marine[1]][marine[0]] = self.marine_value
-            self.env_instance = board
+            self.env_instance = [board, self.x, self.y]
             reward = 1
 
         self.curr_steps += 1
@@ -60,14 +60,14 @@ class ClickGameEnv(Env):
         return self.env_instance, reward, done
 
     def reset(self):
-        board = np.zeros((self.board_shape[0], self.board_shape[1]))
+        board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
         self.x = random.randint(0, self.board_shape[0]-1)
         self.y = random.randint(0, self.board_shape[1]-1)
         board[self.y][self.x] = 1
         if self.use_marine:
             marine = [random.randint(0, self.board_shape[0]-1), random.randint(0, self.board_shape[1]-1)]
             board[marine[1]][marine[0]] = self.marine_value
-        self.env_instance = board
+        self.env_instance = [board, self.x, self.y]
         self.curr_steps = 0
         return self.env_instance
 

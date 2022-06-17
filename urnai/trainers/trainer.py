@@ -462,6 +462,8 @@ class Trainer(Savable):
             # Learning Rate, depending on the currently selected strategy.
             self.agent.reset(current_episodes)
 
+            ep_loss = 0
+            ep_mse = 0
             ep_reward = 0
             ep_default_reward = 0
             victory = False
@@ -492,6 +494,8 @@ class Trainer(Savable):
                     self.agent.learn(obs, step_reward, done)
 
                 # Adding our step reward to the total count of the episode's reward
+                ep_loss += self.agent.model.loss
+                ep_mse += self.agent.model.mse
                 ep_reward += step_reward
                 ep_default_reward += default_reward
                 ep_actions[self.agent.previous_action] += 1
@@ -503,7 +507,9 @@ class Trainer(Savable):
                         'Gamma': self.agent.model.gamma,
                         'Epsilon': self.agent.model.epsilon_greedy,
                     }
-                    self.logger.record_episode(ep_default_reward, ep_reward, victory, step + 1, agent_info, ep_actions)
+                    avg_loss = ep_loss/step
+                    avg_mse = ep_mse/step
+                    self.logger.record_episode(ep_default_reward, ep_reward, victory, step + 1, agent_info, ep_actions, avg_loss, avg_mse)
                     break
 
             self.logger.log_ep_stats()

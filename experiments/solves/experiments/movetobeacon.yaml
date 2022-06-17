@@ -1,15 +1,68 @@
 ---
+# - action_wrapper:
+#     class: MoveToBeaconActionWrapper
+#     params:
+#       x_gridsize: 10
+#       y_gridsize: 7
+#       random_uniform: false
+#   state_builder:
+#     class: MoveToBeaconState
+#     params: {}
+#   reward:
+#     class: MoveToBeaconClickProximity
+#     params: {}
+#   env:
+#     class: SC2Env
+#     params:
+#       map_name: MoveToBeacon
+#       realtime: false
+#       render: false
+#       step_mul: 16
+#       player_race: terran
+#       enemy_race: terran
+#       difficulty: very_easy
+#   model:
+#     class: DDQNKerasMO
+#     params:
+#       learning_rate: 0.001
+#       per_episode_epsilon_decay: true
+#       epsilon_linear_decay: true
+#       epsilon_decay: 0.9973
+#       epsilon_start: 0.8
+#       epsilon_min: 0.0
+#       memory_maxlen: 50000
+#       min_memory_size: 128
+#       batch_size: 32
+#       model_layers: [20, 20]
+#   agent:
+#     class: SC2Agent
+#     params: {}
+#   trainer:
+#     class: Trainer
+#     params:
+#       save_path: "../agentes-treinados-tcc/move-to-beacon"
+#       file_name: clickprox-simplestate-e0-8-20n20n-relu
+#       save_every: 50
+#       enable_save: true
+#       relative_path: true
+#       reset_epsilon: false
+#       max_training_episodes: 600
+#       max_steps_training: 300
+#       max_test_episodes: 100
+#       max_steps_testing: 300
+#       rolling_avg_window_size: 20
+
 - action_wrapper:
     class: MoveToBeaconActionWrapper
     params:
       x_gridsize: 10
-      y_gridsize: 10
+      y_gridsize: 7
       random_uniform: false
   state_builder:
-    class: MiniGameGridState
+    class: MoveToBeaconState
     params: {}
   reward:
-    class: MoveToBeaconProximityNeg
+    class: MoveToBeaconClickAndPos
     params: {}
   env:
     class: SC2Env
@@ -17,21 +70,23 @@
       map_name: MoveToBeacon
       realtime: false
       render: false
-      step_mul: 24
+      step_mul: 16
       player_race: terran
       enemy_race: terran
       difficulty: very_easy
   model:
     class: DDQNKerasMO
     params:
+      learning_rate: 0.001
       per_episode_epsilon_decay: true
-      learning_rate: 0.0001
-      epsilon_decay: 0.995
+      epsilon_linear_decay: true
+      epsilon_decay: 0.9973
+      epsilon_start: 0.8
       epsilon_min: 0.0
       memory_maxlen: 50000
       min_memory_size: 128
       batch_size: 32
-      model_layers: [60]
+      model_layers: [20, 20]
   agent:
     class: SC2Agent
     params: {}
@@ -39,12 +94,12 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/move-to-beacon"
-      file_name: proximityneg-gridstate-01-relu
+      file_name: clickandpos-simplestate-e0-8-20n20n-relu
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 1200
+      max_training_episodes: 801
       max_steps_training: 300
       max_test_episodes: 100
       max_steps_testing: 300

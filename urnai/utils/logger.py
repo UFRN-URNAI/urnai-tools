@@ -65,6 +65,8 @@ class Logger(Savable):
         self.inside_training_test_avg_rwds = []
         self.ep_default_rewards = []
         self.ep_default_avg_rewards = []
+        self.ep_loss = []
+        self.ep_mse = []
 
         # Steps count
         self.ep_steps_count = []
@@ -145,12 +147,15 @@ class Logger(Savable):
     def record_episode_start(self):
         self.episode_temp_start_time = time()
 
-    def record_episode(self, default_reward, ep_reward, has_won, steps_count, agent_info, ep_actions):
+    def record_episode(self, default_reward, ep_reward, has_won, steps_count, agent_info, ep_actions, ep_loss, ep_mse):
         self.ep_count += 1
 
         for i in range(self.agent_action_size):
             self.ep_agent_actions[i].append(ep_actions[i])
             self.avg_ep_agent_actions[i].append(sum(self.ep_agent_actions[i]) / self.ep_count)
+
+        self.ep_loss.append(ep_loss)
+        self.ep_mse.append(ep_mse)
 
         self.ep_rewards.append(ep_reward)
         self.ep_avg_rewards.append(sum(self.ep_rewards) / self.ep_count)
@@ -431,6 +436,23 @@ class Logger(Savable):
                 or self.inst_reward_graph is None:
             self.render = False
 
+            try:
+                fig, ax = self.generalized_curve_plot(self.ep_loss, "Ep Loss", "Average Loss on each Episode")
+                plt.savefig(
+                    persist_path + os.path.sep + self.get_default_save_stamp() + 'avg_loss_graph.png')
+                wandb.log({"Avg. Loss": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Episode Loss")})
+                plt.close(self.avg_reward_graph)
+            except:
+                pass
+            try:
+                fig, ax = self.generalized_curve_plot(self.ep_mse, "Ep Accurary", "Average Mean Squared Error on each Episode")
+                plt.savefig(
+                    persist_path + os.path.sep + self.get_default_save_stamp() + 'avg_mse_graph.png')
+                wandb.log({"Avg. MSE": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Average Episode MSE")})
+                plt.close(self.avg_reward_graph)
+            except:
+                pass
+
             self.avg_reward_graph, ax = self.plot_average_reward_graph()
             plt.savefig(
                 persist_path + os.path.sep + self.get_default_save_stamp() + 'avg_reward_graph.png')
@@ -628,15 +650,27 @@ class Logger(Savable):
 
             # Plotting agent info
             for key in self.agent_info:
-                temp_fig, ax = self.generalized_curve_plot(self.agent_info[key], 'Agent {}'.format(key),
-                                                       'Per Episode Agent {} Data'.format(key))
-                plt.savefig(
-                    persist_path + os.path.sep + self.get_default_save_stamp()
-                    + 'agent_{}_graph.png'.format(key))
-                plt.savefig(
-                    persist_path + os.path.sep + self.get_default_save_stamp()
-                    + 'agent_{}_graph.pdf'.format(key))
-                plt.close(temp_fig)
+                if key == "Epsilon":
+                    temp_fig, ax = self.generalized_curve_plot(self.agent_info[key], 'Agent {}'.format(key),
+                                                        'Per Episode Agent {} Data'.format(key))
+                    plt.savefig(
+                        persist_path + os.path.sep + self.get_default_save_stamp()
+                        + 'agent_{}_graph.png'.format(key))
+                    plt.savefig(
+                        persist_path + os.path.sep + self.get_default_save_stamp()
+                        + 'agent_{}_graph.pdf'.format(key))
+                    wandb.log({"Epsilon": wandb.plot.line(self.get_wandb_table(ax.get_lines()[0].get_xdata(), ax.get_lines()[0].get_ydata()), "x", "y", title="Epsilon value per episode")})
+                    plt.close(temp_fig)
+                else:
+                    temp_fig, ax = self.generalized_curve_plot(self.agent_info[key], 'Agent {}'.format(key),
+                                                        'Per Episode Agent {} Data'.format(key))
+                    plt.savefig(
+                        persist_path + os.path.sep + self.get_default_save_stamp()
+                        + 'agent_{}_graph.png'.format(key))
+                    plt.savefig(
+                        persist_path + os.path.sep + self.get_default_save_stamp()
+                        + 'agent_{}_graph.pdf'.format(key))
+                    plt.close(temp_fig)
 
             # Plotting batch reward calculation graphs
             fig, ax = self.plot_batch_reward_graph()

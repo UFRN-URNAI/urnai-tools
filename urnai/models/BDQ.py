@@ -2,6 +2,8 @@ from collections import deque
 import enum
 import os
 import random
+from re import I
+from contextlib import redirect_stdout
 
 from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder
@@ -21,10 +23,12 @@ class BDQ(Savable):
                  learning_rate=0.001, lr_min=0.0001, lr_decay=0.99995, lr_decay_min_ep=0, lr_linear_decay=False,
                  epsilon_start=1.0, epsilon_min=0.001, epsilon_decay=0.9995, per_episode_epsilon_decay=True, epsilon_linear_decay=False,
                  batch_size=32, memory_maxlen=50000, min_memory_size=128, update_target_every=5, 
-                 model_layers = [30, 30]):
+                 model_layers = [30, 30], use_conv=False):
 
         self.pickle_black_list = ["model", "target_model", "target_update_counter", "update_target_every"]
 
+        self.loss = 0
+        self.mse = 0
         self.gamma = gamma
         self.learning_rate=learning_rate
         self.lr_min = lr_min
@@ -45,6 +49,9 @@ class BDQ(Savable):
         self.epsilon_decay_rate = epsilon_decay
         self.per_episode_epsilon_decay = per_episode_epsilon_decay
         self.epsilon_linear_decay = epsilon_linear_decay
+        self.use_conv = use_conv
+        if use_conv:
+            self.input_shape = (self.state_size[0], self.state_size[1], 1)
 
         # Main model, trained every step
         self.model = self.make_model()
@@ -59,32 +66,26 @@ class BDQ(Savable):
         self.min_memory_size = min_memory_size
         self.batch_size = batch_size
 
-    # def make_model(self):
-    #     model = models.Sequential()
-    #     model.add(layers.Input((self.state_size,)))
-    #     for layer_size in self.model_layers:
-    #         model.add(layers.Dense(layer_size, activation=activations.tanh))
-    #     model.add(layers.Dense(self.action_size, activation=activations.linear))
-
-    #     model.compile(optimizer=optimizers.Adam(lr=self.learning_rate), loss='mse', metrics=['accuracy'])
-    #     return model
-
     def make_model(self):
-        act_f = activations.sigmoid
+        act_f = activations.relu
+        
+        if self.use_conv:
+            inp = layers.Input(shape=self.input_shape, name="input")
+            x = layers.Conv2D(16, 3, activation=act_f, input_shape=self.state_size)(inp)
+            x = layers.Conv2D(16, 3, activation=act_f, input_shape=self.state_size)(x)
+            x = layers.MaxPooling2D(3)(x)
+            x = layers.Flatten()(x)
+            x = layers.Dense(60, activation=act_f)(x)
+        else:
+            inp = layers.Input((self.state_size,), name="input")
+            x = layers.Dense(60, activation=act_f)(inp)
 
-        inp = layers.Input((self.state_size,), name="input")
-        shared = layers.Dense(60, activation=act_f)(inp)
-        #shared = layers.Dense(20, activation=act_f)(hidden)
-
-        # branch1 = layers.Dense(10, activation=act_f)(shared)
-        # branch2 = layers.Dense(10, activation=act_f)(shared)
-
-        output1 = layers.Dense(self.act_ranges[1], activation=activations.linear, name="output1")(shared)
-        output2 = layers.Dense(self.act_ranges[2]-self.act_ranges[1], activation=activations.linear, name="output2")(shared)
+        output1 = layers.Dense(self.act_ranges[1], activation=activations.linear, name="output1")(x)
+        output2 = layers.Dense(self.act_ranges[2]-self.act_ranges[1], activation=activations.linear, name="output2")(x)
 
         model = models.Model(inputs=inp, outputs=[output1, output2])
-        model.compile(optimizers.Adam(self.learning_rate), losses.MeanSquaredError())
-        print(model.summary())
+        model.compile(optimizers.Adam(self.learning_rate), losses.MeanSquaredError(), metrics=['mse'])
+        model.summary()
         return model
 
     def learn(self, s, a, r, s_, done):
@@ -122,11 +123,14 @@ class BDQ(Savable):
         np_inputs = current_states
         np_targets = current_qs_list
 
-        self.loss = self.model.fit(
+        history = self.model.fit(
             {"input": np_inputs}, 
             {"output1": np_targets[0], "output2": np_targets[1]}, 
             batch_size=self.batch_size,
             verbose=0)
+
+        self.loss = history.history['loss'][0]
+        self.mse = (history.history['output1_mse'][0] + history.history['output2_mse'][0]) / 2
 
         # If it's the end of an episode, increase the target update counter
         if done:
@@ -173,15 +177,8 @@ class BDQ(Savable):
         model.predict returns an array of arrays, containing the Q-Values for the actions.
         This function should return the corresponding action with the highest Q-Value.
         """
+        state = np.expand_dims(state, 0)
         q_values = self.model(state)
-        #q_values = self.model(state).numpy()[0]
-        # culmulative_range = 0
-        # action_idx = []
-        # for i in range(len(self.action_wrapper.multi_output_ranges) - 1):
-        #     culmulative_range = self.action_wrapper.multi_output_ranges[i]
-        #     action_idx.append(culmulative_range + int(np.argmax(
-        #         q_values[self.action_wrapper.multi_output_ranges[i]:
-        #                  self.action_wrapper.multi_output_ranges[i + 1]])))
 
         return [np.argmax(x) for x in q_values]
 
@@ -223,13 +220,14 @@ class BDQ(Savable):
             self.decay_lr()
 
     def save_extra(self, persist_path):
-        self.model.save_weights(self.get_full_persistance_path(persist_path) + '.h5')
+        self.model.save(self.get_full_persistance_path(persist_path))
+        with open(self.get_full_persistance_path(persist_path) + 'model_summary.txt', 'w') as f:
+            with redirect_stdout(f):
+                self.model.summary()
 
     def load_extra(self, persist_path):
-        exists = os.path.isfile(self.get_full_persistance_path(persist_path) + '.h5')
+        exists = os.path.exists(self.get_full_persistance_path(persist_path))
 
         if (exists):
-            self.model = self.make_model()
-            self.model.load_weights(self.get_full_persistance_path(persist_path) + '.h5')
-            self.target_model = self.make_model()
-            self.target_model.set_weights(self.model.get_weights())
+            self.model = keras.models.load_model(self.get_full_persistance_path(persist_path))
+            self.target_model = keras.models.load_model(self.get_full_persistance_path(persist_path))

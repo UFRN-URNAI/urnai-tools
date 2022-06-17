@@ -64,6 +64,8 @@ class LearningModel(Savable):
         self.cpu_only = cpu_only
         self.set_seeds()
 
+        self.mse = 0
+        self.loss = 0
         self.gamma = gamma
         self.learning_rate = learning_rate
         self.learning_rate_min = learning_rate_min

@@ -928,16 +928,16 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         gridwidth = (self.bottom_right_x - self.top_left_x)/(self.x_gridsize-1)
         gridheight = (self.bottom_right_y - self.top_left_y)/(self.y_gridsize-1)
 
-        # beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
-        # x_beacon = round((beacon.x - self.top_left_x)/gridwidth)
-        # y_beacon = round((beacon.y - self.top_left_y)/gridheight)
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+        x_beacon = round((beacon.x - self.top_left_x)/gridwidth)
+        y_beacon = round((beacon.y - self.top_left_y)/gridheight)
 
-        # if adjusted_x == x_beacon and adjusted_y == y_beacon:
-        #     xtarget = beacon.x
-        #     ytarget = beacon.y
-        # else:
-        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
-        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+        if adjusted_x == x_beacon and adjusted_y == y_beacon:
+            xtarget = beacon.x
+            ytarget = beacon.y
+        else:
+            xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+            ytarget = int((adjusted_y*gridheight) + self.top_left_y)
 
         if self.random_uniform:
             xtarget += round(random.uniform(0, gridwidth))

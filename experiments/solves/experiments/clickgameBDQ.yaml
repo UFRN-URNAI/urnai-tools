@@ -1,0 +1,100 @@
+---
+- action_wrapper:
+    class: ClickGameBDQWrapper
+    params:
+      x_gridsize: 10
+      y_gridsize: 10
+  agent:
+    class: GenericAgent
+    params: {}
+  env:
+    class: ClickGameEnv
+    params:
+      board_shape: [10, 10]
+      marine_value: 0.1
+      max_steps: 200
+      render: false
+      use_marine: false
+  model:
+    class: BDQ
+    params:
+      batch_size: 32
+      epsilon_decay: 0.997
+      epsilon_min: 0
+      learning_rate: 0.001
+      memory_maxlen: 50000
+      min_memory_size: 128
+      per_episode_epsilon_decay: true
+      use_conv: true
+  reward:
+    class: PureReward
+    params: {}
+  state_builder:
+    class: ConvState
+    params:
+      state_dim: [10, 10]
+  trainer:
+    class: Trainer
+    params:
+      enable_save: true
+      file_name: cnn-bdq-relu
+      save_every: 50
+      max_training_episodes: 800
+      max_test_episodes: 100
+      max_steps_testing: 300
+      max_steps_training: 300
+      relative_path: true
+      reset_epsilon: false
+      rolling_avg_window_size: 20
+      save_path: ../agentes-treinados-tcc/click-game
+
+- action_wrapper:
+    class: ClickGameBDQWrapper
+    params:
+      x_gridsize: 10
+      y_gridsize: 10
+  agent:
+    class: GenericAgent
+    params: {}
+  env:
+    class: ClickGameEnv
+    params:
+      board_shape: [10, 10]
+      marine_value: 0.1
+      max_steps: 200
+      render: false
+      use_marine: false
+  model:
+    class: BDQ
+    params:
+      batch_size: 32
+      epsilon_decay: 0.998
+      epsilon_start: 0.8
+      epsilon_min: 0
+      learning_rate: 0.001
+      memory_maxlen: 50000
+      min_memory_size: 128
+      per_episode_epsilon_decay: true
+      epsilon_linear_decay: true
+      use_conv: true
+  reward:
+    class: PureReward
+    params: {}
+  state_builder:
+    class: ConvState
+    params:
+      state_dim: [10, 10]
+  trainer:
+    class: Trainer
+    params:
+      enable_save: true
+      file_name: cnn-bdq-relu-lineardecay
+      save_every: 50
+      max_training_episodes: 800
+      max_test_episodes: 100
+      max_steps_testing: 300
+      max_steps_training: 300
+      relative_path: true
+      reset_epsilon: false
+      rolling_avg_window_size: 20
+      save_path: ../agentes-treinados-tcc/click-game

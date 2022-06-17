@@ -792,12 +792,13 @@ class MultipleUnitGridState(StateBuilder):
         return self._state_size
 
 class MiniGameGridState(StateBuilder):
-    def __init__(self, x_gridsize=10, y_gridsize=10, top_left=[22, 28], bottom_right=[43, 43]):
+    def __init__(self, x_gridsize=10, y_gridsize=10, top_left=[22, 28], bottom_right=[43, 43], marine_value=0.1):
         self.x_gridsize = x_gridsize
         self.y_gridsize = y_gridsize
         self.state_size = x_gridsize*y_gridsize
         self.top_left = top_left
         self.bottom_right = bottom_right
+        self.marine_value = marine_value
     
     def build_state(self, obs):
         grid = np.zeros((self.x_gridsize, self.y_gridsize))
@@ -812,7 +813,7 @@ class MiniGameGridState(StateBuilder):
             y = round((raw_units[i].y - self.top_left[1])/gridheight)
             
             if raw_units[i].unit_type == units.Terran.Marine:
-                grid[y][x] += 0
+                grid[y][x] += self.marine_value
             else:
                 grid[y][x] += 1
 
@@ -840,11 +841,6 @@ class MoveToBeaconState(StateBuilder):
 
     def get_state_dim(self):
         return 4
-
-class MoveToBeaconStateNoZero(MoveToBeaconState):
-    def build_state(self, obs):
-        final_state = super().build_state(obs) + 1
-        return final_state
 
 class DefeatRoachesState(StateBuilder):
     def build_state(self, obs):
