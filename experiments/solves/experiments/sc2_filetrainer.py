@@ -5,7 +5,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.parent.parent))
 
 from urnai.trainers.filetrainer import FileTrainer
 
-trainer = FileTrainer(os.path.join(sys.path[2], 'clickgameBDQ.yaml'))
+trainer = FileTrainer(os.path.join(sys.path[2], 'clickgameDDQN.yaml'))
 trainer.pickle_black_list.append("env")
 trainer.pickle_black_list.append("agent")
 

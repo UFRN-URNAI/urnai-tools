@@ -9,6 +9,10 @@ import numpy as np
 
 from .model_builder import ModelBuilder
 
+from tensorflow.keras import layers
+from tensorflow.keras import activations
+from tensorflow.keras import models
+from tensorflow.keras import optimizers
 
 class DDQNKeras(DQNKeras):
     def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99,
@@ -52,6 +56,16 @@ class DDQNKeras(DQNKeras):
             self.memory_maxlen = memory_maxlen
             self.min_memory_size = min_memory_size
             self.batch_size = batch_size
+
+    def make_model(self):
+        model = models.Sequential()
+        model.add(layers.Input((self.state_size,)))
+        for layer_size in self.model_layers:
+            model.add(layers.Dense(layer_size, activation=activations.relu))
+        model.add(layers.Dense(self.action_size, activation=activations.linear))
+
+        model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
+        return model
 
     def learn(self, s, a, r, s_, done):
         if self.use_memory:
@@ -105,8 +119,11 @@ class DDQNKeras(DQNKeras):
         np_inputs = np.squeeze(np.array(inputs))
         np_targets = np.array(targets)
 
-        self.loss = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
+        history = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
                                    shuffle=False, callbacks=self.tensorboard_callback)
+
+        self.loss = history.history['loss'][0]
+        self.mse = history.history['mse'][0]
 
         # If it's the end of an episode, increase the target update counter
         if done:

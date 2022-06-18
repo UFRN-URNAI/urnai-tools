@@ -1,9 +1,9 @@
 ---
 - action_wrapper:
-    class: ClickGameWrapper
-    params:
-      x_gridsize: 21
-      y_gridsize: 15
+    class: ClickGameDDQNWrapper
+    params: 
+      size_x: 21
+      size_y: 15
   state_builder:
     class: FlatState
     params: 
@@ -20,7 +20,7 @@
       use_marine: false
       marine_value: 0.1
   model:
-    class: DDQNKerasMO
+    class: DDQNKeras
     params:
       per_episode_epsilon_decay: true
       learning_rate: 0.0001
@@ -39,7 +39,7 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/click-game"
-      file_name: ddqnmo-21x15-100n-relu
+      file_name: ddqn-21x15-100n-relu
       save_every: 50
       enable_save: true
       relative_path: true
@@ -51,10 +51,10 @@
       rolling_avg_window_size: 20
 
 - action_wrapper:
-    class: ClickGameWrapper
-    params:
-      x_gridsize: 21
-      y_gridsize: 15
+    class: ClickGameDDQNWrapper
+    params: 
+      size_x: 21
+      size_y: 15
   state_builder:
     class: FlatState
     params: 
@@ -71,7 +71,7 @@
       use_marine: false
       marine_value: 0.1
   model:
-    class: DDQNKerasMO
+    class: DDQNKeras
     params:
       per_episode_epsilon_decay: true
       learning_rate: 0.0001
@@ -90,7 +90,7 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/click-game"
-      file_name: ddqnmo-21x15-160n-relu
+      file_name: ddqn-21x15-160n-relu
       save_every: 50
       enable_save: true
       relative_path: true

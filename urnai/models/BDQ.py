@@ -229,5 +229,5 @@ class BDQ(Savable):
         exists = os.path.exists(self.get_full_persistance_path(persist_path))
 
         if (exists):
-            self.model = keras.models.load_model(self.get_full_persistance_path(persist_path))
-            self.target_model = keras.models.load_model(self.get_full_persistance_path(persist_path))
+            self.model = models.load_model(self.get_full_persistance_path(persist_path))
+            self.target_model = models.load_model(self.get_full_persistance_path(persist_path))

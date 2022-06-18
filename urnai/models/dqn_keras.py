@@ -1,4 +1,5 @@
 from collections import deque
+from contextlib import redirect_stdout
 import os
 import random
 
@@ -194,6 +195,9 @@ class DQNKeras(LearningModel):
 
     def save_extra(self, persist_path):
         self.model.save_weights(self.get_full_persistance_path(persist_path) + '.h5')
+        with open(self.get_full_persistance_path(persist_path) + 'model_summary.txt', 'w') as f:
+            with redirect_stdout(f):
+                self.model.summary()
 
     def load_extra(self, persist_path):
         exists = os.path.isfile(self.get_full_persistance_path(persist_path) + '.h5')
