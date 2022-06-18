@@ -20,7 +20,7 @@ class ClickGameEnv(Env):
 
     def start(self):
         if self.env_instance is None:
-            board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
+            board = np.zeros((self.board_shape[1], self.board_shape[0], 1))
             self.x = random.randint(0, self.board_shape[0]-1)
             self.y = random.randint(0, self.board_shape[1]-1)
             board[self.y][self.x] = 1
@@ -43,7 +43,7 @@ class ClickGameEnv(Env):
             time.sleep(1)
 
         if x == self.x and y == self.y:
-            board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
+            board = np.zeros((self.board_shape[1], self.board_shape[0], 1))
             self.x = random.randint(0, self.board_shape[0]-1)
             self.y = random.randint(0, self.board_shape[1]-1)
             board[self.y][self.x] = 1
@@ -60,7 +60,7 @@ class ClickGameEnv(Env):
         return self.env_instance, reward, done
 
     def reset(self):
-        board = np.zeros((self.board_shape[0], self.board_shape[1], 1))
+        board = np.zeros((self.board_shape[1], self.board_shape[0], 1))
         self.x = random.randint(0, self.board_shape[0]-1)
         self.y = random.randint(0, self.board_shape[1]-1)
         board[self.y][self.x] = 1
