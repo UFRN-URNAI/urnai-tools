@@ -70,7 +70,7 @@ class DDQNKerasMO(DDQNKeras):
         model = models.Sequential()
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
-            model.add(layers.Dense(layer_size, activation=activations.relu))
+            model.add(layers.Dense(layer_size, activation=activations.sigmoid))
         model.add(layers.Dense(self.action_size, activation=activations.linear))
 
         model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
@@ -142,7 +142,7 @@ class DDQNKerasMO(DDQNKeras):
                                    shuffle=False, callbacks=self.tensorboard_callback)
 
         self.loss = history.history['loss'][0]
-        self.mse = history.history['mean_squared_error'][0]
+        self.mse = history.history['mse'][0]
 
         # If it's the end of an episode, increase the target update counter
         if done:

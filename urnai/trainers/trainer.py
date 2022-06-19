@@ -498,8 +498,11 @@ class Trainer(Savable):
                 ep_mse += self.agent.model.mse
                 ep_reward += step_reward
                 ep_default_reward += default_reward
-                ep_actions[self.agent.previous_action] += 1
-
+                try:
+                    ep_actions[self.agent.previous_action] += 1
+                except:
+                    pass
+                
                 if done:
                     victory = default_reward == 1
                     agent_info = {

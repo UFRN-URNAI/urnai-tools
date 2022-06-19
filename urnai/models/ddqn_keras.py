@@ -23,7 +23,7 @@ class DDQNKeras(DQNKeras):
                  batch_size=64, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5,
                  seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False, model_layers = [30, 30]):
+                 lr_linear_decay=False, model_layers = [30, 30], use_deconv=False):
         super(DDQNKeras, self).__init__(action_wrapper, state_builder, gamma=gamma,
                                         use_memory=use_memory, name=name,
                                         learning_rate=learning_rate,
@@ -37,11 +37,13 @@ class DDQNKeras(DQNKeras):
                                         build_model=build_model,
                                         epsilon_linear_decay=epsilon_linear_decay,
                                         lr_linear_decay=lr_linear_decay,
-                                        model_layers=model_layers)
+                                        model_layers=model_layers,
+                                        use_deconv = use_deconv)
 
         self.build_model = build_model
         self.model_layers = model_layers
         self.loss = 0
+        self.use_deconv = use_deconv
 
         # Main model, trained every step
         self.model = self.make_model()
@@ -62,9 +64,14 @@ class DDQNKeras(DQNKeras):
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
             model.add(layers.Dense(layer_size, activation=activations.relu))
-        model.add(layers.Dense(self.action_size, activation=activations.linear))
+        if self.use_deconv:
+            model.add(layers.Reshape((8, 8, 1)))
+            model.add(layers.Conv2DTranspose(1, 3, activation=activations.relu))
+        else:
+            model.add(layers.Dense(self.action_size, activation=activations.linear))
 
         model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
+        model.summary()
         return model
 
     def learn(self, s, a, r, s_, done):

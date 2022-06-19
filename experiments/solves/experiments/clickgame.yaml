@@ -1,102 +1,52 @@
----
 - action_wrapper:
     class: ClickGameWrapper
     params:
-      x_gridsize: 21
-      y_gridsize: 15
-  state_builder:
-    class: FlatState
-    params: 
-      state_dim: 315
-  reward:
-    class: PureReward
+      x_gridsize: 15
+      y_gridsize: 10
+  agent:
+    class: GenericAgent
     params: {}
   env:
     class: ClickGameEnv
     params:
-      render: false
-      board_shape: [21, 15]
-      max_steps: 200
-      use_marine: false
+      board_shape:
+      - 15
+      - 10
       marine_value: 0.1
+      max_steps: 300
+      render: false
+      use_marine: false
   model:
     class: DDQNKerasMO
     params:
-      per_episode_epsilon_decay: true
-      learning_rate: 0.0001
+      batch_size: 32
       epsilon_decay: 0.998
-      epsilon_start: 0.8
-      epsilon_min: 0
       epsilon_linear_decay: true
+      epsilon_min: 0
+      epsilon_start: 0.5
+      learning_rate: 0.001
       memory_maxlen: 50000
       min_memory_size: 128
-      batch_size: 32
-      model_layers: [100]
-  agent:
-    class: GenericAgent
-    params: {}
-  trainer:
-    class: Trainer
-    params:
-      save_path: "../agentes-treinados-tcc/click-game"
-      file_name: ddqnmo-21x15-100n-relu
-      save_every: 50
-      enable_save: true
-      relative_path: true
-      reset_epsilon: false
-      max_training_episodes: 300
-      max_steps_training: 300
-      max_test_episodes: 100
-      max_steps_testing: 300
-      rolling_avg_window_size: 20
-
-- action_wrapper:
-    class: ClickGameWrapper
-    params:
-      x_gridsize: 21
-      y_gridsize: 15
-  state_builder:
-    class: FlatState
-    params: 
-      state_dim: 315
+      model_layers: [90]
+      per_episode_epsilon_decay: true
   reward:
     class: PureReward
     params: {}
-  env:
-    class: ClickGameEnv
+  state_builder:
+    class: FlatState
     params:
-      render: false
-      board_shape: [21, 15]
-      max_steps: 200
-      use_marine: false
-      marine_value: 0.1
-  model:
-    class: DDQNKerasMO
-    params:
-      per_episode_epsilon_decay: true
-      learning_rate: 0.0001
-      epsilon_decay: 0.998
-      epsilon_start: 0.8
-      epsilon_min: 0
-      epsilon_linear_decay: true
-      memory_maxlen: 50000
-      min_memory_size: 128
-      batch_size: 32
-      model_layers: [160]
-  agent:
-    class: GenericAgent
-    params: {}
+      state_dim: 150
   trainer:
     class: Trainer
     params:
-      save_path: "../agentes-treinados-tcc/click-game"
-      file_name: ddqnmo-21x15-160n-relu
-      save_every: 50
       enable_save: true
-      relative_path: true
-      reset_epsilon: false
-      max_training_episodes: 300
+      file_name: ddqnmo-15x10-90n-e0-5-sigmoid
+      max_steps_testing: 300
       max_steps_training: 300
       max_test_episodes: 100
-      max_steps_testing: 300
+      max_training_episodes: 400
+      relative_path: true
+      reset_epsilon: false
       rolling_avg_window_size: 20
+      save_every: 50
+      save_path: ../agentes-treinados-tcc/click-game

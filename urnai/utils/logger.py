@@ -79,8 +79,12 @@ class Logger(Savable):
         # Agent Action count
         self.agent_action_names = agent_action_names
         self.agent_action_size = agent_action_size
-        self.ep_agent_actions = [[] for i in range(agent_action_size)]
-        self.avg_ep_agent_actions = [[] for i in range(agent_action_size)]
+        try:
+            self.ep_agent_actions = [[] for i in range(agent_action_size)]
+            self.avg_ep_agent_actions = [[] for i in range(agent_action_size)]
+        except:
+            self.ep_agent_actions = []
+            self.avg_ep_agent_actions = []
 
         # Play testing count
         self.play_ep_count = []

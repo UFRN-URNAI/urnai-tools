@@ -18,12 +18,12 @@ from tensorflow.keras import optimizers
 from tensorflow.keras import losses
 from tensorflow.keras import utils
 
-class BDQ(Savable):
+class DDQN_Deconv(Savable):
     def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99,
                  learning_rate=0.001, lr_min=0.0001, lr_decay=0.99995, lr_decay_min_ep=0, lr_linear_decay=False,
                  epsilon_start=1.0, epsilon_min=0.001, epsilon_decay=0.9995, per_episode_epsilon_decay=True, epsilon_linear_decay=False,
                  batch_size=32, memory_maxlen=50000, min_memory_size=128, update_target_every=5, 
-                 model_layers = [30, 30], use_conv=False):
+                 model_layers = [30, 30]):
 
         self.pickle_black_list = ["model", "target_model", "target_update_counter", "update_target_every"]
 
@@ -42,16 +42,12 @@ class BDQ(Savable):
         self.actions = action_wrapper.get_actions()
         self.action_size = action_wrapper.get_action_space_dim()
         self.state_size = state_builder.get_state_dim()
-        self.act_ranges = self.action_wrapper.multi_output_ranges
 
         self.epsilon_greedy = epsilon_start
         self.epsilon_min = epsilon_min
         self.epsilon_decay_rate = epsilon_decay
         self.per_episode_epsilon_decay = per_episode_epsilon_decay
         self.epsilon_linear_decay = epsilon_linear_decay
-        self.use_conv = use_conv
-        if use_conv:
-            self.input_shape = (self.state_size[0], self.state_size[1], 1)
 
         # Main model, trained every step
         self.model = self.make_model()
@@ -67,24 +63,17 @@ class BDQ(Savable):
         self.batch_size = batch_size
 
     def make_model(self):
-        act_f = activations.relu
+        model = models.Sequential()
+        model.add(layers.Input((self.state_size,)))
+        # for layer_size in self.model_layers:
+        #     model.add(layers.Dense(layer_size, activation=activations.relu))
         
-        if self.use_conv:
-            inp = layers.Input(shape=self.input_shape, name="input")
-            x = layers.Conv2D(16, 3, activation=act_f, input_shape=self.state_size)(inp)
-            x = layers.Conv2D(16, 3, activation=act_f, input_shape=self.state_size)(x)
-            x = layers.MaxPooling2D(3)(x)
-            x = layers.Flatten()(x)
-            x = layers.Dense(60, activation=act_f)(x)
-        else:
-            inp = layers.Input((self.state_size,), name="input")
-            x = layers.Dense(60, activation=act_f)(inp)
-            
-        output1 = layers.Dense(self.act_ranges[1], activation=activations.linear, name="output1")(x)
-        output2 = layers.Dense(self.act_ranges[2]-self.act_ranges[1], activation=activations.linear, name="output2")(x)
+        model.add(layers.Reshape((10, 10, 1)))
+        model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
+        model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
+        model.add(layers.Conv2D(1, 3, activation=activations.relu, padding='same'))
 
-        model = models.Model(inputs=inp, outputs=[output1, output2])
-        model.compile(optimizers.Adam(self.learning_rate), losses.MeanSquaredError(), metrics=['mse'])
+        model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
         model.summary()
         return model
 
@@ -100,7 +89,7 @@ class BDQ(Savable):
         # removing undesirable dimension created by np.array
         current_states = np.squeeze(current_states)
         # array of Q-Values for our initial states
-        current_qs_list = tf.Variable(self.model(current_states)).numpy()
+        current_qs_list = self.model(current_states).numpy()
 
         # array of states after step from the minibatch
         next_current_states = np.array([transition[3] for transition in minibatch])
@@ -109,28 +98,38 @@ class BDQ(Savable):
         next_qs_list = tf.Variable(self.model(next_current_states)).numpy()
         targ_qs_list = tf.Variable(self.target_model(next_current_states)).numpy()
 
-        for i, (state, actions, reward, next_state, done) in enumerate(minibatch):
-            for j, (action) in enumerate(actions):
-                if not done:
-                    q_action_list = next_qs_list[j][i]
-                    max_next_q = np.argmax(q_action_list)
-                    new_q = reward + self.gamma * targ_qs_list[j][i][max_next_q]
-                else:
-                    new_q = reward
+        # inputs is going to be filled with all current states from the minibatch
+        # targets is going to be filled with all of our outputs (Q-Values for each action)
+        inputs = []
+        targets = []
 
-                current_qs_list[j][i][action] = new_q
+        for index, (state, action, reward, next_state, done) in enumerate(minibatch):
+            # if this step is not the last, we calculate the new Q-Value based on the next_state
+            if not done:
+                max_next_q = np.unravel_index(np.argmax(next_qs_list[index]), next_qs_list[index].shape)
+                # new Q-value is equal to the reward at that step + discount factor * the
+                # max q-value for the next_state
+                new_q = reward + self.gamma * targ_qs_list[index][max_next_q]
+            else:
+                # if this is the last step, there is no future max q value, so the new_q is
+                # just the reward
+                new_q = reward
+
+            current_qs_list[index][action] = new_q
+
+            # current_qs = current_qs_list[index]
+            # current_qs[action] = new_q
+
+            # inputs.append(state)
+            # targets.append(current_qs_list)
 
         np_inputs = current_states
         np_targets = current_qs_list
 
-        history = self.model.fit(
-            {"input": np_inputs}, 
-            {"output1": np_targets[0], "output2": np_targets[1]}, 
-            batch_size=self.batch_size,
-            verbose=0)
+        history = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0)
 
         self.loss = history.history['loss'][0]
-        self.mse = (history.history['output1_mse'][0] + history.history['output2_mse'][0]) / 2
+        self.mse = history.history['mse'][0]
 
         # If it's the end of an episode, increase the target update counter
         if done:
@@ -152,23 +151,15 @@ class BDQ(Savable):
         self.memory.append((state, action, reward, next_state, done))
 
     def choose_action(self, state, excluded_actions=[], is_testing=False):
+        # Verifies if we are running a test (Evaluating our agent)
         if is_testing:
             return self.predict(state, excluded_actions)
-
+        # If we are not testing (therefore we are training), evaluate epsilon greedy strategy
         else:
             if np.random.rand() <= self.epsilon_greedy:
-                random_action = []
-
-                for i in range(len(self.action_wrapper.multi_output_ranges) - 1):
-                    random_action.append(random.randint(0, self.action_wrapper.multi_output_ranges[i+1] - self.action_wrapper.multi_output_ranges[i]-1))
-
-                # for i in range(len(self.action_wrapper.multi_output_ranges) - 1):
-                #     random_action.append(random.choice(self.actions[
-                #                                        self.action_wrapper.multi_output_ranges[i]:
-                #                                        self.action_wrapper.multi_output_ranges[
-                #                                            i + 1]]))
-
-                return random_action
+                random_action = np.random.choice(self.actions, self.action_wrapper.get_action_shape(), replace=False)
+                pos = np.unravel_index(np.argmax(random_action, axis=None), random_action.shape)
+                return pos
             else:
                 return self.predict(state, excluded_actions)
 
@@ -177,10 +168,10 @@ class BDQ(Savable):
         model.predict returns an array of arrays, containing the Q-Values for the actions.
         This function should return the corresponding action with the highest Q-Value.
         """
-        state = np.expand_dims(state, 0)
-        q_values = self.model(state)
+        q_values = np.squeeze(self.model(state).numpy()[0])
+        pos = np.unravel_index(np.argmax(q_values, axis=None), q_values.shape)
 
-        return [np.argmax(x) for x in q_values]
+        return pos
 
     def decay_epsilon(self):
         """

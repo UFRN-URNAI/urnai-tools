@@ -57,13 +57,14 @@ class LearningModel(Savable):
                  epsilon_start, epsilon_min, epsilon_decay_rate, per_episode_epsilon_decay=False,
                  learning_rate_decay_ep_cutoff=0,
                  name=None, seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False):
+                 lr_linear_decay=False, use_deconv = False):
         super(LearningModel, self).__init__()
 
         self.seed_value = seed_value
         self.cpu_only = cpu_only
         self.set_seeds()
 
+        self.use_deconv = use_deconv
         self.mse = 0
         self.loss = 0
         self.gamma = gamma

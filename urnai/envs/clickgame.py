@@ -34,11 +34,17 @@ class ClickGameEnv(Env):
         reward = 0
 
         if self.render:
-            np.set_printoptions(threshold=np.inf)
+            # np.set_printoptions(threshold=np.inf)
             print("Rodada {}".format(self.curr_steps))
             print("State: x: {}, y: {}".format(self.x, self.y))
             print("Ação : x: {}, y: {}".format(x, y))
-            print(self.env_instance)
+            #print(np.array2string(self.env_instance[0]))
+            #print(self.env_instance[0])
+            for i in range(self.env_instance[0].shape[0]):
+                row = ""
+                for j in range(self.env_instance[0].shape[1]):
+                    row += str(self.env_instance[0][i][j][0]) + " "
+                print(row)
             np.set_printoptions(threshold=1000)
             time.sleep(1)
 
