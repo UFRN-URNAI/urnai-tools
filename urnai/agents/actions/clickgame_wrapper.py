@@ -137,3 +137,39 @@ class ClickGameDeconvWrapper(ActionWrapper):
     def get_action(self, action_idx, obs):
         x, y = action_idx
         return [x, y]
+
+class ClickGameRawWrapper(ActionWrapper):
+
+    def __init__(self, x_gridsize=10, y_gridsize=10):
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+
+        self.named_actions = []
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, self.x_gridsize, self.x_gridsize+self.y_gridsize]
+        self.neurons_per_actionset = [0, 1, 2]
+
+        self.action_indices = [idx for idx in range(2)]
+
+    def is_action_done(self):
+        return True
+
+    def reset(self):
+        pass
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_excluded_actions(self, obs):
+        return []
+
+    def get_action(self, action_idx, obs):
+        x = floor(action_idx[0]*self.x_gridsize)
+        y = floor(action_idx[1]*self.y_gridsize)
+        return [x, y]

@@ -834,7 +834,12 @@ class MoveToBeaconState(StateBuilder):
         # marine_and_beacon = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine or unit.unit_type == 317]
 
         state = [(marine.x-22)/21, (marine.y-28)/15, (beacon.x-22)/21, (beacon.y-28)/15]
-        # state = [x/21 for x in state]
+
+        # from PIL import Image
+        # screen = obs.feature_screen[4]/obs.feature_screen[4].max()
+        # img = Image.fromarray(screen*255)
+        # img.show()
+
         final_state = np.expand_dims(state, axis=0)
 
         return final_state

@@ -3,12 +3,11 @@
     class: MoveToBeaconActionWrapper
     params:
       x_gridsize: 10
-      y_gridsize: 10
+      y_gridsize: 7
       random_uniform: false
   state_builder:
-    class: MiniGameGridState
-    params:
-      marine_value: 0.05
+    class: MoveToBeaconState
+    params: {}
   reward:
     class: MTBClickProxNeg
     params: {}
@@ -41,7 +40,7 @@
       memory_maxlen: 50000
       min_memory_size: 6000
       batch_size: 32
-      model_layers: [90]
+      model_layers: [20, 20]
   agent:
     class: SC2Agent
     params: {}
@@ -49,12 +48,12 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/move-to-beacon"
-      file_name: clickneg-grid-e0-8-90n-sigmoid
+      file_name: clickneg-simple-e0-8-20n20n-relu-2
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 300
+      max_training_episodes: 600
       max_steps_training: 400
       max_test_episodes: 100
       max_steps_testing: 400

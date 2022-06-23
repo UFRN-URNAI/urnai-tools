@@ -30,12 +30,16 @@ class SC2Env(Env):
             realtime=False,
             self_play=False,
             amount_each_map=5,
+            screen_shape = (64, 64),
+            minimap_shape = (32, 32)
     ):
         super().__init__(map_name, render, reset_done)
 
         FLAGS = flags.FLAGS
         FLAGS(sys.argv)
 
+        self.screen_shape = screen_shape
+        self.minimap_shape = minimap_shape
         self.self_play = self_play
         self.step_mul = step_mul
         self.game_steps_per_ep = game_steps_per_ep
@@ -90,7 +94,7 @@ class SC2Env(Env):
                     use_raw_units=True,
                     raw_resolution=64,
                     use_feature_units=True,
-                    feature_dimensions=features.Dimensions(screen=64, minimap=64),
+                    feature_dimensions=features.Dimensions(screen=self.screen_shape, minimap=self.minimap_shape),
                 ),
                 step_mul=self.step_mul,
                 game_steps_per_episode=self.game_steps_per_ep,

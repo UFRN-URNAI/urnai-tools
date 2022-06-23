@@ -27,7 +27,8 @@ class DQNKeras(LearningModel):
                  seed_value=None, cpu_only=False, epsilon_linear_decay=False,
                  lr_linear_decay=False,
                  model_layers = [30, 30],
-                 use_deconv = False):
+                 use_deconv = False,
+                 epsilon_decay_ep_start=0):
 
         super(DQNKeras, self).__init__(action_wrapper, state_builder, gamma, learning_rate,
                                        learning_rate_min, learning_rate_decay,
@@ -35,7 +36,8 @@ class DQNKeras(LearningModel):
                                        per_episode_epsilon_decay, learning_rate_decay_ep_cutoff,
                                        name, seed_value, cpu_only, epsilon_linear_decay,
                                        lr_linear_decay,
-                                       use_deconv = use_deconv)
+                                       use_deconv = use_deconv,
+                                       epsilon_decay_ep_start = epsilon_decay_ep_start)
         self.batch_size = batch_size
         self.batch_training = batch_training
 

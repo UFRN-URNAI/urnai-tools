@@ -27,7 +27,7 @@ class DDQNKerasMO(DDQNKeras):
                  per_episode_epsilon_decay=False, epsilon_linear_decay=False,
                  batch_size=32, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5, model_layers = [30, 30],
-                 seed_value=None, cpu_only=False):
+                 seed_value=None, cpu_only=False, epsilon_decay_ep_start=0):
         super(DDQNKerasMO, self).__init__(
             action_wrapper,
             state_builder,
@@ -45,7 +45,8 @@ class DDQNKerasMO(DDQNKeras):
             epsilon_linear_decay=epsilon_linear_decay,
             seed_value=seed_value,
             cpu_only=cpu_only,
-            model_layers=model_layers
+            model_layers=model_layers,
+            epsilon_decay_ep_start=epsilon_decay_ep_start
         )
 
         self.build_model = build_model
@@ -70,7 +71,7 @@ class DDQNKerasMO(DDQNKeras):
         model = models.Sequential()
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
-            model.add(layers.Dense(layer_size, activation=activations.sigmoid))
+            model.add(layers.Dense(layer_size, activation=activations.relu))
         model.add(layers.Dense(self.action_size, activation=activations.linear))
 
         model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
@@ -128,15 +129,20 @@ class DDQNKerasMO(DDQNKeras):
                     # if this is the last step, there is no future max q value,
                     # so the new_q is just the reward
                     new_q = reward
+                
+                current_qs_list[index][action] = new_q
 
-                current_qs = current_qs_list[index]
-                current_qs[action] = new_q
+        np_inputs = current_states
+        np_targets = current_qs_list
 
-            inputs.append(state)
-            targets.append(current_qs)
+        #         current_qs = current_qs_list[index]
+        #         current_qs[action] = new_q
 
-        np_inputs = np.squeeze(np.array(inputs))
-        np_targets = np.array(targets)
+        #     inputs.append(state)
+        #     targets.append(current_qs)
+
+        # np_inputs = np.squeeze(np.array(inputs))
+        # np_targets = np.array(targets)
 
         history = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
                                    shuffle=False, callbacks=self.tensorboard_callback)

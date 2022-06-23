@@ -1,52 +1,56 @@
 from collections import deque
+from contextlib import redirect_stdout
 import os
 import random
 
 from agents.actions.base.abwrapper import ActionWrapper
 from agents.states.abstate import StateBuilder
-from models.dqn_keras import DQNKeras
+from models.ddqn_keras import DDQNKeras
 import numpy as np
 
-from .model_builder import ModelBuilder
+import tensorflow as tf
 
 from tensorflow.keras import layers
 from tensorflow.keras import activations
 from tensorflow.keras import models
 from tensorflow.keras import optimizers
+from tensorflow import keras
 
-class DDQNKeras(DQNKeras):
+from .model_builder import ModelBuilder
+
+
+class DDQNMORaw(DDQNKeras):
     def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99,
                  learning_rate=0.001, learning_rate_min=0.0001, learning_rate_decay=0.99995,
                  learning_rate_decay_ep_cutoff=0,
                  name='DDQN', epsilon_start=1.0, epsilon_min=0.01, epsilon_decay=0.99995,
-                 per_episode_epsilon_decay=False,
-                 batch_size=64, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
-                 build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5,
-                 seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False, model_layers = [30, 30], use_deconv=False,
-                 epsilon_decay_ep_start=0):
-                 
-        super(DDQNKeras, self).__init__(action_wrapper, state_builder, gamma=gamma,
-                                        use_memory=use_memory, name=name,
-                                        learning_rate=learning_rate,
-                                        learning_rate_decay=learning_rate_decay,
-                                        learning_rate_min=learning_rate_min,
-                                        learning_rate_decay_ep_cutoff=learning_rate_decay_ep_cutoff,
-                                        epsilon_start=epsilon_start, epsilon_min=epsilon_min,
-                                        epsilon_decay=epsilon_decay,
-                                        per_episode_epsilon_decay=per_episode_epsilon_decay,
-                                        seed_value=seed_value, cpu_only=cpu_only,
-                                        build_model=build_model,
-                                        epsilon_linear_decay=epsilon_linear_decay,
-                                        lr_linear_decay=lr_linear_decay,
-                                        model_layers=model_layers,
-                                        use_deconv = use_deconv,
-                                        epsilon_decay_ep_start=epsilon_decay_ep_start)
+                 per_episode_epsilon_decay=False, epsilon_linear_decay=False,
+                 batch_size=32, use_memory=True, memory_maxlen=50000, min_memory_size=1000,
+                 build_model=ModelBuilder.DEFAULT_BUILD_MODEL, update_target_every=5, model_layers = [30, 30],
+                 seed_value=None, cpu_only=False):
+        super(DDQNMORaw, self).__init__(
+            action_wrapper,
+            state_builder,
+            gamma=gamma,
+            use_memory=use_memory,
+            name=name,
+            learning_rate=learning_rate,
+            learning_rate_decay=learning_rate_decay,
+            learning_rate_min=learning_rate_min,
+            learning_rate_decay_ep_cutoff=learning_rate_decay_ep_cutoff,
+            epsilon_start=epsilon_start,
+            epsilon_min=epsilon_min,
+            epsilon_decay=epsilon_decay,
+            per_episode_epsilon_decay=per_episode_epsilon_decay,
+            epsilon_linear_decay=epsilon_linear_decay,
+            seed_value=seed_value,
+            cpu_only=cpu_only,
+            model_layers=model_layers
+        )
 
         self.build_model = build_model
         self.model_layers = model_layers
         self.loss = 0
-        self.use_deconv = use_deconv
 
         # Main model, trained every step
         self.model = self.make_model()
@@ -66,22 +70,11 @@ class DDQNKeras(DQNKeras):
         model = models.Sequential()
         model.add(layers.Input((self.state_size,)))
         for layer_size in self.model_layers:
-            model.add(layers.Dense(layer_size, activation=activations.relu))
-        if self.use_deconv:
-            model.add(layers.Reshape((8, 8, 1)))
-            model.add(layers.Conv2DTranspose(1, 3, activation=activations.relu))
-        else:
-            model.add(layers.Dense(self.action_size, activation=activations.linear))
+            model.add(layers.Dense(layer_size, activation=activations.sigmoid))
+        model.add(layers.Dense(self.action_size, activation=activations.sigmoid))
 
         model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
-        model.summary()
         return model
-
-    def learn(self, s, a, r, s_, done):
-        if self.use_memory:
-            self.memory_learn(s, a, r, s_, done)
-        else:
-            self.no_memory_learn(s, a, r, s_, done)
 
     def memory_learn(self, s, a, r, s_, done):
         self.memorize(s, a, r, s_, done)
@@ -101,33 +94,32 @@ class DDQNKeras(DQNKeras):
         next_current_states = np.array([transition[3] for transition in minibatch])
         next_current_states = np.squeeze(next_current_states)
         # array of Q-values for our next states
-        next_qs_list = self.target_model(next_current_states).numpy()
+        next_qs_list = self.model(next_current_states).numpy()
+        targ_qs_list = self.target_model(next_current_states).numpy()
 
         # inputs is going to be filled with all current states from the minibatch
         # targets is going to be filled with all of our outputs (Q-Values for each action)
-        inputs = []
-        targets = []
 
-        for index, (state, action, reward, next_state, done) in enumerate(minibatch):
-            # if this step is not the last, we calculate the new Q-Value based on the next_state
-            if not done:
-                max_next_q = np.max(next_qs_list[index])
-                # new Q-value is equal to the reward at that step + discount factor * the
-                # max q-value for the next_state
-                new_q = reward + self.gamma * max_next_q
-            else:
-                # if this is the last step, there is no future max q value, so the new_q is
-                # just the reward
-                new_q = reward
+        for index, (state, actions, reward, next_state, done) in enumerate(minibatch):
+            for j, (action) in enumerate(actions):
+                # if this step is not the last, we calculate the new Q-Value based on the next_state
+                if not done:
+                    q_action_list = next_qs_list[index][
+                                    self.action_wrapper.neurons_per_actionset[j]:
+                                    self.action_wrapper.neurons_per_actionset[j + 1]]
+                    max_next_q = np.argmax(q_action_list) + self.action_wrapper.neurons_per_actionset[j]
+                    # new Q-value is equal to the reward at that step + discount
+                    # factor * the max q-value for the next_state
+                    new_q = reward + self.gamma * targ_qs_list[index][max_next_q]
+                else:
+                    # if this is the last step, there is no future max q value,
+                    # so the new_q is just the reward
+                    new_q = reward
 
-            current_qs = current_qs_list[index]
-            current_qs[action] = new_q
+                current_qs_list[index][action] = new_q
 
-            inputs.append(state)
-            targets.append(current_qs)
-
-        np_inputs = np.squeeze(np.array(inputs))
-        np_targets = np.array(targets)
+        np_inputs = current_states
+        np_targets = current_qs_list
 
         history = self.model.fit(np_inputs, np_targets, batch_size=self.batch_size, verbose=0,
                                    shuffle=False, callbacks=self.tensorboard_callback)
@@ -166,8 +158,8 @@ class DDQNKeras(DQNKeras):
             # max q-value for the next_state
             new_q = r + self.gamma * max_next_q
         else:
-            # if this is the last step, there is no future max q value, so we the
-            # new_q is just the reward
+            # if this is the last step, there is no future max q value, so we the new_q
+            # is just the reward
             new_q = r
 
         current_qs[0][a] = new_q
@@ -193,13 +185,35 @@ class DDQNKeras(DQNKeras):
         if not self.per_episode_epsilon_decay:
             self.decay_epsilon()
 
+    def choose_action(self, state, excluded_actions=[], is_testing=False):
+        if is_testing:
+            return self.predict(state, excluded_actions)
+
+        else:
+            if np.random.rand() <= self.epsilon_greedy:
+                random_qvalues = np.random.rand(self.action_size)
+
+                return random_qvalues
+            else:
+                return self.predict(state, excluded_actions)
+
+    def predict(self, state, excluded_actions=[]):
+        """
+        model.predict returns an array of arrays, containing the Q-Values for the actions.
+        This function should return the corresponding action with the highest Q-Value.
+        """
+        q_values = self.model(state).numpy()[0]
+        return q_values
+
+    def save_extra(self, persist_path):
+        self.model.save(self.get_full_persistance_path(persist_path))
+        with open(self.get_full_persistance_path(persist_path) + 'model_summary.txt', 'w') as f:
+            with redirect_stdout(f):
+                self.model.summary()
+
     def load_extra(self, persist_path):
-        exists = os.path.isfile(self.get_full_persistance_path(persist_path) + '.h5')
+        exists = os.path.exists(self.get_full_persistance_path(persist_path))
 
         if (exists):
-            self.model = self.make_model()
-            self.model.load_weights(self.get_full_persistance_path(persist_path) + '.h5')
-            self.target_model = self.make_model()
-            self.target_model.set_weights(self.model.get_weights())
-
-            self.set_seeds()
+            self.model = keras.models.load_model(self.get_full_persistance_path(persist_path))
+            self.target_model = keras.models.load_model(self.get_full_persistance_path(persist_path))

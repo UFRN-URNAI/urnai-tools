@@ -1,0 +1,52 @@
+- action_wrapper:
+    class: ClickGameRawWrapper
+    params:
+      x_gridsize: 10
+      y_gridsize: 10
+  agent:
+    class: RawQvalueAgent
+    params: {}
+  env:
+    class: ClickGameEnv
+    params:
+      board_shape:
+      - 10
+      - 10
+      marine_value: 0.1
+      max_steps: 200
+      render: false
+      use_marine: false
+  model:
+    class: DDQNMORaw
+    params:
+      batch_size: 32
+      epsilon_decay: 0.998
+      epsilon_linear_decay: true
+      epsilon_min: 0
+      epsilon_start: 0.5
+      learning_rate: 0.001
+      memory_maxlen: 50000
+      min_memory_size: 128
+      model_layers: [60]
+      per_episode_epsilon_decay: true
+  reward:
+    class: PureReward
+    params: {}
+  state_builder:
+    class: FlatState
+    params:
+      state_dim: 100
+  trainer:
+    class: Trainer
+    params:
+      enable_save: true
+      file_name: ddqnmoraw-10x10-60n-sigmoid
+      max_steps_testing: 1000
+      max_steps_training: 1000
+      max_test_episodes: 100
+      max_training_episodes: 350
+      relative_path: true
+      reset_epsilon: false
+      rolling_avg_window_size: 20
+      save_every: 50
+      save_path: ../agentes-treinados-tcc/click-game

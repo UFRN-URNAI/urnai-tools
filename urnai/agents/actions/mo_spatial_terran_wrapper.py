@@ -932,12 +932,22 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         x_beacon = round((beacon.x - self.top_left_x)/gridwidth)
         y_beacon = round((beacon.y - self.top_left_y)/gridheight)
 
-        if adjusted_x == x_beacon and adjusted_y == y_beacon:
+        clickpos = [int((adjusted_x*gridwidth) + self.top_left_x), int((adjusted_y*gridheight) + self.top_left_y)]
+        d = math.hypot(clickpos[0] - beacon.x, clickpos[1] - beacon.y)
+
+        if d < 2.5:
             xtarget = beacon.x
             ytarget = beacon.y
         else:
             xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
             ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        # if adjusted_x == x_beacon and adjusted_y == y_beacon:
+        #     xtarget = beacon.x
+        #     ytarget = beacon.y
+        # else:
+        #     xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        #     ytarget = int((adjusted_y*gridheight) + self.top_left_y)
 
         if self.random_uniform:
             xtarget += round(random.uniform(0, gridwidth))

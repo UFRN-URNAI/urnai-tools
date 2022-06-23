@@ -68,7 +68,7 @@ class DDQN_Deconv(Savable):
         # for layer_size in self.model_layers:
         #     model.add(layers.Dense(layer_size, activation=activations.relu))
         
-        model.add(layers.Reshape((10, 10, 1)))
+        model.add(layers.Reshape((10, 5, 1)))
         model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
         model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
         model.add(layers.Conv2D(1, 3, activation=activations.relu, padding='same'))
