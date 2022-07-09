@@ -22,8 +22,8 @@ class BDQ(Savable):
     def __init__(self, action_wrapper: ActionWrapper, state_builder: StateBuilder, gamma=0.99,
                  learning_rate=0.001, lr_min=0.0001, lr_decay=0.99995, lr_decay_min_ep=0, lr_linear_decay=False,
                  epsilon_start=1.0, epsilon_min=0.001, epsilon_decay=0.9995, per_episode_epsilon_decay=True, epsilon_linear_decay=False,
-                 batch_size=32, memory_maxlen=50000, min_memory_size=128, update_target_every=5, 
-                 model_layers = [30, 30], use_conv=False):
+                 batch_size=32, memory_maxlen=50000, min_memory_size=128, update_target_every=1000, 
+                 model_layers = [30, 30], use_conv=False, epsilon_decay_ep_start=0):
 
         self.pickle_black_list = ["model", "target_model", "target_update_counter", "update_target_every"]
 
@@ -49,6 +49,7 @@ class BDQ(Savable):
         self.epsilon_decay_rate = epsilon_decay
         self.per_episode_epsilon_decay = per_episode_epsilon_decay
         self.epsilon_linear_decay = epsilon_linear_decay
+        self.epsilon_decay_ep_start = epsilon_decay_ep_start
         self.use_conv = use_conv
         if use_conv:
             self.input_shape = (self.state_size[0], self.state_size[1], 1)
@@ -78,12 +79,14 @@ class BDQ(Savable):
             x = layers.Dense(60, activation=act_f)(x)
         else:
             inp = layers.Input((self.state_size,), name="input")
-            x = layers.Dense(60, activation=act_f)(inp)
-            
-        output1 = layers.Dense(self.act_ranges[1], activation=activations.linear, name="output1")(x)
-        output2 = layers.Dense(self.act_ranges[2]-self.act_ranges[1], activation=activations.linear, name="output2")(x)
+            x = layers.Dense(90, activation=act_f)(inp)
 
-        model = models.Model(inputs=inp, outputs=[output1, output2])
+        h0 = layers.Dense(6, activation=act_f)(x)
+        output0 = layers.Dense(self.act_ranges[1]-self.act_ranges[0], activation=activations.linear, name="output0")(h0)
+        output1 = layers.Dense(self.act_ranges[2]-self.act_ranges[1], activation=activations.linear, name="output1")(x)
+        output2 = layers.Dense(self.act_ranges[3]-self.act_ranges[2], activation=activations.linear, name="output2")(x)
+
+        model = models.Model(inputs=inp, outputs=[output0, output1, output2])
         model.compile(optimizers.Adam(self.learning_rate), losses.MeanSquaredError(), metrics=['mse'])
         model.summary()
         return model
@@ -100,14 +103,24 @@ class BDQ(Savable):
         # removing undesirable dimension created by np.array
         current_states = np.squeeze(current_states)
         # array of Q-Values for our initial states
-        current_qs_list = tf.Variable(self.model(current_states)).numpy()
+        # current_qs_list = tf.Variable(self.model(current_states)).numpy()
+        current_qs_list = self.model(current_states)
+        temp = [x.numpy() for x in current_qs_list]
+        current_qs_list = temp
 
         # array of states after step from the minibatch
         next_current_states = np.array([transition[3] for transition in minibatch])
         next_current_states = np.squeeze(next_current_states)
+
         # array of Q-values for our next states
-        next_qs_list = tf.Variable(self.model(next_current_states)).numpy()
-        targ_qs_list = tf.Variable(self.target_model(next_current_states)).numpy()
+        # next_qs_list = tf.Variable(self.model(next_current_states)).numpy()
+        # targ_qs_list = tf.Variable(self.target_model(next_current_states)).numpy()
+        next_qs_list = self.model(next_current_states)
+        temp = [x.numpy() for x in next_qs_list]
+        next_qs_list = temp
+        targ_qs_list = self.target_model(next_current_states)
+        temp = [x.numpy() for x in targ_qs_list]
+        targ_qs_list = temp
 
         for i, (state, actions, reward, next_state, done) in enumerate(minibatch):
             for j, (action) in enumerate(actions):
@@ -125,16 +138,15 @@ class BDQ(Savable):
 
         history = self.model.fit(
             {"input": np_inputs}, 
-            {"output1": np_targets[0], "output2": np_targets[1]}, 
+            {"output0": np_targets[0], "output1": np_targets[1], "output2": np_targets[2]}, 
             batch_size=self.batch_size,
             verbose=0)
 
         self.loss = history.history['loss'][0]
         self.mse = (history.history['output1_mse'][0] + history.history['output2_mse'][0]) / 2
 
-        # If it's the end of an episode, increase the target update counter
-        if done:
-            self.target_update_counter += 1
+        # Increase the target update counter every step
+        self.target_update_counter += 1
 
         # If our target update counter is greater than update_target_every we will
         # update the weights in our target model
@@ -177,7 +189,7 @@ class BDQ(Savable):
         model.predict returns an array of arrays, containing the Q-Values for the actions.
         This function should return the corresponding action with the highest Q-Value.
         """
-        state = np.expand_dims(state, 0)
+        #state = np.expand_dims(state, 0)
         q_values = self.model(state)
 
         return [np.argmax(x) for x in q_values]
@@ -213,7 +225,18 @@ class BDQ(Savable):
         This method is mainly used to enact the decay_epsilon and decay_lr
         at the end of every episode.
         """
-        if self.per_episode_epsilon_decay:
+        if self.per_episode_epsilon_decay and episode >= self.epsilon_decay_ep_start:
+            self.decay_epsilon()
+
+        if episode > self.learning_rate_decay_ep_cutoff and self.learning_rate_decay != 1:
+            self.decay_lr()
+
+    def ep_reset(self, episode=0):
+        """
+        This method is mainly used to enact the decay_epsilon and decay_lr
+        at the end of every episode.
+        """
+        if self.per_episode_epsilon_decay and episode >= self.epsilon_decay_ep_start:
             self.decay_epsilon()
 
         if episode > self.lr_decay_min_ep and self.lr_decay != 1:

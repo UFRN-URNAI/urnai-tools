@@ -3,11 +3,11 @@
     class: ClickGameDeconvWrapper
     params: 
       size_x: 10
-      size_y: 5
+      size_y: 10
   state_builder:
     class: FlatState
     params: 
-      state_dim: 50
+      state_dim: 100
   reward:
     class: PureReward
     params: {}
@@ -15,7 +15,7 @@
     class: ClickGameEnv
     params:
       render: false
-      board_shape: [10, 5]
+      board_shape: [10, 10]
       max_steps: 200
       use_marine: false
       marine_value: 0.1
@@ -24,14 +24,15 @@
     params:
       per_episode_epsilon_decay: true
       batch_size: 32
-      epsilon_decay: 0.998
+      epsilon_decay: 0.992
       epsilon_linear_decay: true
+      epsilon_decay_ep_start: 100
       epsilon_min: 0
       epsilon_start: 0.8
       learning_rate: 0.001
       memory_maxlen: 50000
-      min_memory_size: 128
-      model_layers: [50]
+      min_memory_size: 5000
+      model_layers: [64]
       use_deconv: true
   agent:
     class: GenericAgent
@@ -40,12 +41,12 @@
     class: Trainer
     params:
       save_path: "../agentes-treinados-tcc/click-game"
-      file_name: ddqndeconv-10x5-relu
+      file_name: ddqn-10x10-100n-relu-deconv-4
       save_every: 50
       enable_save: true
       relative_path: true
       reset_epsilon: false
-      max_training_episodes: 300
+      max_training_episodes: 250
       max_steps_training: 300
       max_test_episodes: 100
       max_steps_testing: 300

@@ -448,6 +448,68 @@ class MTBClickProxNeg(RewardBuilder):
         
         return reward
 
+class MTBClickProxNeg2(RewardBuilder):
+    def __init__(self, boost=0.1):
+        self.previous_distance = 100
+        self.boost = boost
+
+    def get_reward(self, obs, reward, done):
+
+        target = self.last_action[1][2]
+
+        beacon = [unit for unit in obs.raw_units if unit.unit_type == 317][0]
+
+        gridwidth = (43 - 22)/(9)
+        gridheight = (43 - 28)/(9)
+
+        if reward == 1:
+            reward = 10
+
+        d = math.hypot(target[0] - beacon.x, target[1] - beacon.y)
+
+        if d < 2.5:
+            reward += 1
+        else:
+            reward -= self.boost
+        
+        return reward
+
+class DRClickProxNeg(RewardBuilder):
+    def get_reward(self, obs, reward, done):
+        roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach]
+
+        try:
+            target = self.last_action[1][2]
+        except:
+            target = [-1, -1]
+        
+        roaches_avg_x = sum([roach.x for roach in roaches])/len(roaches)
+        roaches_avg_y = sum([roach.y for roach in roaches])/len(roaches)
+        d = math.hypot(target[0] - roaches_avg_x, target[1] - roaches_avg_y)
+
+        if d < 3:
+            reward += 0.1
+        if reward == 0:
+            reward = -0.01
+        return reward
+
+class DRProgressiveNeg(RewardBuilder):
+    def __init__(self, multiplier=1.1):
+        self.multiplier = multiplier
+        self.curr_factor = 1
+
+    def get_reward(self, obs, reward, done):
+        
+        if reward > 1:
+            reward = reward * self.curr_factor
+            self.curr_factor = self.curr_factor * self.multiplier
+        if reward == 0:
+            reward = -0.01
+        return reward
+
+    def reset(self):
+        self.curr_factor = 1
+
 class NegativeTimerReward(RewardBuilder):
     def get_reward(self, obs, reward, done):
         if reward == 0:

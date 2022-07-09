@@ -962,6 +962,84 @@ class MoveToBeaconActionWrapper(TerranWrapper):
         action = attack_target_point_spatial(marines, target)[0]
         return action
 
+class DefeatRoaches(TerranWrapper):
+    def __init__(self, x_gridsize=10, y_gridsize=10, random_uniform=False, focus_weak=False):
+        SC2Wrapper.__init__(self)
+
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+        self.focus_weak = focus_weak
+
+        self.named_actions = []
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, self.x_gridsize, self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        x, y = action_idx
+
+        adjusted_x = x - self.multi_output_ranges[0]
+        adjusted_y = y - self.multi_output_ranges[1]
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x + (gridwidth / 2))
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y + (gridheight / 2))
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        #return sc2.no_op()
+        if self.focus_weak:
+            return self.attackpointfocusweak(obs, xtarget, ytarget)
+        else:
+            return self.attackpoint(obs, xtarget, ytarget)
+
+    def attackpoint(self, obs, x, y):
+        target = [x, y]
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+
+    def attackpointfocusweak(self, obs, x, y):
+        target = [x, y]
+        roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach]
+        roaches_avg_x = sum([roach.x for roach in roaches])/len(roaches)
+        roaches_avg_y = sum([roach.y for roach in roaches])/len(roaches)
+        d = math.hypot(target[0] - roaches_avg_x, target[1] - roaches_avg_y)
+        max_h = 255
+        close_roaches = []
+        for roach in roaches:
+            d = math.hypot(target[0] - roach.x, target[1] - roach.y)
+            if d < 3:
+                close_roaches.append(roach)
+
+        for roach in close_roaches:
+            if roach.health_ratio < max_h:
+                target = [roach.x, roach.y]
+                max_h = roach.health_ratio
+
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+
 class DefeatRoachesSimplified(TerranWrapper):
     def __init__(self, x_gridsize=10, y_gridsize=10, random_uniform=True):
         SC2Wrapper.__init__(self)
@@ -1091,6 +1169,104 @@ class DefeatRoachesSimplified_noop(TerranWrapper):
         target = [x, y]
         marines = get_units_by_type(obs, units.Terran.Marine)
         action = move_target_point_spatial(marines, target)[0]
+        return action
+
+class DefeatRoaches2Act(TerranWrapper):
+    def __init__(self, x_gridsize=10, y_gridsize=10, random_uniform=False, bdq=False):
+        SC2Wrapper.__init__(self)
+
+        self.x_gridsize = int(x_gridsize)
+        self.y_gridsize = int(y_gridsize)
+        self.top_left_x = 22
+        self.top_left_y = 28
+        self.bottom_right_x = 43
+        self.bottom_right_y = 43
+        self.random_uniform = random_uniform
+        self.marine_health_dict = {}
+        self.bdq = bdq
+
+        self.named_actions = []
+
+        self.named_actions.append("attackpoint")
+        self.named_actions.append("movehurt")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, 2, 2+self.x_gridsize, 2+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_action(self, action_idx, obs):
+        action, x, y = action_idx
+
+        if not self.bdq:
+            adjusted_x = x - self.multi_output_ranges[1]
+            adjusted_y = y - self.multi_output_ranges[2]
+        else:
+            adjusted_x = x
+            adjusted_y = y
+
+        gridwidth = (self.bottom_right_x - self.top_left_x)/self.x_gridsize
+        gridheight = (self.bottom_right_y - self.top_left_y)/self.y_gridsize
+
+        xtarget = int((adjusted_x*gridwidth) + self.top_left_x)
+        ytarget = int((adjusted_y*gridheight) + self.top_left_y)
+
+        hurt_marines = []
+        marines = [unit for unit in obs.raw_units if unit.unit_type == units.Terran.Marine]
+        for marine in marines:
+            if marine.tag in self.marine_health_dict.keys():
+                if self.marine_health_dict[marine.tag] > marine.health_ratio:
+                    hurt_marines.append(marine)
+                    self.marine_health_dict[marine.tag] = marine.health_ratio
+            else:
+                self.marine_health_dict[marine.tag] = marine.health_ratio
+
+        if self.random_uniform:
+            xtarget += random.uniform(0, gridwidth)
+            ytarget += random.uniform(0, gridheight)
+
+        if action == 0:
+            return self.attackpoint(obs, xtarget, ytarget)
+        elif action == 1:
+            if len(hurt_marines) == 0:
+                #return self.attackpoint(obs, xtarget, ytarget)
+                return sc2.no_op()
+            else:
+                return self.movehurt(hurt_marines, xtarget, ytarget)
+
+    def attackpoint(self, obs, x, y):
+        target = [x, y]
+        roaches = [unit for unit in obs.raw_units if unit.unit_type == units.Zerg.Roach]
+        roaches_avg_x = sum([roach.x for roach in roaches])/len(roaches)
+        roaches_avg_y = sum([roach.y for roach in roaches])/len(roaches)
+        d = math.hypot(target[0] - roaches_avg_x, target[1] - roaches_avg_y)
+        max_h = 255
+        close_roaches = []
+        for roach in roaches:
+            d = math.hypot(target[0] - roach.x, target[1] - roach.y)
+            if d < 3:
+                close_roaches.append(roach)
+
+        for roach in close_roaches:
+            if roach.health_ratio < max_h:
+                target = [roach.x, roach.y]
+                max_h = roach.health_ratio
+
+        marines = get_units_by_type(obs, units.Terran.Marine)
+        action = attack_target_point_spatial(marines, target)[0]
+        return action
+    
+    def movehurt(self, hurtmarines, x, y):
+        target = [x, y]
+        action = move_target_point_spatial(hurtmarines, target)[0]
         return action
 
 class DefeatRoachesFull(TerranWrapper):

@@ -1,9 +1,9 @@
 - action_wrapper:
-    class: MoveToBeaconActionWrapper
+    class: DefeatRoaches
     params:
       random_uniform: false
-      x_gridsize: 10
-      y_gridsize: 10
+      x_gridsize: 4
+      y_gridsize: 4
   agent:
     class: SC2Agent
     params: {}
@@ -12,50 +12,46 @@
     params:
       difficulty: very_easy
       enemy_race: terran
-      map_name: MoveToBeacon
-      minimap_shape:
-      - 10
-      - 10
+      map_name: DefeatRoaches
       player_race: terran
       realtime: false
       render: false
-      screen_shape:
-      - 22
-      - 16
       step_mul: 16
   model:
     class: DDQNKerasMO
     params:
       batch_size: 32
-      epsilon_decay: 0.986
-      epsilon_decay_ep_start: 100
+      epsilon_decay: 0.9946
+      epsilon_decay_ep_start: 200
       epsilon_linear_decay: true
-      epsilon_min: 0
+      epsilon_min: 0.05
       epsilon_start: 0.8
       learning_rate: 0.001
-      memory_maxlen: 50000
-      min_memory_size: 6000
+      memory_maxlen: 160000
+      min_memory_size: 5000
+      update_target_every: 250
       model_layers:
-      - 90
+      - 40
+      - 30
+      - 20
       per_episode_epsilon_decay: true
   reward:
-    class: MTBClickProxNeg
+    class: NegativeTimerReward
     params: {}
   state_builder:
-    class: MiniGameGridState
-    params:
-      marine_value: 0.05
+    class: DefeatRoachesState
+    params: {}
   trainer:
     class: Trainer
     params:
       enable_save: true
-      file_name: grid-90n-sigmoid
-      max_steps_testing: 400
-      max_steps_training: 400
+      file_name: 4x4-negtimer-statestep-40n20n-relu-2
+      max_steps_testing: 300
+      max_steps_training: 300
       max_test_episodes: 100
-      max_training_episodes: 250
+      max_training_episodes: 1200
       relative_path: true
       reset_epsilon: false
-      rolling_avg_window_size: 20
-      save_every: 50
-      save_path: ../agentes-treinados-tcc/move-to-beacon
+      rolling_avg_window_size: 50
+      save_every: 100
+      save_path: ../agentes-treinados-tcc/defeat-roaches

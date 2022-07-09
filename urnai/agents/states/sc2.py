@@ -806,16 +806,49 @@ class MiniGameGridState(StateBuilder):
         raw_units = [unit for unit in obs.raw_units]
 
         gridwidth = (self.bottom_right[0] - self.top_left[0])/(self.x_gridsize-1) #2.333
-        gridheight = (self.bottom_right[1] - self.top_left[1])/(self.y_gridsize-1) #1.666
+        gridheight = (self.bottom_right[1] - self.top_left[1])/(self.y_gridsize-1) #1.666 #2.143
 
         for i in range(0, len(raw_units)):
-            x = round((raw_units[i].x - self.top_left[0])/gridwidth)
-            y = round((raw_units[i].y - self.top_left[1])/gridheight)
-            
+            x = min(self.x_gridsize-1, math.floor((raw_units[i].x - self.top_left[0])/gridwidth))
+            y = min(self.y_gridsize-1, math.floor((raw_units[i].y - self.top_left[1])/gridheight))
+
             if raw_units[i].unit_type == units.Terran.Marine:
                 grid[y][x] += self.marine_value
             else:
                 grid[y][x] += 1
+
+        state = grid.flatten()
+        state = np.expand_dims(state, axis=0)
+        return state
+
+    def get_state_dim(self):
+        return self.state_size
+
+class MiniGameGridStateCorrect(StateBuilder):
+    def __init__(self, x_gridsize=10, y_gridsize=10, top_left=[22, 28], bottom_right=[43, 43], marine_value=0.1):
+        self.x_gridsize = x_gridsize
+        self.y_gridsize = y_gridsize
+        self.state_size = x_gridsize*y_gridsize
+        self.top_left = top_left
+        self.bottom_right = bottom_right
+        self.marine_value = marine_value
+    
+    def build_state(self, obs):
+        grid = np.zeros((self.x_gridsize, self.y_gridsize))
+
+        raw_units = [unit for unit in obs.raw_units]
+
+        gridwidth = (self.bottom_right[0] - self.top_left[0])/(self.x_gridsize-1) #2.333
+        gridheight = (self.bottom_right[1] - self.top_left[1])/(self.y_gridsize-1) #1.666 #2.143
+
+        for i in range(0, len(raw_units)):
+            x = min(self.x_gridsize-1, math.floor((raw_units[i].x - self.top_left[0])/gridwidth))
+            y = min(self.y_gridsize-1, math.floor((raw_units[i].y - self.top_left[1])/gridheight))
+
+            if raw_units[i].unit_type == units.Terran.Marine:
+                grid[x][y] += self.marine_value
+            else:
+                grid[x][y] += 1
 
         state = grid.flatten()
         state = np.expand_dims(state, axis=0)
@@ -866,12 +899,15 @@ class DefeatRoachesState(StateBuilder):
             state[14+i][1] = (roaches[i].x-22)/21
             state[14+i][2] = (roaches[i].y-28)/15
 
+        game_step = (obs.game_loop[-1] / obs.step_mul) / 120
+
         flat_state = state.flatten()
+        flat_state = np.append(flat_state, [game_step])
         final_state = np.expand_dims(flat_state, axis=0)
         return final_state
 
     def get_state_dim(self):
-        return 18*3
+        return 18*3 + 1 
 
 class DefeatRoachesState_simple(StateBuilder):
     def build_state(self, obs):

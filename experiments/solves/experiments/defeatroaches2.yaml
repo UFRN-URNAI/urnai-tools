@@ -1,0 +1,57 @@
+---
+- action_wrapper:
+    class: DefeatRoaches2Act
+    params:
+      x_gridsize: 10
+      y_gridsize: 7
+      random_uniform: false
+      bdq: true
+  state_builder:
+    class: MiniGameGridState
+    params: 
+      marine_value: 0.05
+      y_gridsize: 7
+  reward:
+    class: DRClickProxNeg
+    params: {}
+  env:
+    class: SC2Env
+    params:
+      map_name: DefeatRoaches
+      realtime: false
+      render: false
+      step_mul: 8
+      player_race: terran
+      enemy_race: terran
+      difficulty: very_easy
+  model:
+    class: BDQ
+    params:
+      learning_rate: 0.001
+      per_episode_epsilon_decay: true
+      epsilon_linear_decay: true
+      epsilon_decay_ep_start: 200
+      epsilon_decay: 0.9946
+      epsilon_start: 0.8
+      epsilon_min: 0.05
+      memory_maxlen: 80000
+      min_memory_size: 5000
+      batch_size: 32
+      model_layers: [90, 4]
+  agent:
+    class: SC2Agent
+    params: {}
+  trainer:
+    class: Trainer
+    params:
+      save_path: "../agentes-treinados-tcc/defeat-roaches"
+      file_name: bdq-clickproxneg-2act-90n4n-relu-step8-2
+      save_every: 50
+      enable_save: true
+      relative_path: true
+      reset_epsilon: false
+      max_training_episodes: 1200
+      max_steps_training: 300
+      max_test_episodes: 100
+      max_steps_testing: 300
+      rolling_avg_window_size: 20

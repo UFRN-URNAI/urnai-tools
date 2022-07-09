@@ -42,6 +42,53 @@ class ClickGameWrapper(ActionWrapper):
         #return sc2.no_op()
         return [adjusted_x, adjusted_y]
 
+class CGSubdivWrapper(ActionWrapper):
+
+    def __init__(self, x_gridsize=10, y_gridsize=10):
+        self.x_gridsize = int(x_gridsize/2)
+        self.y_gridsize = int(y_gridsize/2)
+
+        self.named_actions = []
+
+        self.named_actions.append("x_g0")
+        self.named_actions.append("x_g1")
+
+        for i in range (self.x_gridsize):
+            self.named_actions.append("x"+str(i))
+
+        self.named_actions.append("y_g0")
+        self.named_actions.append("y_g1")
+
+        for i in range (self.y_gridsize):
+            self.named_actions.append("y"+str(i))
+
+        self.multi_output_ranges = [0, 2, 2+self.x_gridsize, 2+2+self.x_gridsize, 2+2+self.x_gridsize+self.y_gridsize]
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+    def is_action_done(self):
+        return True
+
+    def reset(self):
+        pass
+
+    def get_actions(self):
+        return self.action_indices
+
+    def get_excluded_actions(self, obs):
+        return []
+
+    def get_action(self, action_idx, obs):
+        gx, x, gy, y = action_idx
+
+        x = x - self.multi_output_ranges[1]
+        gy = gy - self.multi_output_ranges[2]
+        y = y - self.multi_output_ranges[3]
+
+
+        #return sc2.no_op()
+        return [(gx*self.x_gridsize) + x, (gy*self.y_gridsize) + y]
+
 class ClickGameBDQWrapper(ActionWrapper):
 
     def __init__(self, x_gridsize=10, y_gridsize=10):

@@ -68,10 +68,14 @@ class DDQN_Deconv(Savable):
         # for layer_size in self.model_layers:
         #     model.add(layers.Dense(layer_size, activation=activations.relu))
         
-        model.add(layers.Reshape((10, 5, 1)))
-        model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
-        model.add(layers.Conv2D(16, 3, activation=activations.relu, padding='same'))
-        model.add(layers.Conv2D(1, 3, activation=activations.relu, padding='same'))
+        model.add(layers.Reshape((10, 10, 1)))
+        model.add(layers.Conv2D(16, 3, activation=activations.relu))
+        model.add(layers.MaxPooling2D())
+        model.add(layers.Conv2D(32, 3, activation=activations.relu))
+        model.add(layers.Conv2DTranspose(32, 3, activation=activations.relu))
+        model.add(layers.UpSampling2D())
+        model.add(layers.Conv2DTranspose(16, 3, activation=activations.relu))
+        model.add(layers.Conv2DTranspose(1, 3, activation=activations.relu, padding='same'))
 
         model.compile(optimizer=optimizers.Adam(learning_rate=self.learning_rate), loss='mse', metrics=['mse'])
         model.summary()
