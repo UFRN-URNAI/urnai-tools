@@ -8,26 +8,15 @@ def is_optional_enabled(optional):
 
 
 # Dependencies versions
-VERSION_ABSL = '==0.9.0'
-VERSION_GYM = '==0.10.11'
-VERSION_TF = '==2.5.0'
-VERSION_NUMPY = '==1.18.4'
-VERSION_MATPLOTLIB = '==3.2.0'
-VERSION_KERAS = '==2.3.1'
-VERSION_PYSC2 = '==3.0.0'
-VERSION_PANDAS = '==1.0.1'
-VERSION_PSUTIL = '==5.7.2'
-
-# Newer versions
-# VERSION_ABSL = '0.12'
-# VERSION_GYM = '==0.18'
-# VERSION_TF = '==2.4'
-# VERSION_NUMPY = '==1.19'
-# VERSION_MATPLOTLIB = '==3.3'
-# VERSION_KERAS = '==2.4'
-# VERSION_PYSC2 = '==3.0.0'
-# VERSION_PANDAS = '==1.1.5'
-# VERSION_PSUTIL = '==5.7.2'
+VERSION_ABSL = '>=1.2.0'
+VERSION_GYM = '>=0.26.1'
+VERSION_TF = '>=2.6.0'
+VERSION_NUMPY = '>=1.23.0'
+VERSION_MATPLOTLIB = '>=3.6.0'
+VERSION_KERAS = '>=2.6.0'
+VERSION_PYSC2 = '>=3.0.0'
+VERSION_PANDAS = '>=1.5.0'
+VERSION_PSUTIL = '>=5.9.2'
 
 VERSION_VIZDOOM = ''
 VERSION_DRTS = 'stable'
@@ -82,6 +71,7 @@ setup(
     install_requires=[
         'absl-py' + VERSION_ABSL,
         'gym' + VERSION_GYM,
+        'protobuf<3.20,>=3.9.2',
         tf,
         'numpy' + VERSION_NUMPY,
         'matplotlib' + VERSION_MATPLOTLIB,
