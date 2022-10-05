@@ -233,7 +233,7 @@ implementation of the necessary methods.
 
 Below we give a brief overview of some of URNAI modules, such as the Agent, the Model, and the
 Environment modules. Beyond that, you can take a look at a full overview of URNAI's
-architecture [here](./docs/diagrams/arch.png).
+architecture [here](./docs/diagrams/output/component/arch.png).
 
 ### Building a new agent for a supported environment
 
