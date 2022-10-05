@@ -22,7 +22,7 @@ new users take a look at our [solve files](./urnai/solves) to start their own ex
 
 ### Prerequisites
 
-- Python 3.6
+- Python 3.10
 - Python 3 PIP
 
 ### Installation
