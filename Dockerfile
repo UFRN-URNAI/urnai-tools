@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.10
 
 # Install requirements
 RUN pip3 install --upgrade pip
