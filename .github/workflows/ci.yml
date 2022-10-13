@@ -1,15 +1,21 @@
 ---
-name: Run tests
+name: Linting and Unit-test
 
 on:
   push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: make lint
+
   test:
     name: Run unit tests
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
