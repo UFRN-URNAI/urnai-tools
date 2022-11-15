@@ -1,7 +1,7 @@
 import os
 
 import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPooling2D
+from tensorflow.keras.layers import *
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
@@ -105,9 +105,7 @@ class KerasDeepNeuralNetwork(ABNeuralNetwork):
         self.model.add(Flatten())
 
     def update(self, state, target_output):
-        # loss = self.model.fit(state, target_output, batch_size=self.batch_size, shuffle=False,
-        #                       verbose=0)
-        pass
+        loss = self.model.fit(state, target_output, batch_size=self.batch_size, shuffle=False, verbose=0)
 
     def get_output(self, state):
         # return self.model.predict(state)
@@ -196,3 +194,50 @@ class KerasDNNEligibilityTraces(KerasDeepNeuralNetwork):
 
     def reset_e_trace(self):
         self.model.reset_e_trace()
+
+class KerasMultiGPUExample(KerasDeepNeuralNetwork):
+    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed=None,
+                 batch_size=32):
+        self.strategy = tf.distribute.MirroredStrategy()
+        super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed,
+                            batch_size*self.strategy.num_replicas_in_sync)
+    
+    def make_model(self):
+        with self.strategy.scope():
+            self.model = Sequential()
+
+            self.model.add(Dense(84, activation='relu', input_dim=self.state_input_shape))
+            self.model.add(Dense(self.action_output_size, activation='relu'))
+
+            self.model.compile(optimizer=Adam(lr=self.alpha), loss='mse', metrics=['accuracy'])
+    
+    def update(self, state, target_output):
+        self.model.fit(state, target_output, shuffle=False, verbose=0)
+
+    def get_model_layout(self):
+        return self.model
+
+class KerasCNN(KerasDeepNeuralNetwork):
+    def __init__(self, action_output_size, state_input_shape, build_model, gamma, alpha, seed=None,
+                 batch_size=32):
+        self.strategy = tf.distribute.MirroredStrategy()
+        super().__init__(action_output_size, state_input_shape, build_model, gamma, alpha, seed,
+                            batch_size*self.strategy.num_replicas_in_sync)
+
+    def make_model(self):
+        with self.strategy.scope():
+            self.model = Sequential()
+
+            self.model.add(Conv2D(32, (3,3), activation='relu', padding='same', input_shape=(64,64,3)))
+            self.model.add(MaxPooling2D(pool_size=(2,2), strides=2, padding='same'))
+            self.model.add(Conv2D(64, (3,3), activation='relu', padding='same'))
+            self.model.add(MaxPooling2D(pool_size=(2,2), strides=2, padding='same'))
+            self.model.add(Flatten())
+            self.model.add(Dense(84, activation='relu'))
+            self.model.add(Dense(84, activation='relu'))
+            self.model.add(Dense(self.action_output_size, activation='relu'))
+
+            self.model.compile(optimizer=Adam(lr=self.alpha), loss='mse', metrics=['accuracy'])
+
+    def get_model_layout(self):
+        return self.model
