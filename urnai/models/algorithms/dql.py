@@ -122,6 +122,7 @@ class DeepQLearning(LearningModel):
             neural_net_class=None,
             epsilon_linear_decay=False,
             lr_linear_decay=False,
+            epsilon_decay_ep_start=0,
     ):
         super().__init__(
             action_wrapper,
@@ -140,6 +141,7 @@ class DeepQLearning(LearningModel):
             cpu_only,
             epsilon_linear_decay,
             lr_linear_decay,
+            epsilon_decay_ep_start,
         )
 
         self.batch_size = batch_size

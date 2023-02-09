@@ -129,6 +129,7 @@ class DoubleDeepQLearning(DeepQLearning):
             neural_net_class=None,
             epsilon_linear_decay=False,
             lr_linear_decay=False,
+            epsilon_decay_ep_start=0,
     ):
         super().__init__(
             action_wrapper,
@@ -154,6 +155,7 @@ class DoubleDeepQLearning(DeepQLearning):
             neural_net_class,
             epsilon_linear_decay,
             lr_linear_decay,
+            epsilon_decay_ep_start,
         )
 
         self.target_update_counter = 0
