@@ -95,6 +95,10 @@ class Savable(ABC):
         """This method returns the default persistance path."""
         return persist_path + os.path.sep + self.get_default_save_stamp()
 
+    def get_full_persistance_pytorch_path(self, persist_path):
+        """This method returns the default persistance pytorch path."""
+        return persist_path + os.path.sep + self.get_default_save_stamp() + '.pt'
+
     def save(self, savepath):
         """
         This method saves pickle objects

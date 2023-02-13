@@ -184,6 +184,69 @@ class KilledUnitsRewardBoosted(RewardBuilder):
         return new_reward
 
 
+class KilledUnitsRewardImproved(RewardBuilder):
+    def __init__(self):
+
+        self.KILLED_UNIT_SCORE = 0.015
+        self.KILLED_BUIDING_SCORE = 0.02
+        self.PENALTY_DEAD_ALLY = -0.01
+
+        # Properties keep track of the change of values used in our reward system
+        self._previous_killed_unit_score = 0
+        self._previous_killed_building_score = 0
+        self._previous_army_count = 0
+
+    # When the episode is over, the values we use to compute our reward should be reset.
+    def reset(self):
+        self._previous_killed_unit_score = 0
+        self._previous_killed_building_score = 0
+        self._previous_army_count = 0
+
+    def get_reward(self, obs, reward, done):
+        new_reward = 0
+
+        # Rewards
+        if((obs.score_cumulative.killed_value_units - self._previous_killed_unit_score) > 0):
+            new_reward += self.KILLED_UNIT_SCORE
+        if((obs.score_cumulative.killed_value_structures -
+                self._previous_killed_building_score) > 0):
+            new_reward += self.KILLED_BUIDING_SCORE
+        # Penalties
+        if(obs.player.army_count < self._previous_army_count):
+            new_reward += self.PENALTY_DEAD_ALLY
+
+        self._previous_killed_unit_score = obs.score_cumulative.killed_value_units
+        self._previous_killed_building_score = obs.score_cumulative.killed_value_structures
+        self._previous_army_count = obs.player.army_count
+
+        if done:
+            self.reset()
+
+        if reward == 1:
+            new_reward = 10
+        if reward == -1:
+            new_reward = -10
+
+        return new_reward
+
+
+class TStarBotReward(RewardBuilder):
+    """
+    A sparse reward function based on the TStarbot article
+        see more in: https://arxiv.org/pdf/1809.07193.pdf
+    """
+
+    def get_reward(self, obs, reward, done):
+        new_reward = 0
+
+        if reward == 1:
+            new_reward = 1
+        elif reward == -1:
+            new_reward = -1
+
+        return new_reward
+
+
 """
 Ideas for new reward builders or improvements for current ones:
 

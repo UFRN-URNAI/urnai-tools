@@ -57,7 +57,7 @@ class LearningModel(Savable):
                  epsilon_start, epsilon_min, epsilon_decay_rate, per_episode_epsilon_decay=False,
                  learning_rate_decay_ep_cutoff=0,
                  name=None, seed_value=None, cpu_only=False, epsilon_linear_decay=False,
-                 lr_linear_decay=False):
+                 lr_linear_decay=False, epsilon_decay_ep_start=0):
         super(LearningModel, self).__init__()
 
         self.seed_value = seed_value
@@ -84,6 +84,7 @@ class LearningModel(Savable):
         self.epsilon_decay_rate = epsilon_decay_rate
         self.per_episode_epsilon_decay = per_episode_epsilon_decay
         self.epsilon_linear_decay = epsilon_linear_decay
+        self.epsilon_decay_ep_start = epsilon_decay_ep_start
 
         # self.tensorboard_callback_logdir = ''
         self.tensorboard_callback = None
@@ -143,7 +144,7 @@ class LearningModel(Savable):
         This method is mainly used to enact the decay_epsilon and decay_lr
         at the end of every episode.
         """
-        if self.per_episode_epsilon_decay:
+        if self.per_episode_epsilon_decay and episode >= self.epsilon_decay_ep_start:
             self.decay_epsilon()
 
         if episode > self.learning_rate_decay_ep_cutoff and self.learning_rate_decay != 1:

@@ -4,15 +4,16 @@ from types import SimpleNamespace
 
 import numpy as np
 from pysc2.env import sc2_env
-from pysc2.lib import units
+from pysc2.lib import features, units
 # importing our action set file so that we can use its constants
 import urnai.agents.actions.sc2 as sc2
 from urnai.agents.actions.sc2 import attack_distribute_army, attack_target_point, \
     attack_target_point_spatial, build_gas_structure_raw_unit, build_structure_raw, \
     build_structure_raw_pt, build_structure_raw_pt_spatial, can_queue_unit_terran, effect_units, \
-    get_all_idle_workers, get_free_supply, get_units_by_type, harvest_gather_gas, \
-    harvest_gather_minerals, harvest_gather_minerals_idle, move_target_point_spatial, no_op, \
-    organize_queue, research_upgrade, select_army, train_unit, unit_exists
+    get_all_idle_workers, get_euclidean_distance, get_free_supply, get_units_by_type, \
+    harvest_gather_gas, harvest_gather_minerals, harvest_gather_minerals_idle, \
+    move_target_point_spatial, no_op, organize_queue, research_upgrade, select_army, train_unit, \
+    unit_exists
 
 from .base.abwrapper import ActionWrapper
 
@@ -107,6 +108,8 @@ ACTION_ATTACK_ENEMY_SECOND_BASE = 'attackenemysecondbase'
 ACTION_ATTACK_MY_BASE = 'attackmybase'
 ACTION_ATTACK_MY_SECOND_BASE = 'attackmysecondbase'
 ACTION_ATTACK_DISTRIBUTE_ARMY = 'attackdistributearmy'
+ACTION_ATTACK_NERBY = 'attacknerby'
+
 # Selects random idle scv > sends him to harvest minerals
 ACTION_HARVEST_MINERALS_IDLE = 'harvestmineralsidle'
 ACTION_HARVEST_MINERALS_FROM_GAS = 'harvestmineralsfromgas'
@@ -114,6 +117,7 @@ ACTION_HARVEST_GAS_FROM_MINERALS = 'harvestgasfromminerals'
 
 ACTION_ATTACK_POINT = 'attackpoint'
 ACTION_MOVE_TROOPS_POINT = 'movetroopspoint'
+ACTION_SEND_SCOUT = 'sendscout'
 
 
 class SC2Wrapper(ActionWrapper):
@@ -746,6 +750,17 @@ class TerranWrapper(SC2Wrapper):
         if not gi.has_scv or not gi.has_refinery:
             excluded_actions.append(ACTION_HARVEST_GAS_FROM_MINERALS)
 
+    def attacknerby_exclude(excluded_actions, gi):
+        if not gi.has_marinemarauder or not gi.has_barracks:
+            excluded_actions.append(ACTION_ATTACK_NERBY)
+
+    def attackenemybase_exclude(excluded_actions, gi):
+        if not gi.has_marinemarauder or not gi.has_barracks:
+            excluded_actions.append(ACTION_ATTACK_ENEMY_BASE)
+
+    def attackenemysecondbase_exclude(excluded_actions, gi):
+        if not gi.has_marinemarauder or not gi.has_barracks:
+            excluded_actions.append(ACTION_ATTACK_ENEMY_SECOND_BASE)
     # endregion
 
     # region LIST OF ACTIONS
@@ -1236,6 +1251,29 @@ class TerranWrapper(SC2Wrapper):
         action, self.actions_queue = organize_queue(actions, self.actions_queue)
         return action
 
+    def sendscout(self, obs):
+        target = self.enemy_base_xy
+        if not self.base_top_left:
+            target = (63 - target[0] - 5, 63 - target[1] + 5)
+        idle_worker = get_all_idle_workers(obs, sc2_env.Race.terran)
+        if idle_worker != sc2._NO_UNITS:
+            actions = attack_target_point_spatial(idle_worker, target)
+            action, self.actions_queue = organize_queue(actions, self.actions_queue)
+            return action
+        return no_op()
+
+    def attacknerby(self, obs):
+        targets = [unit for unit in obs.raw_units
+                   if unit.alliance == features.PlayerRelative.ENEMY]
+        troops = select_army(obs, sc2_env.Race.terran)
+        for troop in troops:
+            for target in targets:
+                if get_euclidean_distance([troop.x, troop.y], [target.x, target.y]) < 10:
+                    actions = attack_target_point_spatial(troops, [target.x, target.y])
+                    action, self.actions_queue = organize_queue(actions, self.actions_queue)
+                    return action
+        return no_op()
+
     # endregion
     # endregion
 
@@ -1446,6 +1484,62 @@ class SimpleTerranWrapper(TerranWrapper):
             'missile_turret': 4,
             'sensor_tower': 1,
             'bunker': 4,
+        }
+
+
+class SimpleMarineWrapper(TerranWrapper):
+    def __init__(self, use_atk_grid=False, atk_grid_x=4, atk_grid_y=4):
+        TerranWrapper.__init__(self)
+
+        self.use_atk_grid = use_atk_grid
+        self.atk_grid_x = int(atk_grid_x)
+        self.atk_grid_y = int(atk_grid_y)
+
+        self.named_actions = [
+            ACTION_DO_NOTHING,
+
+            # BUILDING
+            ACTION_BUILD_COMMAND_CENTER,
+            ACTION_BUILD_BARRACKS,
+            ACTION_BUILD_SUPPLY_DEPOT,
+
+            # TRAINS
+            ACTION_TRAIN_SCV,
+            ACTION_TRAIN_MARINE,
+
+            # SCOUT
+            ACTION_SEND_SCOUT,
+
+            # HAVERST
+            ACTION_HARVEST_MINERALS_FROM_GAS,
+        ]
+
+        if self.use_atk_grid:
+            xgridsize = 64/self.atk_grid_x
+            ygridsize = 64/self.atk_grid_y
+
+            for i in range(self.atk_grid_x):
+                for j in range(self.atk_grid_y):
+                    x = xgridsize * (i + 1) - (xgridsize / 2)
+                    y = ygridsize*(j+1) - (ygridsize/2)
+                    self.named_actions.append(ACTION_ATTACK_POINT + '_' + str(x) + '_' + str(y))
+        else:
+            self.named_actions.append(ACTION_ATTACK_NERBY)
+            self.named_actions.append(ACTION_ATTACK_ENEMY_BASE)
+            self.named_actions.append(ACTION_ATTACK_ENEMY_SECOND_BASE)
+
+        self.action_indices = [idx for idx in range(len(self.named_actions))]
+
+        self.building_positions = {
+            'command_center': [[19, 23], [41, 21]],
+            'supply_depot': [[16, 27], [18, 27], [20, 27], [22, 27], [16, 29], [18, 29], [20, 29]],
+            'barracks': [[25, 18], [24, 20], [30, 24]],
+        }
+
+        self.building_amounts = {
+            'command_center': 2,
+            'supply_depot': 7,
+            'barracks': 3,
         }
 
 

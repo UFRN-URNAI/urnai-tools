@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -119,6 +121,22 @@ class PyTorchDeepNeuralNetwork(ABNeuralNetwork):
     def create_base_model(self):
         model = self.SubDeepQNetwork()
         return model
+
+    def save_extra(self, persist_path):
+        torch.save(
+            self.model.model_layers.state_dict(),
+            self.get_full_persistance_pytorch_path(persist_path),
+            )
+
+    def load_extra(self, persist_path):
+        exists = os.path.isfile(self.get_full_persistance_pytorch_path(persist_path))
+
+        if exists:
+            self.__init__(self.action_output_size, self.state_input_shape, self.build_model,
+                          self.gamma, self.alpha, self.seed, self.batch_size)
+            self.model.model_layers.load_state_dict(torch.load(
+                self.get_full_persistance_pytorch_path(persist_path),
+                ))
 
     def copy_model_weights(self, model_to_copy):
         self.model.load_state_dict(model_to_copy.model.state_dict())
