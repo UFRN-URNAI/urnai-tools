@@ -1404,7 +1404,7 @@ class SimpleTerranWrapper(TerranWrapper):
             ACTION_MORPH_UNSIEGE_TANK,
 
             ACTION_TRAIN_SCV,
-            ACTION_CALLDOWN_MULE,
+            #ACTION_CALLDOWN_MULE,
 
             ACTION_TRAIN_MARINE,
             ACTION_TRAIN_MARAUDER,
