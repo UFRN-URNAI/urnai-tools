@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=all
 
 if [ -e config.json ]; then
     # load variables from config.json
