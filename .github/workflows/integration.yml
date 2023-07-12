@@ -1,0 +1,24 @@
+---
+name: Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+      - v2
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: urnai/linter:latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: git config --global --add safe.directory $GITHUB_WORKSPACE
+      - run: lint-commit origin/v2
+      - run: lint-yaml
+      - run: lint-shell-script
+      - run: lint-dockerfile
+      - run: lint-python urnai

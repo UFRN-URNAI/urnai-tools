@@ -4,7 +4,7 @@ ROOT=$(shell pwd)
 
 ## Lint
 DOCKER_LINTER_IMAGE=urnai/linter:latest
-LINT_COMMIT_TARGET_BRANCH=origin/master
+LINT_COMMIT_TARGET_BRANCH=origin/v2
 
 ## Test
 TEST_CONTAINER_NAME=${PACKAGE_NAME}_test
@@ -25,10 +25,12 @@ install-hooks:
 
 .PHONY: lint
 lint:
-	@docker pull ${DOCKER_LINTER_IMAGE}
 	@docker run --rm -v ${ROOT}:/app ${DOCKER_LINTER_IMAGE} " \
 		lint-commit ${LINT_COMMIT_TARGET_BRANCH} \
 		&& lint-markdown \
+		&& lint-yaml \
+		&& lint-shell-script \
+		&& lint-dockerfile \
 		&& lint-python urnai"
 
 .PHONY: test
