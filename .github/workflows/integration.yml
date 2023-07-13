@@ -18,6 +18,7 @@ jobs:
           fetch-depth: 0
       - run: git config --global --add safe.directory $GITHUB_WORKSPACE
       - run: lint-commit origin/v2
+      - run: lint-markdown
       - run: lint-yaml
       - run: lint-shell-script
       - run: lint-dockerfile
