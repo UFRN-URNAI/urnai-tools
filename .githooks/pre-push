@@ -10,9 +10,9 @@ alertMessages() {
   warning "Please fix those $1 before pushing your branch"
 }
 
-if make lint
+if task lint
 then
-  if make test-coverage
+  if task test-coverage
   then
     exit 0
   else
