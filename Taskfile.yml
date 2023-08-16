@@ -1,0 +1,66 @@
+---
+version: '3'
+
+env:
+  PACKAGE_NAME: urnai
+  DOCKER_LINTER_IMAGE: urnai/linter:latest
+  LINT_COMMIT_TARGET_BRANCH: origin/v2
+  TEST_CONTAINER_NAME: urnai_test
+  ROOT:
+    sh: pwd
+  CMD_DOCKER_RUN: docker run --rm
+  VIRTUAL_ENVIRONMENT: urnai_env
+
+tasks:
+  build:
+    desc: Builds the Docker image.
+    deps: [ config-hooks ]
+    cmds:
+      - docker build -t ${PACKAGE_NAME} .
+
+  build-no-cache:
+    desc: Builds the Docker image without using cache.
+    deps: [ config-hooks ]
+    cmds:
+      - docker build --no-cache -t ${PACKAGE_NAME} .
+
+  config-hooks:
+    desc: Configure git hooks.
+    cmds:
+      - git config core.hooksPath .githooks
+
+  lint:
+    desc: Applies the linters.
+    cmds:
+      - docker pull ${DOCKER_LINTER_IMAGE}
+      - |
+        ${CMD_DOCKER_RUN} -v ${ROOT}:/app ${DOCKER_LINTER_IMAGE} " \
+          lint-commit ${LINT_COMMIT_TARGET_BRANCH} \
+          && lint-markdown \
+          && lint-yaml \
+          && lint-shell-script \
+          && lint-dockerfile \
+          && lint-python urnai"
+
+  run:
+    desc: Runs a specific Python file.
+    cmds:
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} python {{.CLI_ARGS}}
+
+  shell:
+    desc: Runs the shell of a container.
+    cmds:
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp -it ${PACKAGE_NAME} /bin/bash
+
+  test-coverage:
+    desc: Check the test coverage report.
+    cmds:
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} "coverage report -m"
+
+  unit-test:
+    desc: Runs the unit tests.
+    cmds:
+      - |
+        ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp \
+          --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
+          "coverage run -m pytest tests"

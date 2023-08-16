@@ -1,0 +1,16 @@
+--- # yamllint disable-line rule:new-lines
+version: 1
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip=23.2.1
+  - wandb=0.15.8
+  - pytorch=2.0.0
+  - stable-baselines3=2.0.0
+  - pytest=7.4.0
+  - coverage=7.2.7
+  - pip:
+      - pysc2==4.0.0
+platforms:
+  - linux-64

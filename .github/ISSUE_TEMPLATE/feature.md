@@ -2,8 +2,8 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: enhancement, under-review
-assignees: @UFRN-URNAI/URNAI
+labels: enhancement
+assignees: ''
 ---
 
 # Feature request title
