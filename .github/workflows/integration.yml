@@ -1,3 +1,4 @@
+# yamllint disable rule:new-lines
 ---
 name: Integration
 
@@ -23,3 +24,4 @@ jobs:
       - run: lint-shell-script
       - run: lint-dockerfile
       - run: lint-python urnai
+# yamllint enable
