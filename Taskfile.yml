@@ -1,4 +1,3 @@
-# yamllint disable rule:new-lines
 ---
 version: '3'
 
@@ -65,4 +64,3 @@ tasks:
         ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp \
           --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
           coverage run -m pytest tests
-# yamllint enable
