@@ -19,19 +19,24 @@ class EnvironmentBase(ABC):
 
     @abstractmethod
     def start(self) -> None:
-        """Start the environment. The implementation should assign the value of env_instance."""
+        """
+        Start the environment.
+        The implementation should assign the value of env_instance.
+        """
         ...
 
     @abstractmethod
     def step(self, action) -> Tuple[List[Any], int, bool]:
-        """Execute an action on the environment and returns an [Observation, Reward, Done] tuple."""
+        """
+        Execute an action on the environment and returns an
+        [Observation, Reward, Done] tuple.
+        """
         ...
 
     @abstractmethod
     def reset(self) -> List[Any]:
         """
         Reset the environment.
-
         This method should return an Observation, since it's used by the
         Trainer to get the first Observation.
         """
@@ -39,5 +44,7 @@ class EnvironmentBase(ABC):
 
     @abstractmethod
     def close(self) -> None:
-        """Close the environment."""
+        """
+        Close the environment.
+        """
         ...

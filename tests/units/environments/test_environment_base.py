@@ -1,6 +1,8 @@
-from abc import ABCMeta
-from urnai.environments.environment_base import EnvironmentBase
 import unittest
+from abc import ABCMeta
+
+from urnai.environments.environment_base import EnvironmentBase
+
 
 class TestEnvironmentBase(unittest.TestCase):
 

@@ -40,7 +40,7 @@ tasks:
           && lint-yaml \
           && lint-shell-script \
           && lint-dockerfile \
-          && lint-python urnai"
+          && lint-python ."
 
   run:
     desc: Runs a specific Python file.
