@@ -12,7 +12,7 @@ alertMessages() {
 
 if task lint
 then
-  if task test-coverage
+  if task unit-test test-coverage
   then
     exit 0
   else

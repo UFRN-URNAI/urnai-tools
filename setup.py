@@ -1,7 +1,6 @@
 from setuptools import find_packages, setup
 
-
-with open('README.md', 'r') as fh:
+with open('README.md') as fh:
     long_description = fh.read()
 
 setup(
@@ -17,7 +16,8 @@ setup(
         'console_scripts': ['urnai=urnai.urnai_cmd:main'],
     },
     version='2.0-prev',
-    description='A modular Deep Reinforcement Learning toolkit that supports multiple environments,'
+    description='A modular Deep Reinforcement Learning toolkit that'
+                'supports multiple environments,'
                 'such as PySC2, OpenAI Gym, ViZDoom and DeepRTS.',
     long_description=long_description,
     author='UFRN-IMD-URNAITeam',

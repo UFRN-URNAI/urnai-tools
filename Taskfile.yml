@@ -40,7 +40,7 @@ tasks:
           && lint-yaml \
           && lint-shell-script \
           && lint-dockerfile \
-          && lint-python urnai"
+          && lint-python ."
 
   run:
     desc: Runs a specific Python file.
@@ -55,7 +55,7 @@ tasks:
   test-coverage:
     desc: Check the test coverage report.
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} "coverage report -m"
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} coverage report -m
 
   unit-test:
     desc: Runs the unit tests.
@@ -63,4 +63,4 @@ tasks:
       - |
         ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp \
           --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
-          "coverage run -m pytest tests"
+          coverage run -m pytest tests
