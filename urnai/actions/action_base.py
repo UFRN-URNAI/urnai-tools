@@ -1,25 +1,25 @@
 from abc import ABC, abstractmethod
 
-from urnai.utils.returns import ActionIndex, List
-
 
 class ActionBase(ABC):
+	
+	def __init__(self, id):
+		self.id = id
+	
+	@abstractmethod
+	def run(self):
+		"""Contains logic for executing the action"""
+		...
+	
+	@abstractmethod
+	def check(self, obs) -> bool:
+		"""Returns whether the action can be executed or not"""
+		...
+	
+	@abstractmethod
+	def is_complete(self) -> bool:
+		"""Returns whether the action has finished or not"""
+		...
 		
-	@abstractmethod
-	def get_action(self, action_idx: ActionIndex, obs):
-		"""
-		Receives an action index as a parameter and returns the corresponding action from the 
-		available actions. This method should return an action
-		that can be used by the environment's step method.
-		"""
-		...
-	
-	@abstractmethod
-	def clear_queue(self):
-		...
-	
-	@abstractmethod
-	def is_queue_empty(self) -> bool:
-		...
 	
 
