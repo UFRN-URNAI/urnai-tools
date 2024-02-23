@@ -1,23 +1,61 @@
 from abc import ABC, abstractmethod
 
-from urnai.utils.returns import ActionIndex, List
+from urnai.utils.returns import List
+from action_base import ActionBase
 
 
-class ChainOfActionsBase(ABC): 
+class ChainOfActionsBase(ABC):
+
+	"""This class works as a sequence of actions"""
 
 	@abstractmethod
-	def get_actions(self) -> List[ActionIndex]:
-		"""Returns all the actions that the agent can choose from."""
+	def get_actions(self) -> List[ActionBase]:
+		"""Returns all the actions in the sequence."""
 		...
 	
 	@abstractmethod
-	def get_excluded_actions(self, obs) -> List[ActionIndex]:
-		"""Returns a subset of actions that can't be chosen by the agent."""
+	def get_first(self) -> ActionBase:
+		"""Returns the first action in the sequence"""
 		...
 	
-	def get_named_actions(self) -> List[str]:
-		"""Returns the names of all the actions that the agent can choose from."""
-		return None
+	@abstractmethod
+	def add_action(self, action: ActionBase):
+		"""Contains logic for adding an action to the sequence"""
+		...
+		
+	@abstractmethod
+	def remove_action(self, action: ActionBase):
+		"""Contains logic for removing an action from the sequence"""
+		...
+		
+	@abstractmethod
+	def clear():
+		...
+	
+	@abstractmethod
+	def merge(self, chain_of_actions):
+		"""Contains logic for merging a list of sequences of actions into self"""
+		...
+	
+	# Executing the next action in the sequence
+	def next(self):
+		if (self.get_len() == 0): return None
+	
+		first_action = self.get_first()
+		
+		if first_action.is_complete():
+			self.remove_action(first_action)
+			self.next()
+		else:
+			first_action.run()
+	
+	# Checking all of the actions in the sequence
+	def check(self) -> bool:
+		actions = self.get_actions()
+		for a in actions:
+			if not a.check(): return False
+			
+		return True
 
-	def get_action_space_dim(self):
+	def get_len(self):
 		return len(self.get_actions())
