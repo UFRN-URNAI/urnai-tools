@@ -13,11 +13,11 @@ class TestStateBase(unittest.TestCase):
             def __init__(self):
                 super().__init__()
 
-        f = FakeState()
-        update_return = f.update("observation")
-        state = f.get_state
-        dimension = f.get_dimension
-        reset_return = f.reset()
+        fake_state = FakeState()
+        update_return = fake_state.update("observation")
+        state = fake_state.state
+        dimension = fake_state.dimension
+        reset_return = fake_state.reset()
         assert isinstance(StateBase, ABCMeta)
         assert update_return is None
         assert state is None

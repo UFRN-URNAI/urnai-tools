@@ -22,13 +22,13 @@ class StateBase(ABC):
 
     @property
     @abstractmethod
-    def get_state(self):
+    def state(self):
         """Returns the State currently saved."""
         pass
 
     @property
     @abstractmethod
-    def get_dimension(self):
+    def dimension(self):
         """Returns the dimensions of the States returned by the update method."""
         pass
 
