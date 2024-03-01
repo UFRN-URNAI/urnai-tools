@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
-from urnai.utils.returns import List
 from action_base import ActionBase
+
+from urnai.utils.returns import List
 
 
 class ChainOfActionsBase(ABC):
@@ -39,7 +40,8 @@ class ChainOfActionsBase(ABC):
 	
 	# Executing the next action in the sequence
 	def next(self):
-		if (self.get_len() == 0): return None
+		if (self.get_len() == 0): 
+			return None
 	
 		first_action = self.get_first()
 		
@@ -52,10 +54,7 @@ class ChainOfActionsBase(ABC):
 	# Checking all of the actions in the sequence
 	def check(self) -> bool:
 		actions = self.get_actions()
-		for a in actions:
-			if not a.check(): return False
-			
-		return True
+		return all(a.check() for a in actions)
 
 	def get_len(self):
 		return len(self.get_actions())
