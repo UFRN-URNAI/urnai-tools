@@ -2,13 +2,11 @@ from abc import ABC, abstractmethod
 
 
 class ActionBase(ABC):
-	
-	def __init__(self, id):
-		self.id = id
+	id = None
 	
 	@abstractmethod
 	def run(self):
-		"""Contains logic for executing the action"""
+		"""Executing the action"""
 		...
 	
 	@abstractmethod
@@ -20,6 +18,3 @@ class ActionBase(ABC):
 	def is_complete(self) -> bool:
 		"""Returns whether the action has finished or not"""
 		...
-		
-	
-
