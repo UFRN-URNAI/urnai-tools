@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from action_base import ActionBase
 
@@ -9,12 +9,10 @@ class ChainOfActionsBase(ABC):
 
 	"""This class works as a sequence of actions"""
 	
-	action_list = []
+	action_list: List[ActionBase]
 	
-	@abstractmethod
-	def merge(self, chain_of_actions):
-		"""Merging a list of sequences of actions into self"""
-		...
+	def __init__(self):
+		self.action_list = []
 	
 	def next(self):
 		# Executing the next action in the sequence
@@ -22,10 +20,10 @@ class ChainOfActionsBase(ABC):
 		if self.get_len() == 0: 
 			return None
 	
-		first_action = action_list[0]
+		first_action = self.action_list[0]
 		
 		if first_action.is_complete():
-			action_list.pop(0)
+			self.action_list.pop(0)
 			self.next()
 		else:
 			first_action.run()
@@ -33,8 +31,7 @@ class ChainOfActionsBase(ABC):
 	def check(self) -> bool:
 		# Checking all of the actions in the sequence
 		
-		actions = self.get_actions()
-		return all(action.check() for action in actions)
+		return all(action.check() for action in self.action_list)
 
 	def get_len(self) -> int:
-		return len(self.get_actions())
+		return len(self.action_list)
