@@ -20,13 +20,3 @@ class ModelBase(ABC):
 	def predict(self, state) -> ActionIndex:
 		"""Returns the best action for this given state"""
 		...
-	
-	@abstractmethod
-	def save(self):
-		"""Saves the learning data in a file"""
-		...
-		
-	@abstractmethod
-	def load(self):
-		"""Loads learning data"""
-		...

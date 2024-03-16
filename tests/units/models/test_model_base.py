@@ -17,13 +17,9 @@ class TestModelBase(unittest.TestCase):
 		learn_return = fake_model.learn("current_state",
 			"action", "reward", "next_state")
 		predict_return = fake_model.predict("state")
-		save_return = fake_model.save()
-		load_return = fake_model.load()
 		learning_dict = fake_model.learning_dict
 
 		assert isinstance(ModelBase, ABCMeta)
 		assert learn_return is None
 		assert predict_return is None
-		assert save_return is None
-		assert load_return is None
 		assert learning_dict is None
