@@ -14,24 +14,14 @@ class ChainOfActionsBase(ABC):
 	def __init__(self):
 		self.action_list = []
 	
-	def next(self):
-		# Executing the next action in the sequence
-		
-		if self.get_len() == 0: 
-			return None
-	
-		first_action = self.action_list[0]
-		
-		if first_action.is_complete():
-			self.action_list.pop(0)
-			self.next()
-		else:
-			first_action.run()
+	def get_action(self, ind):
+		return self.action_list[ind]
 	
 	def check(self) -> bool:
-		# Checking all of the actions in the sequence
+		""" Checking all of the actions in the sequence """
 		
 		return all(action.check() for action in self.action_list)
 
+	@property
 	def get_len(self) -> int:
 		return len(self.action_list)
