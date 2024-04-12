@@ -3,14 +3,6 @@ import pickle
 import tempfile
 from multiprocessing import Process
 
-#import time
-#from urnai.utils.reporter import Reporter as rp
-
-
-class SavableAttr:
-    def __init__(self, value):
-        self.value = value
-
 
 class Savable:
     """
@@ -21,7 +13,7 @@ class Savable:
 
     def __init__(self, threaded_saving=False):
         self.threaded_saving = threaded_saving
-        self.pickle_black_list = []
+        self.attr_block_list = []
 
     def get_default_save_stamp(self):
         """
@@ -90,24 +82,9 @@ class Savable:
         """
         pass
 
-    def get_full_persistance_pickle_path(self, persist_path):
-        """This method returns the default persistance pickle path."""
-        return (persist_path + os.path.sep + self.get_default_save_stamp()
-		+ '.pkl')
-
-    def get_full_persistance_tensorflow_path(self, persist_path):
-        """This method returns the default persistance tensorflow path."""
-        return (persist_path + os.path.sep + self.get_default_save_stamp()
-		+ 'tensorflow_')
-
     def get_full_persistance_path(self, persist_path):
         """This method returns the default persistance path."""
         return persist_path + os.path.sep + self.get_default_save_stamp()
-
-    def get_full_persistance_pytorch_path(self, persist_path):
-        """This method returns the default persistance pytorch path."""
-        return (persist_path + os.path.sep + self.get_default_save_stamp()
-		+ '.pt')
 
     def save(self, savepath):
         """
@@ -155,18 +132,18 @@ class Savable:
         """
         This method returns a list of
         pickeable attributes. If you wish
-        to blacklist one particular
+        to blocklist one particular
         pickleable attribute, put it
-        in self.pickle_black_list as a
+        in self.attr_block_list as a
         string.
         """
-        if not hasattr(self, 'pickle_black_list') or self.pickle_black_list is None:
-            self.pickle_black_list = []
+        if not hasattr(self, 'attr_block_list') or self.attr_block_list is None:
+            self.attr_block_list = []
 
         full_attr_list = [a for a in dir(self) if not a.startswith('__')
                           and not callable(getattr(self, a))
-                          and a not in self.pickle_black_list
-                          and a != 'pickle_black_list']
+                          and a not in self.attr_block_list
+                          and a != 'attr_block_list']
         pickleable_list = []
 
         for attr in full_attr_list:
@@ -218,8 +195,8 @@ class Savable:
 
     def restore_pickleable_attributes(self, dict_to_restore):
         for attr in dict_to_restore:
-            if hasattr(self, 'pickle_black_list'):
-                if attr not in self.pickle_black_list and attr != 'pickle_black_list':
+            if hasattr(self, 'attr_block_list'):
+                if attr not in self.attr_block_list and attr != 'attr_block_list':
                     setattr(self, attr, dict_to_restore[attr])
             else:
                 setattr(self, attr, dict_to_restore[attr])
