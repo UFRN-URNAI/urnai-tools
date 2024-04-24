@@ -11,9 +11,9 @@ class EnvironmentBase(ABC):
     should still be used as a wrapper (e.g. implementing an environment for OpenAI gym).
     """
 
-    def __init__(self, id: str, render=False, reset_done=True):
-        self.id = id
-        self.render = render
+    def __init__(self, map_name: str, visualize=False, reset_done=True):
+        self.map_name = map_name
+        self.visualize = visualize
         self.reset_done = reset_done
         self.env_instance = None
 

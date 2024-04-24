@@ -1,5 +1,9 @@
+import sys
+from typing import Any, List, Tuple
+
+from absl import flags
 from pysc2.env import sc2_env
-from pysc2.env.environment import StepType
+from pysc2.env.environment import StepType, TimeStep
 from pysc2.lib import actions, features
 
 from urnai.environments.environment_base import EnvironmentBase
@@ -9,10 +13,10 @@ class SC2Env(EnvironmentBase):
     def __init__(
             self,
             map_name='Simple64',
-            player_race=sc2_env.Race.terran,
+            player_race=sc2_env.Race.random,
             enemy_race=sc2_env.Race.random,
             difficulty=sc2_env.Difficulty.very_easy,
-            render=False,
+            visualize=False,
             reset_done=True,
             spatial_dim=16,
             step_mul=16,
@@ -26,7 +30,10 @@ class SC2Env(EnvironmentBase):
             screen=64,
             minimap=64,
     ):
-        super().__init__(map_name, render, reset_done)
+        super().__init__(map_name, visualize, reset_done)
+
+        FLAGS = flags.FLAGS
+        FLAGS(sys.argv)
 
         self.self_play = self_play
         self.step_mul = step_mul
@@ -59,12 +66,12 @@ class SC2Env(EnvironmentBase):
             use_feature_units=True,
             screen=64,
             minimap=64,
-    ):
+    ) -> None:
         self.done = False
         if self.env_instance is None:
             self.env_instance = sc2_env.SC2Env(
-                map_name=self.id,
-                visualize=self.render,
+                map_name=self.map_name,
+                visualize=self.visualize,
                 players=self.players,
                 agent_interface_format=features.AgentInterfaceFormat(
                     action_space=action_space,
@@ -78,25 +85,25 @@ class SC2Env(EnvironmentBase):
                 realtime=self.realtime,
             )
 
-    def step(self, action):
+    def step(self, action: actions.FunctionCall) -> Tuple[List[Any], int, bool]:
         timestep = self.env_instance.step(action)
         obs, reward, done = self.parse_timestep(timestep)
         self.done = done
         return obs, reward, done
 
-    def reset(self):
+    def reset(self) -> List[Any]:
         timestep = self.env_instance.reset()
         obs, reward, done = self.parse_timestep(timestep)
         return obs
 
-    def close(self):
+    def close(self) -> None:
         self.env_instance.close()
 
-    def restart(self):
+    def restart(self) -> None:
         self.close()
         self.reset()
 
-    def parse_timestep(self, timestep):
+    def parse_timestep(self, timestep: TimeStep) -> Tuple[List[Any], int, bool]:
         """Returns a [Observation, Reward, Done] tuple parsed from a given timestep."""
         ts = timestep[0]
         obs, reward, done = ts.observation, ts.reward, ts.step_type == StepType.LAST
