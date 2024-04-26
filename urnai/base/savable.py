@@ -38,7 +38,7 @@ class Savable:
         Finally the nulled attributes are
         restored.
         """
-        path = self.get_full_persistance_pickle_path(persist_path)
+        path = self.get_full_persistance_path(persist_path)
 		
 		# creating necessary directories for the file
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -59,14 +59,14 @@ class Savable:
         saved by pickle.
         """
         # Check if pickle file exists
-        pickle_path = self.get_full_persistance_pickle_path(persist_path)
+        pickle_path = self.get_full_persistance_path(persist_path)
         exists_pickle = os.path.isfile(pickle_path)
         
         # If yes, load it
         if exists_pickle and os.path.getsize(pickle_path) > 0:
             with open(pickle_path, 'rb') as pickle_in:
                 pickle_dict = pickle.load(pickle_in)
-                self.restore_pickleable_attributes(pickle_dict)
+                self.restore_attributes(pickle_dict)
                 '''
                 rp.report(
                     '**************************************** \n Loaded pickle for '
@@ -190,7 +190,7 @@ class Savable:
 
         return pickleable_attr_dict
 
-    def restore_pickleable_attributes(self, dict_to_restore):
+    def restore_attributes(self, dict_to_restore):
         for key in dict_to_restore:
             if attr not in self.attr_block_list and attr != 'attr_block_list':
                 setattr(self, attr, dict_to_restore[attr])
