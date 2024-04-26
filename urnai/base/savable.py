@@ -130,23 +130,20 @@ class Savable:
 
     def get_pickleable_attributes(self):
         """
-        This method returns a list of
-        pickeable attributes. If you wish
-        to blocklist one particular
-        pickleable attribute, put it
-        in self.attr_block_list as a
-        string.
+        This method returns a list of pickeable attributes.
+		If you wish to blocklist one particular pickleable attribute, put it
+        in self.attr_block_list as a string.
         """
         if not hasattr(self, 'attr_block_list') or self.attr_block_list is None:
             self.attr_block_list = []
 
-        full_attr_list = [a for a in dir(self) if not a.startswith('__')
-                          and not callable(getattr(self, a))
-                          and a not in self.attr_block_list
-                          and a != 'attr_block_list']
+        full_attr_list = [attr for attr in dir(self) if not attr.startswith('__')
+                          and not callable(getattr(self, attr))
+                          and attr not in self.attr_block_list
+                          and attr != 'attr_block_list']
         pickleable_list = []
 
-        for attr in full_attr_list:
+        for key in full_attr_list:
             try:
                 with tempfile.NamedTemporaryFile() as tmp_file:
                     pickle.dump(getattr(self, attr), tmp_file)
@@ -194,9 +191,6 @@ class Savable:
         return pickleable_attr_dict
 
     def restore_pickleable_attributes(self, dict_to_restore):
-        for attr in dict_to_restore:
-            if hasattr(self, 'attr_block_list'):
-                if attr not in self.attr_block_list and attr != 'attr_block_list':
-                    setattr(self, attr, dict_to_restore[attr])
-            else:
+        for key in dict_to_restore:
+            if attr not in self.attr_block_list and attr != 'attr_block_list':
                 setattr(self, attr, dict_to_restore[attr])
