@@ -12,10 +12,10 @@ class TestActionBase(unittest.TestCase):
         class FakeAction(ActionBase):
             ...
 
-        f = FakeAction()
-        run_return = f.run()
-        check_return = f.check("observation")
-        is_complete_return = f.is_complete()
+        fake_action = FakeAction()
+        run_return = fake_action.run()
+        check_return = fake_action.check("observation")
+        is_complete_return = fake_action.is_complete()
         assert isinstance(ActionBase, ABCMeta)
         assert run_return is None
         assert check_return is None

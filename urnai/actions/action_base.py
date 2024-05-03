@@ -5,7 +5,7 @@ class ActionBase(ABC):
 	id = None
 	
 	@abstractmethod
-	def run(self):
+	def run(self) -> None:
 		"""Executing the action"""
 		...
 	

@@ -12,11 +12,9 @@ class ChainOfActionsBase(ABC):
 	def __init__(self):
 		self.action_list = []
 	
-	def get_action(self, action_index):
-		if action_index >= self.len:
-			return None
-		else:
-			return self.action_list[action_index]
+	def get_action(self, action_index) -> ActionBase:
+		if action_index < self.length:
+			self.action_list[action_index]
 	
 	def check(self) -> bool:
 		""" Checking all of the actions in the sequence """
@@ -24,5 +22,5 @@ class ChainOfActionsBase(ABC):
 		return all(action.check() for action in self.action_list)
 
 	@property
-	def len(self) -> int:
+	def length(self) -> int:
 		return len(self.action_list)
