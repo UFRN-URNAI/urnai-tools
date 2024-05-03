@@ -18,5 +18,5 @@ class TestActionBase(unittest.TestCase):
         is_complete_return = f.is_complete()
         assert isinstance(ActionBase, ABCMeta)
         assert run_return is None
-        assert check_return is False
-        assert is_complete_return is False
+        assert check_return is None
+        assert is_complete_return is None
