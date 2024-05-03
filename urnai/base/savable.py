@@ -146,10 +146,10 @@ class Savable:
         for key in full_attr_list:
             try:
                 with tempfile.NamedTemporaryFile() as tmp_file:
-                    pickle.dump(getattr(self, attr), tmp_file)
+                    pickle.dump(getattr(self, key), tmp_file)
                     tmp_file.flush()
                 
-                pickleable_list.append(attr)
+                pickleable_list.append(key)
                 
             except pickle.PicklingError:
                 continue
@@ -192,5 +192,5 @@ class Savable:
 
     def restore_attributes(self, dict_to_restore):
         for key in dict_to_restore:
-            if attr not in self.attr_block_list and attr != 'attr_block_list':
-                setattr(self, attr, dict_to_restore[attr])
+            if key not in self.attr_block_list and key != 'attr_block_list':
+                setattr(self, key, dict_to_restore[key])
