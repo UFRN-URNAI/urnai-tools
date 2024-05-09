@@ -1,5 +1,4 @@
 import sys
-from typing import Any, List, Tuple
 
 from absl import flags
 from pysc2.env import sc2_env
@@ -85,13 +84,14 @@ class SC2Env(EnvironmentBase):
                 realtime=self.realtime,
             )
 
-    def step(self, action: actions.FunctionCall) -> Tuple[List[Any], int, bool]:
+    # TODO: Change "done" to "terminated", and add "truncated"
+    def step(self, action) -> tuple[list, int, bool]:
         timestep = self.env_instance.step(action)
         obs, reward, done = self.parse_timestep(timestep)
         self.done = done
         return obs, reward, done
 
-    def reset(self) -> List[Any]:
+    def reset(self) -> list:
         timestep = self.env_instance.reset()
         obs, reward, done = self.parse_timestep(timestep)
         return obs
@@ -103,7 +103,7 @@ class SC2Env(EnvironmentBase):
         self.close()
         self.reset()
 
-    def parse_timestep(self, timestep: TimeStep) -> Tuple[List[Any], int, bool]:
+    def parse_timestep(self, timestep: TimeStep) -> tuple[list, int, bool]:
         """Returns a [Observation, Reward, Done] tuple parsed from a given timestep."""
         ts = timestep[0]
         obs, reward, done = ts.observation, ts.reward, ts.step_type == StepType.LAST

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple
 
 
 class EnvironmentBase(ABC):
@@ -26,7 +25,7 @@ class EnvironmentBase(ABC):
         ...
 
     @abstractmethod
-    def step(self, action) -> Tuple[List[Any], int, bool]:
+    def step(self, action) -> tuple[list, int, bool]:
         """
         Execute an action on the environment and returns an
         [Observation, Reward, Done] tuple.
@@ -34,7 +33,7 @@ class EnvironmentBase(ABC):
         ...
 
     @abstractmethod
-    def reset(self) -> List[Any]:
+    def reset(self) -> list:
         """
         Reset the environment.
         This method should return an Observation, since it's used by the
