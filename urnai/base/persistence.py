@@ -1,5 +1,6 @@
 import os
 from abc import ABC, abstractmethod
+from multiprocessing import Process
 
 
 class Persistence(ABC):
@@ -25,19 +26,54 @@ class Persistence(ABC):
         """This method returns the default persistance path."""
         return persist_path + os.path.sep + self._get_default_save_stamp()
 
-    @abstractmethod
     def save(self, savepath):
+        if self.threaded_saving:
+            self._threaded_save(savepath)
+        else:
+            self._save(savepath)
+
+    def _threaded_save(self, savepath):
         """
-        This method saves pickle objects
-        and extra stuff needed
+        This method saves pickleable
+        stuff in a separate thread
+        """
+        new_process = Process(target=self._save, args=(savepath,))
+        new_process.start()
+
+    @abstractmethod
+    def _save(self, savepath):
+        """
+        This method handles logic related
+        to the child class
+        """
+        ...
+
+    def load(self, loadpath):
+        self._load(loadpath)
+
+    @abstractmethod
+    def _load(self, savepath):
+        """
+        This method handles logic related
+        to the child class
         """
         ...
 
     @abstractmethod
-    def load(self, loadpath):
+    def _get_dict(self):
         """
-        This method loads pickle objects
-        and extra stuff needed
+        This method returns a dict with
+        all the attributes that will be
+        saved
+        """
+        ...
+
+    @abstractmethod
+    def _get_attributes(self):
+        """
+        This method returns all of the
+        attribute names that can be saved
+        except those in blocklist
         """
         ...
 

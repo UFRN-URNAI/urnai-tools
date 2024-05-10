@@ -16,7 +16,7 @@ class PersistencePickle(Persistence):
     def __init__(self, threaded_saving=False):
         super().__init__(threaded_saving)
 
-    def _save_pickle(self, persist_path):
+    def _save(self, persist_path):
         """
         This method saves our instance
         using pickle.
@@ -38,7 +38,7 @@ class PersistencePickle(Persistence):
         with open(path, 'wb') as pickle_out:
             pickle.dump(self._get_pickleable_dict(), pickle_out)
 
-    def _load_pickle(self, persist_path):
+    def _load(self, persist_path):
         """
         This method loads a list instance
         saved by pickle.
@@ -51,32 +51,7 @@ class PersistencePickle(Persistence):
                 pickle_dict = pickle.load(pickle_in)
                 super()._restore_attributes(pickle_dict)
 
-    def save(self, savepath):
-        """
-        This method saves pickle objects
-        and extra stuff needed
-        """
-        if not self.threaded_saving:
-            self._save_pickle(savepath)
-        else:
-            self._threaded_pickle_save(savepath)
-
-    def _threaded_pickle_save(self, savepath):
-        """
-        This method saves pickleable
-        stuff in a separate thread
-        """
-        new_process = Process(target=self._save_pickle, args=(savepath,))
-        new_process.start()
-
-    def load(self, loadpath):
-        """
-        This method loads pickle objects
-        and extra stuff needed
-        """
-        self._load_pickle(loadpath)
-
-    def _get_pickleable_attributes(self):
+    def _get_attributes(self):
         """
         This method returns a list of pickeable attributes.
 		If you wish to block one particular pickleable attribute, put it
@@ -126,7 +101,7 @@ class PersistencePickle(Persistence):
 
         return pickleable_list
 
-    def _get_pickleable_dict(self):
+    def _get_dict(self):
         pickleable_attr_dict = {}
 
         for attr in self._get_pickleable_attributes():
