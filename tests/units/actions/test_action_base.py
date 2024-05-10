@@ -4,13 +4,13 @@ from abc import ABCMeta
 from urnai.actions.action_base import ActionBase
 
 
+class FakeAction(ActionBase):
+        ...
+
 class TestActionBase(unittest.TestCase):
 
     def test_abstract_methods(self):
         ActionBase.__abstractmethods__ = set()
-
-        class FakeAction(ActionBase):
-            ...
 
         fake_action = FakeAction()
         run_return = fake_action.run()

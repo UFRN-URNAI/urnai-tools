@@ -5,8 +5,8 @@ from urnai.actions.chain_of_actions_base import ChainOfActionsBase
 
 
 class FakeChainOfActions(ChainOfActionsBase):
-	def __init__(self):
-		super().__init__()
+		def __init__(self):
+			super().__init__()
 
 class TestChainOfActionsBase(unittest.TestCase):
 
