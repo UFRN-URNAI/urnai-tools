@@ -4,7 +4,7 @@ import tempfile
 from multiprocessing import Process
 
 
-class Savable:
+class Persistence:
     """
     This interface represents the concept of a class that can be saved to disk.
     The heir class should define a constant or attribute as a default filename
@@ -133,7 +133,8 @@ class Savable:
                 continue
             
             except TypeError as type_error:
-                if (not "can't pickle" in str(type_error)) or (not 'cannot pickle' in str(type_error)):
+                if ("can't pickle" not in str(type_error) or
+                 'cannot pickle' not in str(type_error)):
                     raise
                 continue
             
@@ -149,7 +150,7 @@ class Savable:
                     continue
             
             except ValueError as value_error:
-                if not 'ctypes objects' in str(value_error):
+                if 'ctypes objects' not in str(value_error):
                     raise
                 continue
 
