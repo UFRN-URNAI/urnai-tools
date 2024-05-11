@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 
 class ActionBase(ABC):
-	id = None
+	__id__ = None
 	
 	@abstractmethod
 	def run(self) -> None:

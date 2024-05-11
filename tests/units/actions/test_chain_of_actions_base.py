@@ -5,13 +5,14 @@ from urnai.actions.chain_of_actions_base import ChainOfActionsBase
 
 
 class FakeChainOfActions(ChainOfActionsBase):
-		def __init__(self):
-			super().__init__()
+	ChainOfActionsBase.__abstractmethods__ = set()
+	
+	def __init__(self):
+		super().__init__()
 
 class TestChainOfActionsBase(unittest.TestCase):
 
 	def test_abstract_methods(self):
-		ChainOfActionsBase.__abstractmethods__ = set()
 
 		fake_chain_of_actions = FakeChainOfActions()
 		get_action_return = fake_chain_of_actions.get_action(0)
