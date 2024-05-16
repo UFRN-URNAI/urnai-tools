@@ -2,7 +2,7 @@ import sys
 
 from absl import flags
 from pysc2.env import sc2_env
-from pysc2.env.environment import StepType, TimeStep
+from pysc2.env.environment import TimeStep
 from pysc2.lib import actions, features
 
 from urnai.environments.environment_base import EnvironmentBase
@@ -52,7 +52,8 @@ class SC2Env(EnvironmentBase):
                 sc2_env.Bot(self.enemy_race, self.difficulty),
             ]
         self.realtime = realtime
-        self.done = False
+        self.terminated = False
+        self.truncated = False
 
         self.start(action_space, use_raw_units, raw_resolution, 
                    use_feature_units, screen, minimap)
@@ -84,16 +85,16 @@ class SC2Env(EnvironmentBase):
                 realtime=self.realtime,
             )
 
-    # TODO: Change "done" to "terminated", and add "truncated"
-    def step(self, action) -> tuple[list, int, bool]:
+    def step(self, action) -> tuple[list, int, bool, bool]:
         timestep = self.env_instance.step(action)
-        obs, reward, done = self.parse_timestep(timestep)
-        self.done = done
-        return obs, reward, done
+        obs, reward, terminated, truncated = self.parse_timestep(timestep)
+        self.terminated = terminated
+        self.truncated = truncated
+        return obs, reward, terminated, truncated
 
     def reset(self) -> list:
         timestep = self.env_instance.reset()
-        obs, reward, done = self.parse_timestep(timestep)
+        obs, reward, terminated, truncated = self.parse_timestep(timestep)
         return obs
 
     def close(self) -> None:
@@ -103,13 +104,20 @@ class SC2Env(EnvironmentBase):
         self.close()
         self.reset()
 
-    def parse_timestep(self, timestep: TimeStep) -> tuple[list, int, bool]:
-        """Returns a [Observation, Reward, Done] tuple parsed from a given timestep."""
+    def parse_timestep(self, timestep: TimeStep) -> tuple[list, int, bool, bool]:
+        """
+        Returns a [Observation, Reward, Terminated, Truncated] tuple 
+        parsed from a given timestep.
+        """
         ts = timestep[0]
-        obs, reward, done = ts.observation, ts.reward, ts.step_type == StepType.LAST
-        # add step_mul to obs
+        obs, reward = ts.observation, ts.reward
+        terminated = any(obs.player_result) # TODO: Check if this works
+        current_steps = self.env_instance._episode_steps
+        limit_steps = self.env_instance._episode_length
+        truncated = current_steps >= limit_steps
+        # add step_mul and map_size to obs
 
         obs.step_mul = self.step_mul
         obs.map_size = self.env_instance._interface_formats[0]._raw_resolution
 
-        return obs, reward, done
+        return obs, reward, terminated, truncated

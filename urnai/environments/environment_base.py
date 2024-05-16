@@ -25,10 +25,10 @@ class EnvironmentBase(ABC):
         ...
 
     @abstractmethod
-    def step(self, action) -> tuple[list, int, bool]:
+    def step(self, action) -> tuple[list, int, bool, bool]:
         """
         Execute an action on the environment and returns an
-        [Observation, Reward, Done] tuple.
+        [Observation, Reward, Terminated, Truncated] tuple.
         """
         ...
 
