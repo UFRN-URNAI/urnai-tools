@@ -14,6 +14,7 @@ class ActionBase(ABC):
 		"""Returns whether the action can be executed or not"""
 		...
 	
+	@property
 	@abstractmethod
 	def is_complete(self) -> bool:
 		"""Returns whether the action has finished or not"""
