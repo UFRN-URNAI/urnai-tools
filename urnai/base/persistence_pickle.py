@@ -15,7 +15,7 @@ class PersistencePickle(Persistence):
     def __init__(self, threaded_saving=False):
         super().__init__(threaded_saving)
 
-    def _save(self, persist_path):
+    def _simple_save(self, persist_path):
         """
         This method saves our instance
         using pickle.

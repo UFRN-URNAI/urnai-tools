@@ -30,33 +30,26 @@ class Persistence(ABC):
         if self.threaded_saving:
             self._threaded_save(savepath)
         else:
-            self._save(savepath)
+            self._simple_save(savepath)
 
     def _threaded_save(self, savepath):
         """
         This method saves pickleable
-        stuff in a separate thread
+        elements in a separate thread
         """
-        new_process = Process(target=self._save, args=(savepath,))
+        new_process = Process(target=self._simple_save, args=(savepath,))
         new_process.start()
 
     @abstractmethod
-    def _save(self, savepath):
+    def _simple_save(self, savepath):
         """
         This method handles logic related
-        to the child class
+        to non-threaded saving in the child class
         """
         ...
 
-    def load(self, loadpath):
-        self._load(loadpath)
-
     @abstractmethod
-    def _load(self, savepath):
-        """
-        This method handles logic related
-        to the child class
-        """
+    def load(self, savepath):
         ...
 
     @abstractmethod
