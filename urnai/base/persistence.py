@@ -13,6 +13,7 @@ class Persistence(ABC):
     def __init__(self, threaded_saving=False):
         self.threaded_saving = threaded_saving
         self.attr_block_list = []
+        self.processes = []
 
     def _get_default_save_stamp(self):
         """
@@ -38,6 +39,7 @@ class Persistence(ABC):
         elements in a separate thread
         """
         new_process = Process(target=self._simple_save, args=(savepath,))
+        self.processes.append(new_process)
         new_process.start()
 
     @abstractmethod
@@ -72,5 +74,7 @@ class Persistence(ABC):
 
     def _restore_attributes(self, dict_to_restore):
         for key in dict_to_restore:
-            if key not in self.attr_block_list and key != 'attr_block_list':
+            if (key not in self.attr_block_list 
+                and key not in ('attr_block_list', 'processes')):
+                                
                 setattr(self, key, dict_to_restore[key])
