@@ -35,9 +35,9 @@ class PersistencePickle(Persistence):
         os.makedirs(os.path.dirname(path), exist_ok=True)
 		
         with open(path, 'wb') as pickle_out:
-            pickle.dump(self._get_pickleable_dict(), pickle_out)
+            pickle.dump(self._get_dict(), pickle_out)
 
-    def _load(self, persist_path):
+    def load(self, persist_path):
         """
         This method loads a list instance
         saved by pickle.
@@ -62,7 +62,9 @@ class PersistencePickle(Persistence):
         full_attr_list = [attr for attr in dir(self) if not attr.startswith('__')
                           and not callable(getattr(self, attr))
                           and attr not in self.attr_block_list
-                          and attr != 'attr_block_list']
+                          and attr != 'attr_block_list'
+                          and attr != 'processes'
+                          and 'abc' not in attr]
         pickleable_list = []
 
         for key in full_attr_list:
@@ -103,7 +105,7 @@ class PersistencePickle(Persistence):
     def _get_dict(self):
         pickleable_attr_dict = {}
 
-        for attr in self._get_pickleable_attributes():
+        for attr in self._get_attributes():
             pickleable_attr_dict[attr] = getattr(self, attr)
 
         return pickleable_attr_dict
