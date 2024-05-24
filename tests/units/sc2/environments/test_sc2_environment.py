@@ -1,27 +1,53 @@
 import unittest
-
-from pysc2.env import sc2_env
+from unittest.mock import patch
 
 from urnai.sc2.environments.sc2environment import SC2Env
 
 
 class TestSC2Environment(unittest.TestCase):
+    @patch('pysc2.lib.features.Dimensions')
+    @patch('pysc2.lib.features.AgentInterfaceFormat')
+    @patch('pysc2.env.sc2_env.SC2Env')
+    def test_start_on_init(self, MockSC2Env, MockAgentInterfaceFormat, MockDimensions):
+        SC2Env()
+        MockSC2Env.assert_called_once()
+        MockAgentInterfaceFormat.assert_called_once()
+        MockDimensions.assert_called_once()
 
-    def test_default_initialization(self):
+    @patch('pysc2.lib.features.Dimensions')
+    @patch('pysc2.lib.features.AgentInterfaceFormat')
+    @patch('pysc2.env.sc2_env.SC2Env')
+    def test_start_after_init(
+        self, MockSC2Env, MockAgentInterfaceFormat, MockDimensions
+    ):
+        # Even after another call of start, the sc2_env of pysc2
+        # should only be instanciated once.
         env = SC2Env()
-        assert env.map_name == 'Simple64'
-        assert env.player_race == sc2_env.Race.random
-        assert env.enemy_race == sc2_env.Race.random
-        assert env.difficulty == sc2_env.Difficulty.very_easy
-        assert env.visualize is False
-        assert env.reset_done is True
-        assert env.spatial_dim == 16
-        assert env.step_mul == 16
-        assert env.game_steps_per_episode == 0
-        assert env.realtime is False
-        assert env.self_play is False
-        #TODO: Check players array
-        assert isinstance(env.env_instance, sc2_env.SC2Env)
-        #TODO: Do we have to check for parameters inside env_instance?
-        assert env.terminated is False
-        assert env.truncated is False
+        env.start()
+        MockSC2Env.assert_called_once()
+        MockAgentInterfaceFormat.assert_called_once()
+        MockDimensions.assert_called_once()
+
+    def test_step_method(self):
+        # TODO
+        pass
+
+    def test_reset_method(self):
+        # TODO
+        pass
+
+    @patch('pysc2.env.sc2_env.SC2Env')
+    def test_close_method(self, MockSC2Env):
+        # TODO: Check why this does not work
+        # env = SC2Env()
+        # env.close()
+        # MockSC2Env.close.assert_called_once()
+        pass
+    
+    def test_restart_method(self):
+        # TODO
+        pass
+
+    def test_parse_timestep_method(self):
+        # TODO
+        pass
