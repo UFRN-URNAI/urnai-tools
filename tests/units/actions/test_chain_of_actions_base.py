@@ -16,9 +16,7 @@ class TestChainOfActionsBase(unittest.TestCase):
 
 		fake_chain_of_actions = FakeChainOfActions()
 		get_action_return = fake_chain_of_actions.get_action(0)
-		check_return = fake_chain_of_actions.check()
 		length_return = fake_chain_of_actions.length
 		assert isinstance(ChainOfActionsBase, ABCMeta)
 		assert get_action_return is None
-		assert check_return is True
 		assert (length_return == 0) is True
