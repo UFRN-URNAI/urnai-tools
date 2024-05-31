@@ -42,15 +42,22 @@ class TestSC2Environment(unittest.TestCase):
     @patch('pysc2.env.sc2_env.SC2Env')
     def test_reset_method(self, scenv_mock):
         # GIVEN
-        env = SC2Env(step_mul=16, game_steps_per_episode=100)
+        env = SC2Env(map_name='Simple64', step_mul=16, game_steps_per_episode=100)
+        fakeTimestep = ( TimeStep( 
+            step_type= StepType.FIRST, 
+            reward=0, 
+            discount=0, 
+            observation=NamedDict({})), 
+        )
         env.env_instance._episode_steps = 16
         env.env_instance._episode_length = 100
+        env.env_instance._interface_formats[0]._raw_resolution = point.Point(64,64)
+        env.env_instance.reset.return_value = fakeTimestep
         # WHEN
         obs = env.reset()
         # THEN
         env.env_instance.reset.assert_called_once()
-        isinstance(obs, NamedDict)
-        pass
+        assert isinstance(obs, NamedDict)
     
     # @patch('pysc2.env.sc2_env.SC2Env')
     # def test_step_method(self, scenv_mock):
@@ -98,9 +105,9 @@ class TestSC2Environment(unittest.TestCase):
         # WHEN
         obs, reward, terminated, truncated = env._parse_timestep(fakeTimestep)
         # THEN
-        isinstance(obs, NamedDict)
+        assert isinstance(obs, NamedDict)
         assert obs.step_mul == 16
-        isinstance(obs.map_size, point.Point)
+        assert isinstance(obs.map_size, point.Point)
         assert obs.map_size.x == 64
         assert obs.map_size.y == 64
         assert reward == 0
