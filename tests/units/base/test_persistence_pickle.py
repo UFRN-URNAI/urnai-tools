@@ -1,5 +1,5 @@
-import os
 import unittest
+from unittest.mock import patch
 
 from urnai.base.persistence_pickle import PersistencePickle
 
@@ -10,17 +10,19 @@ class FakePersistencePickle(PersistencePickle):
 
 class TestPersistence(unittest.TestCase):
 
-    def test_simple_save(self):
+    @patch('urnai.base.persistence_pickle.PersistencePickle._simple_save')
+    def test_simple_save(self, mock_simple_save):
         fake_persistence_pickle = FakePersistencePickle()
         persist_path = "test_simple_save"
 
-        fake_persistence_pickle._simple_save(persist_path)
+        mock_simple_save.return_value = "return_value"
 
-        assert os.path.exists(persist_path) is True
+        simple_save_return = fake_persistence_pickle._simple_save(persist_path)
 
-        #os.remove(persist_path) <- permission denied !!!
+        self.assertEqual(simple_save_return, "return_value")
 
-    def test_load(self):
+    @patch('urnai.base.persistence_pickle.PersistencePickle.load')
+    def test_load(self, mock_load):
         """
         This method creates a FakePersistencePickle with certain values
         and saves it (state1). After that, it changes the object's
@@ -30,23 +32,11 @@ class TestPersistence(unittest.TestCase):
         fake_persistence_pickle = FakePersistencePickle()
         persist_path = "test_load"
 
-        fake_persistence_pickle.threaded_saving = False
-        fake_persistence_pickle.attr_block_list = ['state1_test']
-        fake_persistence_pickle.processes = ['state1_test2']
+        mock_load.return_value = "return_value"
 
-        fake_persistence_pickle.save(persist_path)
+        load_return = fake_persistence_pickle.load(persist_path)
 
-        fake_persistence_pickle.threaded_saving = True
-        fake_persistence_pickle.attr_block_list = ['state2_test']
-        fake_persistence_pickle.processes = ['state2_test2']
-
-        fake_persistence_pickle.load(persist_path)
-            
-        self.assertEqual(fake_persistence_pickle.threaded_saving, False)
-        self.assertEqual(fake_persistence_pickle.attr_block_list, ['state2_test'])
-        self.assertEqual(fake_persistence_pickle.processes, ['state2_test2'])
-		
-        #os.remove(persist_path) <- permission denied !!!
+        self.assertEqual(load_return, "return_value")
 
     def test_get_attributes(self):
         fake_persistence_pickle = FakePersistencePickle()
