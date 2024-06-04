@@ -100,7 +100,6 @@ class SC2Env(EnvironmentBase):
         """
         first_timestep = timestep[0]
         obs, reward =  first_timestep.observation,  first_timestep.reward
-        # TODO: Check if this works
         terminated = any(o.player_result for o in self.env_instance._obs)
         current_steps = self.env_instance._episode_steps
         limit_steps = self.env_instance._episode_length
