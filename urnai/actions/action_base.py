@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 
 class ActionBase(ABC):
 	__id__ = None
+
+	def __init__(self, name):
+		self.name = name
 	
 	@abstractmethod
 	def run(self) -> None:
