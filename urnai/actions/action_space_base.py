@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from urnai.utils.returns import ActionIndex
-
 
 class ActionSpaceBase(ABC):
     """
@@ -13,10 +11,6 @@ class ActionSpaceBase(ABC):
     use and which ones are excluded from selection. It can also force the
     agent to use certain actions by combining them into multiple steps.
     """
-
-    @abstractmethod
-    def __init__(self):
-        pass
 
     @abstractmethod
     def is_action_done(self) -> bool:
@@ -37,17 +31,17 @@ class ActionSpaceBase(ABC):
         ...
 
     @abstractmethod
-    def get_actions(self) -> list[ActionIndex]:
+    def get_actions(self) -> list[int]:
         """Returns all the actions that the agent can choose from."""
         ...
 
     @abstractmethod
-    def get_excluded_actions(self, obs) -> list[ActionIndex]:
+    def get_excluded_actions(self, obs) -> list[int]:
         """Returns a subset of actions that can't be chosen by the agent."""
         ...
 
     @abstractmethod
-    def get_action(self, action_idx: ActionIndex, obs):
+    def get_action(self, action_idx: int, obs):
         """
         Receives an action index as a parameter and returns the corresponding
         action from the available actions. This method should return an action
@@ -55,7 +49,7 @@ class ActionSpaceBase(ABC):
         """
         pass
 
-    def get_named_actions(self):
+    def get_named_actions(self) -> list[str]:
         """Returns the names of all the actions that the agent can choose from."""
         names = []
         for action in self.get_actions():
