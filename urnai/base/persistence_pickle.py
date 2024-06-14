@@ -30,7 +30,7 @@ class PersistencePickle(Persistence):
         Finally the nulled attributes are
         restored.
         """
-        path = super().get_full_persistance_path(persist_path)
+        path = self.get_full_persistance_path(persist_path)
 		
         os.makedirs(os.path.dirname(path), exist_ok=True)
 		
@@ -42,13 +42,13 @@ class PersistencePickle(Persistence):
         This method loads a list instance
         saved by pickle.
         """
-        pickle_path = super().get_full_persistance_path(persist_path)
+        pickle_path = self.get_full_persistance_path(persist_path)
         exists_pickle = os.path.isfile(pickle_path)
         
         if exists_pickle and os.path.getsize(pickle_path) > 0:
             with open(pickle_path, 'rb') as pickle_in:
                 pickle_dict = pickle.load(pickle_in)
-                super()._restore_attributes(pickle_dict)
+                self._restore_attributes(pickle_dict)
 
     def _get_attributes(self):
         """
@@ -59,12 +59,13 @@ class PersistencePickle(Persistence):
         if not hasattr(self, 'attr_block_list') or self.attr_block_list is None:
             self.attr_block_list = []
 
+        attr_block_list = self.attr_block_list + ['attr_block_list', 'processes']
+
         full_attr_list = [attr for attr in dir(self) if not attr.startswith('__')
                           and not callable(getattr(self, attr))
-                          and attr not in self.attr_block_list
-                          and attr != 'attr_block_list'
-                          and attr != 'processes'
+                          and attr not in attr_block_list
                           and 'abc' not in attr]
+        
         pickleable_list = []
 
         for key in full_attr_list:
@@ -79,25 +80,27 @@ class PersistencePickle(Persistence):
                 continue
             
             except TypeError as type_error:
-                if ("can't pickle" not in str(type_error) or
+                if ("can't pickle" not in str(type_error) and
                  'cannot pickle' not in str(type_error)):
-                    raise
+                    raise TypeError(type_error)
                 continue
             
             except NotImplementedError as notimpl_error:
                 if (str(notimpl_error) != 
                 'numpy() is only available when eager execution is enabled.'):
-                    raise
+                    raise NotImplementedError(notimpl_error)
                 continue
             
             except AttributeError as attr_error:
-                if ("Can't pickle" in str(attr_error) or 
-                "object has no attribute '__getstate__'"):
-                    continue
+                if ("Can't pickle" not in str(attr_error) and 
+                "object has no attribute '__getstate__'" not in
+                str(attr_error)):
+                    raise AttributeError(attr_error)
+                continue
             
             except ValueError as value_error:
                 if 'ctypes objects' not in str(value_error):
-                    raise
+                    raise ValueError(value_error)
                 continue
 
         return pickleable_list
