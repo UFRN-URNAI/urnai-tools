@@ -82,25 +82,25 @@ class PersistencePickle(Persistence):
             except TypeError as type_error:
                 if ("can't pickle" not in str(type_error) and
                  'cannot pickle' not in str(type_error)):
-                    raise TypeError(type_error)
+                    raise TypeError() from type_error
                 continue
             
             except NotImplementedError as notimpl_error:
                 if (str(notimpl_error) != 
                 'numpy() is only available when eager execution is enabled.'):
-                    raise NotImplementedError(notimpl_error)
+                    raise NotImplementedError() from notimpl_error
                 continue
             
             except AttributeError as attr_error:
                 if ("Can't pickle" not in str(attr_error) and 
                 "object has no attribute '__getstate__'" not in
                 str(attr_error)):
-                    raise AttributeError(attr_error)
+                    raise AttributeError() from attr_error
                 continue
             
             except ValueError as value_error:
                 if 'ctypes objects' not in str(value_error):
-                    raise ValueError(value_error)
+                    raise ValueError() from value_error
                 continue
 
         return pickleable_list
