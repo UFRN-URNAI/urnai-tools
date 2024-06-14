@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from urnai.utils.returns import ActionIndex
-
 
 class ModelBase(ABC):
 
@@ -17,6 +15,6 @@ class ModelBase(ABC):
 		...
 	
 	@abstractmethod
-	def predict(self, state) -> ActionIndex:
+	def predict(self, state) -> int:
 		"""Returns the best action for this given state"""
 		...
