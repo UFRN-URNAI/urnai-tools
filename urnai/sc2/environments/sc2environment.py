@@ -35,12 +35,12 @@ class SC2Env(EnvironmentBase):
         self.game_steps_per_episode = game_steps_per_episode
         self.spatial_dim = spatial_dim
         if(players is None):
-            # Default value for players
             players = [
                 sc2_env.Agent(sc2_env.Race.random),
                 sc2_env.Bot(sc2_env.Race.random, sc2_env.Difficulty.very_easy),
             ]
         self.players = players
+        self.num_agents = sum(1 for p in players if isinstance(p, sc2_env.Agent))
         self.realtime = realtime
 
         self.start(action_space, use_raw_units, raw_resolution, 
@@ -74,16 +74,16 @@ class SC2Env(EnvironmentBase):
                 realtime=self.realtime,
             )
 
-    def step(self, action: list) -> tuple[list, int, bool, bool]:
-        timestep = self.env_instance.step(action)
+    def step(self, action_list: list) -> tuple[list[list], list[int], bool, bool]:
+        timestep = self.env_instance.step(action_list)
         obs, reward, terminated, truncated = self._parse_timestep(timestep)
         self.terminated = terminated
         self.truncated = truncated
         return obs, reward, terminated, truncated
 
-    def reset(self) -> list:
+    def reset(self) -> list[list]:
         timestep = self.env_instance.reset()
-        obs, _, _, _ = self._parse_timestep(timestep)
+        obs, *_ = self._parse_timestep(timestep)
         return obs
 
     def close(self) -> None:
@@ -93,20 +93,26 @@ class SC2Env(EnvironmentBase):
         self.close()
         self.reset()
 
-    def _parse_timestep(self, timestep: TimeStep) -> tuple[list, int, bool, bool]:
+    def _parse_timestep(
+            self, timestep: list[TimeStep]
+        ) -> tuple[list[list], list[int], bool, bool]:
         """
-        Returns a [Observation, Reward, Terminated, Truncated] tuple 
+        Returns a [[Observation], [Reward], Terminated, Truncated] tuple 
         parsed from a given timestep.
         """
-        first_timestep = timestep[0]
-        obs, reward =  first_timestep.observation,  first_timestep.reward
+        obs = []
+        reward = []
+        for agent_index in range(self.num_agents):
+            obs.append(timestep[agent_index].observation)
+            reward.append(timestep[agent_index].reward)
+            # add step_mul and map_size to obs
+            map_size = self.env_instance._interface_formats[agent_index]._raw_resolution
+            obs[agent_index].step_mul = self.step_mul
+            obs[agent_index].map_size = map_size
+        
         terminated = any(o.player_result for o in self.env_instance._obs)
         current_steps = self.env_instance._episode_steps
         limit_steps = self.env_instance._episode_length
         truncated = current_steps >= limit_steps
-
-        # add step_mul and map_size to obs
-        obs.step_mul = self.step_mul
-        obs.map_size = self.env_instance._interface_formats[0]._raw_resolution
 
         return obs, reward, terminated, truncated
