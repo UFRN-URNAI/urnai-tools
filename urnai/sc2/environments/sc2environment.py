@@ -107,7 +107,6 @@ class SC2Env(EnvironmentBase):
         for agent_index in range(self.num_agents):
             obs.append(timestep[agent_index].observation)
             reward.append(timestep[agent_index].reward)
-            # add step_mul and map_size to obs
             obs[agent_index].step_mul = self.step_mul
             obs[agent_index].map_size = map_size
         
