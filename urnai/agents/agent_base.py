@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
-from urnai.actions.action_base import ActionBase
 from urnai.models.model_base import ModelBase
 from urnai.states.state_base import StateBase
 
 
 class AgentBase(ABC):
 
-    def __init__(self, action_space : ActionBase, 
+    def __init__(self, action_space, 
                  state_space : StateBase, 
                  model : ModelBase, 
                  reward_builder):
@@ -24,10 +23,10 @@ class AgentBase(ABC):
                                 'state_space', 'reward_builder']
 
     @abstractmethod
-    def step():
+    def step(self) -> None:
         ...
 
-    def reset(self, episode=0):
+    def reset(self, episode=0) -> None:
         """
         Resets some Agent class variables, such as previous_action
         and previous_state. Also, calls the respective reset methods 
@@ -40,7 +39,7 @@ class AgentBase(ABC):
         self.reward_builder.reset()
         self.state_space.reset()
 
-    def learn(self, obs, reward, done):
+    def learn(self, obs, reward, done) -> None:
         """
         If it is not the very first step in an episode, this method will
         call the model's learn method.
@@ -57,7 +56,7 @@ class AgentBase(ABC):
         """
         return self.state_space.update(obs)
     
-    def get_reward(self, obs, reward, done):
+    def get_reward(self, obs, reward, done) -> None:
         """
         Calls the get_reward method from the reward_builder, effectivelly
         returning the reward value.
@@ -65,6 +64,6 @@ class AgentBase(ABC):
         return self.reward_builder.get_reward(obs, reward, done)
     
     @property
-    def state_dim(self):
+    def state_dim(self) -> int:
         """Returns the dimensions of the state builder"""
         return self.state_space.dimension
