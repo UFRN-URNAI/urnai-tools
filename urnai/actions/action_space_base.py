@@ -49,12 +49,12 @@ class ActionSpaceBase(ABC):
         """
         pass
 
-    def get_named_actions(self) -> list[str]:
+    def get_actions_id(self) -> list[str]:
         """Returns the names of all the actions that the agent can choose from."""
-        names = []
+        ids = []
         for action in self.get_actions():
-            names.append(action.name)
-        return names
+            ids.append(action.__id__)
+        return ids
 
     @property
     def size(self) -> int:
