@@ -74,5 +74,5 @@ class Persistence(ABC):
 
     def _restore_attributes(self, dict_to_restore):
         for key in dict_to_restore:
-            if (key not in self.attr_block_list):   
+            if key not in self.attr_block_list:   
                 setattr(self, key, dict_to_restore[key])
