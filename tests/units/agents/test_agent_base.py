@@ -10,9 +10,9 @@ from urnai.states.state_base import StateBase
 class FakeAgent(AgentBase):
     AgentBase.__abstractmethods__ = set()
 
-    def __init__(self, action_space, 
-                 state_space : StateBase, 
-                 model : ModelBase, 
+    def __init__(self, action_space,
+                 state_space : StateBase,
+                 model : ModelBase,
                  reward_builder):
         super().__init__(action_space, state_space, model, reward_builder)
     ...
@@ -54,15 +54,15 @@ class TestAgentBase(unittest.TestCase):
         assert step_return is None
 
     def test_reset(self):
-        
+
         # GIVEN
         fake_action_space = FakeActionSpace()
         fake_state_space = FakeState()
         fake_model = FakeModel()
         fake_reward_builder = FakeRewardBuilder()
-        fake_agent = FakeAgent(fake_action_space, fake_state_space, 
+        fake_agent = FakeAgent(fake_action_space, fake_state_space,
                                fake_model, fake_reward_builder)
-        
+
         # WHEN
         reset_return = fake_agent.reset()
 
@@ -96,7 +96,7 @@ class TestAgentBase(unittest.TestCase):
         self.assertEqual(update_state_return, fake_state_space.update("obs"))
 
     def get_reward(self):
-        
+
         # GIVEN
         fake_reward_builder = FakeRewardBuilder()
         fake_agent = FakeAgent(None, None, None, FakeRewardBuilder)
@@ -107,7 +107,7 @@ class TestAgentBase(unittest.TestCase):
         # THEN
         self.assertEqual(get_reward_return, fake_reward_builder.get_reward(
             "obs", "reward", "done"))
-    
+
     def test_state_dim(self):
 
         # GIVEN
@@ -119,5 +119,3 @@ class TestAgentBase(unittest.TestCase):
 
         # THEN
         self.assertEqual(state_dim_return, fake_state_space.dimension)
-
-        
