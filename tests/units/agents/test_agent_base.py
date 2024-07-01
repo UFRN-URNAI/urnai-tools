@@ -1,6 +1,7 @@
 import unittest
 from abc import ABCMeta
 
+from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.agents.agent_base import AgentBase
 from urnai.models.model_base import ModelBase
 from urnai.states.state_base import StateBase
@@ -34,9 +35,8 @@ class FakeRewardBuilder:
         return None
     ...
 
-class FakeActionSpace:
-    def reset(self):
-        return None
+class FakeActionSpace(ActionSpaceBase):
+    ActionSpaceBase.__abstractmethods__ = set()
     ...
 
 class TestAgentBase(unittest.TestCase):

@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 
+from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.models.model_base import ModelBase
 from urnai.states.state_base import StateBase
 
 
 class AgentBase(ABC):
 
-    def __init__(self, action_space, 
+    def __init__(self, action_space : ActionSpaceBase, 
                  state_space : StateBase, 
                  model : ModelBase, 
                  reward_builder):
