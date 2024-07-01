@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from urnai.actions.action_base import ActionBase
 from urnai.actions.action_space_base import ActionSpaceBase
 
 
@@ -12,5 +13,5 @@ class StrategyBase(ABC):
     """
 
     @abstractmethod
-    def choose_action(action_space : ActionSpaceBase):
+    def choose_action(self, action_space : ActionSpaceBase) -> ActionBase:
         ...
