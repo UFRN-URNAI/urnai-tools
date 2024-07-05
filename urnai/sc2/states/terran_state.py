@@ -2,6 +2,11 @@ import numpy as np
 from pysc2.env import sc2_env
 from pysc2.lib import units
 
+from urnai.sc2.states.state_constants import (
+    MAX_MINERALS,
+    MAX_UNITS,
+    MAX_VESPENE,
+)
 from urnai.sc2.states.states_utils import (
     append_player_and_enemy_grids,
     get_my_raw_units_amount,
@@ -26,15 +31,15 @@ class TerranState(StateBase):
     def update(self, obs):
         new_state = [
             # Adds general information from the player.
-            obs.player.minerals / 6000,
-            obs.player.vespene / 6000,
-            obs.player.food_cap / 200,
-            obs.player.food_used / 200,
-            obs.player.food_army / 200,
-            obs.player.food_workers / 200,
-            (obs.player.food_cap - obs.player.food_used) / 200,
-            obs.player.army_count / 200,
-            obs.player.idle_worker_count / 200,
+            obs.player.minerals / MAX_MINERALS,
+            obs.player.vespene / MAX_VESPENE,
+            obs.player.food_cap / MAX_UNITS,
+            obs.player.food_used / MAX_UNITS,
+            obs.player.food_army / MAX_UNITS,
+            obs.player.food_workers / MAX_UNITS,
+            (obs.player.food_cap - obs.player.food_used) / MAX_UNITS,
+            obs.player.army_count / MAX_UNITS,
+            obs.player.idle_worker_count / MAX_UNITS,
         ]
 
         if self.use_raw_units:
