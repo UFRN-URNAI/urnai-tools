@@ -3,7 +3,7 @@ import math
 import numpy as np
 from pysc2.lib import features
 
-from urnai.sc2.states.state_constants import BUILD_PROGRESS_COMPLETE, MAX_UNITS
+from urnai.constants import SC2Constants
 
 
 def append_player_and_enemy_grids(
@@ -42,7 +42,7 @@ def append_grid(
         grid[x - 1][y - 1] += 1
 
     # Normalizing the values to always be between 0 and 1
-    grid = grid / MAX_UNITS
+    grid = grid / SC2Constants.MAX_UNITS
 
     new_state.extend(grid.flatten())
 
@@ -59,4 +59,4 @@ def get_raw_units_by_type(
     return [unit for unit in obs.raw_units
             if unit.unit_type == unit_type
             and unit.alliance == alliance
-            and unit.build_progress == BUILD_PROGRESS_COMPLETE]
+            and unit.build_progress == SC2Constants.BUILD_PROGRESS_COMPLETE]
