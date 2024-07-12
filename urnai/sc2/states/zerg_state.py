@@ -5,7 +5,7 @@ from pysc2.lib import units
 from urnai.constants import SC2Constants
 from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_raw_units_amount,
+    create_raw_units_amount_dict,
 )
 from urnai.states.state_base import StateBase
 
@@ -39,22 +39,24 @@ class ZergState(StateBase):
         ]
 
         if self.use_raw_units:
+            raw_units_amount_dict = create_raw_units_amount_dict(
+                obs, sc2_env.features.PlayerRelative.SELF)
             new_state.extend(
                 [
                     # Adds information related to player's Zerg units/buildings.
-                    get_raw_units_amount(obs, units.Zerg.BanelingNest),
-                    get_raw_units_amount(obs, units.Zerg.EvolutionChamber),
-                    get_raw_units_amount(obs, units.Zerg.Extractor),
-                    get_raw_units_amount(obs, units.Zerg.Hatchery),
-                    get_raw_units_amount(obs, units.Zerg.HydraliskDen),
-                    get_raw_units_amount(obs, units.Zerg.InfestationPit),
-                    get_raw_units_amount(obs, units.Zerg.LurkerDen),
-                    get_raw_units_amount(obs, units.Zerg.NydusNetwork),
-                    get_raw_units_amount(obs, units.Zerg.RoachWarren),
-                    get_raw_units_amount(obs, units.Zerg.SpawningPool),
-                    get_raw_units_amount(obs, units.Zerg.SpineCrawler),
-                    get_raw_units_amount(obs, units.Zerg.Spire),
-                    get_raw_units_amount(obs, units.Zerg.SporeCrawler),
+                    raw_units_amount_dict[units.Zerg.BanelingNest],
+                    raw_units_amount_dict[units.Zerg.EvolutionChamber],
+                    raw_units_amount_dict[units.Zerg.Extractor],
+                    raw_units_amount_dict[units.Zerg.Hatchery],
+                    raw_units_amount_dict[units.Zerg.HydraliskDen],
+                    raw_units_amount_dict[units.Zerg.InfestationPit],
+                    raw_units_amount_dict[units.Zerg.LurkerDen],
+                    raw_units_amount_dict[units.Zerg.NydusNetwork],
+                    raw_units_amount_dict[units.Zerg.RoachWarren],
+                    raw_units_amount_dict[units.Zerg.SpawningPool],
+                    raw_units_amount_dict[units.Zerg.SpineCrawler],
+                    raw_units_amount_dict[units.Zerg.Spire],
+                    raw_units_amount_dict[units.Zerg.SporeCrawler],
                 ]
             )
             new_state = append_player_and_enemy_grids(

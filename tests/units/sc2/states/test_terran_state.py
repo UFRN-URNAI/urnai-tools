@@ -26,7 +26,6 @@ class TestTerranState(unittest.TestCase):
         # WHEN
         state.update(obs)
         # THEN
-        print(state.state)
         assert state.dimension == 9
         assert len(state.state[0]) == 9
 

@@ -1,4 +1,5 @@
 import math
+from collections import defaultdict
 
 import numpy as np
 from pysc2.lib import features
@@ -48,19 +49,13 @@ def append_alliance_grid(
 
     return new_state
 
-def get_raw_units_amount(
-        obs : list, 
-        unit_type : int, 
-        alliance : features.PlayerRelative = features.PlayerRelative.SELF,
-    ) -> int:
-    return len(get_raw_units_by_type(obs, unit_type, alliance))
-
-def get_raw_units_by_type(
-        obs : list, 
-        unit_type : int, 
-        alliance : features.PlayerRelative = features.PlayerRelative.SELF,
-    ) -> list:
-    return [unit for unit in obs.raw_units
-            if unit.unit_type == unit_type
-            and unit.alliance == alliance
-            and unit.build_progress == SC2Constants.BUILD_PROGRESS_COMPLETE]
+def create_raw_units_amount_dict(
+        obs : list,
+        alliance : features.PlayerRelative = features.PlayerRelative.SELF
+    ) -> defaultdict:
+    dict = defaultdict(lambda: 0)
+    for unit in obs.raw_units:
+        if (unit.alliance == alliance
+        and unit.build_progress == SC2Constants.BUILD_PROGRESS_COMPLETE):
+            dict[unit.unit_type] += 1
+    return dict

@@ -5,7 +5,7 @@ from pysc2.lib import units
 from urnai.constants import SC2Constants
 from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_raw_units_amount,
+    create_raw_units_amount_dict,
 )
 from urnai.states.state_base import StateBase
 
@@ -39,22 +39,24 @@ class ProtossState(StateBase):
         ]
 
         if self.use_raw_units:
+            raw_units_amount_dict = create_raw_units_amount_dict(
+                obs, sc2_env.features.PlayerRelative.SELF)
             new_state.extend(
                 [
                     # Adds information related to player's Protoss units/buildings.
-                    get_raw_units_amount(obs, units.Protoss.Nexus),
-                    get_raw_units_amount(obs, units.Protoss.Pylon),
-                    get_raw_units_amount(obs, units.Protoss.Assimilator),
-                    get_raw_units_amount(obs, units.Protoss.Forge),
-                    get_raw_units_amount(obs, units.Protoss.Gateway),
-                    get_raw_units_amount(obs, units.Protoss.CyberneticsCore),
-                    get_raw_units_amount(obs, units.Protoss.PhotonCannon),
-                    get_raw_units_amount(obs, units.Protoss.RoboticsFacility),
-                    get_raw_units_amount(obs, units.Protoss.Stargate),
-                    get_raw_units_amount(obs, units.Protoss.TwilightCouncil),
-                    get_raw_units_amount(obs, units.Protoss.RoboticsBay),
-                    get_raw_units_amount(obs, units.Protoss.TemplarArchive),
-                    get_raw_units_amount(obs, units.Protoss.DarkShrine),
+                    raw_units_amount_dict[units.Protoss.Nexus],
+                    raw_units_amount_dict[units.Protoss.Pylon],
+                    raw_units_amount_dict[units.Protoss.Assimilator],
+                    raw_units_amount_dict[units.Protoss.Forge],
+                    raw_units_amount_dict[units.Protoss.Gateway],
+                    raw_units_amount_dict[units.Protoss.CyberneticsCore],
+                    raw_units_amount_dict[units.Protoss.PhotonCannon],
+                    raw_units_amount_dict[units.Protoss.RoboticsFacility],
+                    raw_units_amount_dict[units.Protoss.Stargate],
+                    raw_units_amount_dict[units.Protoss.TwilightCouncil],
+                    raw_units_amount_dict[units.Protoss.RoboticsBay],
+                    raw_units_amount_dict[units.Protoss.TemplarArchive],
+                    raw_units_amount_dict[units.Protoss.DarkShrine],
                 ]
             )
             new_state = append_player_and_enemy_grids(
