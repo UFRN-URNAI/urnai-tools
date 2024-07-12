@@ -12,20 +12,20 @@ def append_player_and_enemy_grids(
         grid_size : int,
         raw_resolution : int,
     ) -> list:
-    new_state = append_grid(
-        obs, new_state, grid_size, raw_resolution, features.PlayerRelative.ENEMY
+    new_state = append_alliance_grid(
+        features.PlayerRelative.ENEMY, obs, new_state, grid_size, raw_resolution
     )
-    new_state = append_grid(
-        obs, new_state, grid_size, raw_resolution, features.PlayerRelative.SELF
+    new_state = append_alliance_grid(
+        features.PlayerRelative.SELF, obs, new_state, grid_size, raw_resolution
     )
     return new_state
 
-def append_grid(
+def append_alliance_grid(
+        alliance : features.PlayerRelative,
         obs : list,
         new_state : list,
         grid_size : int, 
         raw_resolution : int,
-        alliance : features.PlayerRelative,
     ) -> list:
     """ Instead of making a vector for all coordnates on the map, we'll
     discretize our unit space and use a grid to store unit positions
@@ -48,8 +48,12 @@ def append_grid(
 
     return new_state
 
-def get_my_raw_units_amount(obs : list, unit_type : int) -> int:
-    return len(get_raw_units_by_type(obs, unit_type, features.PlayerRelative.SELF))
+def get_raw_units_amount(
+        obs : list, 
+        unit_type : int, 
+        alliance : features.PlayerRelative = features.PlayerRelative.SELF,
+    ) -> int:
+    return len(get_raw_units_by_type(obs, unit_type, alliance))
 
 def get_raw_units_by_type(
         obs : list, 

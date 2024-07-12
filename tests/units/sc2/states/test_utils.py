@@ -2,9 +2,9 @@ import unittest
 
 from pysc2.lib.named_array import NamedDict
 
-from urnai.sc2.states.states_utils import (
+from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_my_raw_units_amount,
+    get_raw_units_amount,
     get_raw_units_by_type,
 )
 
@@ -47,7 +47,7 @@ class TestAuxSC2State(unittest.TestCase):
         assert new_state[8] == 0.005
         assert new_state[9] == 0.01
     
-    def test_get_my_raw_units_amount(self):
+    def test_get_raw_units_amount(self):
         # GIVEN
         obs = NamedDict({
             'raw_units': [
@@ -68,21 +68,21 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        amount = get_my_raw_units_amount(obs, 1)
+        amount = get_raw_units_amount(obs, 1)
         # THEN
         assert amount == 1
     
-    def test_get_my_raw_units_amount_no_units(self):
+    def test_get_raw_units_amount_no_units(self):
         # GIVEN
         obs = NamedDict({
             'raw_units': []
         })
         # WHEN
-        amount = get_my_raw_units_amount(obs, 1)
+        amount = get_raw_units_amount(obs, 1)
         # THEN
         assert amount == 0
     
-    def test_get_my_raw_units_amount_no_units_of_type(self):
+    def test_get_raw_units_amount_no_units_of_type(self):
         # GIVEN
         obs = NamedDict({
             'raw_units': [
@@ -103,11 +103,11 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        amount = get_my_raw_units_amount(obs, 1)
+        amount = get_raw_units_amount(obs, 1)
         # THEN
         assert amount == 0
     
-    def test_get_my_raw_units_amount_no_units_of_alliance(self):
+    def test_get_raw_units_amount_no_units_of_alliance(self):
         # GIVEN
         obs = NamedDict({
             'raw_units': [
@@ -128,11 +128,11 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        amount = get_my_raw_units_amount(obs, 1)
+        amount = get_raw_units_amount(obs, 1)
         # THEN
         assert amount == 0
     
-    def test_get_my_raw_units_amount_no_units_of_build_progress(self):
+    def test_get_raw_units_amount_no_units_of_build_progress(self):
         # GIVEN
         obs = NamedDict({
             'raw_units': [
@@ -153,7 +153,7 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        amount = get_my_raw_units_amount(obs, 1)
+        amount = get_raw_units_amount(obs, 1)
         # THEN
         assert amount == 0
     

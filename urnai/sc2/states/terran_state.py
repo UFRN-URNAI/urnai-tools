@@ -3,9 +3,9 @@ from pysc2.env import sc2_env
 from pysc2.lib import units
 
 from urnai.constants import SC2Constants
-from urnai.sc2.states.states_utils import (
+from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_my_raw_units_amount,
+    get_raw_units_amount,
 )
 from urnai.states.state_base import StateBase
 
@@ -42,21 +42,21 @@ class TerranState(StateBase):
             new_state.extend(
                 [
                     # Adds information related to player's Terran units/buildings.
-                    get_my_raw_units_amount(obs, units.Terran.CommandCenter)
-                    + get_my_raw_units_amount(obs, units.Terran.OrbitalCommand)
-                    + get_my_raw_units_amount(obs, units.Terran.PlanetaryFortress) / 2,
-                    get_my_raw_units_amount(obs, units.Terran.SupplyDepot) / 18,
-                    get_my_raw_units_amount(obs, units.Terran.Refinery) / 4,
-                    get_my_raw_units_amount(obs, units.Terran.EngineeringBay),
-                    get_my_raw_units_amount(obs, units.Terran.Armory),
-                    get_my_raw_units_amount(obs, units.Terran.MissileTurret) / 4,
-                    get_my_raw_units_amount(obs, units.Terran.SensorTower) / 1,
-                    get_my_raw_units_amount(obs, units.Terran.Bunker) / 4,
-                    get_my_raw_units_amount(obs, units.Terran.FusionCore),
-                    get_my_raw_units_amount(obs, units.Terran.GhostAcademy),
-                    get_my_raw_units_amount(obs, units.Terran.Barracks) / 3,
-                    get_my_raw_units_amount(obs, units.Terran.Factory) / 2,
-                    get_my_raw_units_amount(obs, units.Terran.Starport) / 2,
+                    get_raw_units_amount(obs, units.Terran.CommandCenter)
+                    + get_raw_units_amount(obs, units.Terran.OrbitalCommand)
+                    + get_raw_units_amount(obs, units.Terran.PlanetaryFortress) / 2,
+                    get_raw_units_amount(obs, units.Terran.SupplyDepot) / 18,
+                    get_raw_units_amount(obs, units.Terran.Refinery) / 4,
+                    get_raw_units_amount(obs, units.Terran.EngineeringBay),
+                    get_raw_units_amount(obs, units.Terran.Armory),
+                    get_raw_units_amount(obs, units.Terran.MissileTurret) / 4,
+                    get_raw_units_amount(obs, units.Terran.SensorTower) / 1,
+                    get_raw_units_amount(obs, units.Terran.Bunker) / 4,
+                    get_raw_units_amount(obs, units.Terran.FusionCore),
+                    get_raw_units_amount(obs, units.Terran.GhostAcademy),
+                    get_raw_units_amount(obs, units.Terran.Barracks) / 3,
+                    get_raw_units_amount(obs, units.Terran.Factory) / 2,
+                    get_raw_units_amount(obs, units.Terran.Starport) / 2,
                 ]
             )
             new_state = append_player_and_enemy_grids(

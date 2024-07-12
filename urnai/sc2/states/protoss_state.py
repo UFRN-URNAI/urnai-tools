@@ -3,9 +3,9 @@ from pysc2.env import sc2_env
 from pysc2.lib import units
 
 from urnai.constants import SC2Constants
-from urnai.sc2.states.states_utils import (
+from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_my_raw_units_amount,
+    get_raw_units_amount,
 )
 from urnai.states.state_base import StateBase
 
@@ -42,19 +42,19 @@ class ProtossState(StateBase):
             new_state.extend(
                 [
                     # Adds information related to player's Protoss units/buildings.
-                    get_my_raw_units_amount(obs, units.Protoss.Nexus),
-                    get_my_raw_units_amount(obs, units.Protoss.Pylon),
-                    get_my_raw_units_amount(obs, units.Protoss.Assimilator),
-                    get_my_raw_units_amount(obs, units.Protoss.Forge),
-                    get_my_raw_units_amount(obs, units.Protoss.Gateway),
-                    get_my_raw_units_amount(obs, units.Protoss.CyberneticsCore),
-                    get_my_raw_units_amount(obs, units.Protoss.PhotonCannon),
-                    get_my_raw_units_amount(obs, units.Protoss.RoboticsFacility),
-                    get_my_raw_units_amount(obs, units.Protoss.Stargate),
-                    get_my_raw_units_amount(obs, units.Protoss.TwilightCouncil),
-                    get_my_raw_units_amount(obs, units.Protoss.RoboticsBay),
-                    get_my_raw_units_amount(obs, units.Protoss.TemplarArchive),
-                    get_my_raw_units_amount(obs, units.Protoss.DarkShrine),
+                    get_raw_units_amount(obs, units.Protoss.Nexus),
+                    get_raw_units_amount(obs, units.Protoss.Pylon),
+                    get_raw_units_amount(obs, units.Protoss.Assimilator),
+                    get_raw_units_amount(obs, units.Protoss.Forge),
+                    get_raw_units_amount(obs, units.Protoss.Gateway),
+                    get_raw_units_amount(obs, units.Protoss.CyberneticsCore),
+                    get_raw_units_amount(obs, units.Protoss.PhotonCannon),
+                    get_raw_units_amount(obs, units.Protoss.RoboticsFacility),
+                    get_raw_units_amount(obs, units.Protoss.Stargate),
+                    get_raw_units_amount(obs, units.Protoss.TwilightCouncil),
+                    get_raw_units_amount(obs, units.Protoss.RoboticsBay),
+                    get_raw_units_amount(obs, units.Protoss.TemplarArchive),
+                    get_raw_units_amount(obs, units.Protoss.DarkShrine),
                 ]
             )
             new_state = append_player_and_enemy_grids(

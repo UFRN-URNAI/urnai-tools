@@ -3,9 +3,9 @@ from pysc2.env import sc2_env
 from pysc2.lib import units
 
 from urnai.constants import SC2Constants
-from urnai.sc2.states.states_utils import (
+from urnai.sc2.states.utils import (
     append_player_and_enemy_grids,
-    get_my_raw_units_amount,
+    get_raw_units_amount,
 )
 from urnai.states.state_base import StateBase
 
@@ -42,19 +42,19 @@ class ZergState(StateBase):
             new_state.extend(
                 [
                     # Adds information related to player's Zerg units/buildings.
-                    get_my_raw_units_amount(obs, units.Zerg.BanelingNest),
-                    get_my_raw_units_amount(obs, units.Zerg.EvolutionChamber),
-                    get_my_raw_units_amount(obs, units.Zerg.Extractor),
-                    get_my_raw_units_amount(obs, units.Zerg.Hatchery),
-                    get_my_raw_units_amount(obs, units.Zerg.HydraliskDen),
-                    get_my_raw_units_amount(obs, units.Zerg.InfestationPit),
-                    get_my_raw_units_amount(obs, units.Zerg.LurkerDen),
-                    get_my_raw_units_amount(obs, units.Zerg.NydusNetwork),
-                    get_my_raw_units_amount(obs, units.Zerg.RoachWarren),
-                    get_my_raw_units_amount(obs, units.Zerg.SpawningPool),
-                    get_my_raw_units_amount(obs, units.Zerg.SpineCrawler),
-                    get_my_raw_units_amount(obs, units.Zerg.Spire),
-                    get_my_raw_units_amount(obs, units.Zerg.SporeCrawler),
+                    get_raw_units_amount(obs, units.Zerg.BanelingNest),
+                    get_raw_units_amount(obs, units.Zerg.EvolutionChamber),
+                    get_raw_units_amount(obs, units.Zerg.Extractor),
+                    get_raw_units_amount(obs, units.Zerg.Hatchery),
+                    get_raw_units_amount(obs, units.Zerg.HydraliskDen),
+                    get_raw_units_amount(obs, units.Zerg.InfestationPit),
+                    get_raw_units_amount(obs, units.Zerg.LurkerDen),
+                    get_raw_units_amount(obs, units.Zerg.NydusNetwork),
+                    get_raw_units_amount(obs, units.Zerg.RoachWarren),
+                    get_raw_units_amount(obs, units.Zerg.SpawningPool),
+                    get_raw_units_amount(obs, units.Zerg.SpineCrawler),
+                    get_raw_units_amount(obs, units.Zerg.Spire),
+                    get_raw_units_amount(obs, units.Zerg.SporeCrawler),
                 ]
             )
             new_state = append_player_and_enemy_grids(
