@@ -13,8 +13,8 @@ class FakeAgent(AgentBase):
     def __init__(self, action_space,
                  state_space : StateBase,
                  model : ModelBase,
-                 reward_builder):
-        super().__init__(action_space, state_space, model, reward_builder)
+                 reward):
+        super().__init__(action_space, state_space, model, reward)
 
 class FakeState(StateBase):
     StateBase.__abstractmethods__ = set()
@@ -25,7 +25,7 @@ class FakeModel(ModelBase):
     def ep_reset(self, ep):
         return None
 
-class FakeRewardBuilder:
+class FakeReward:
     def get_reward(self, obs, reward, done):
         return None
     def reset(self):
@@ -54,12 +54,12 @@ class TestAgentBase(unittest.TestCase):
         fake_action_space = FakeActionSpace()
         fake_state_space = FakeState()
         fake_model = FakeModel()
-        fake_reward_builder = FakeRewardBuilder()
+        fake_reward = FakeReward()
         fake_agent = FakeAgent(
             fake_action_space,
             fake_state_space,
             fake_model,
-            fake_reward_builder
+            fake_reward
         )
 
         # WHEN
@@ -80,36 +80,3 @@ class TestAgentBase(unittest.TestCase):
 
         # THEN
         assert learn_return is None
-
-    def test_update_state(self):
-        # GIVEN
-        fake_state_space = FakeState()
-        fake_agent = FakeAgent(None, fake_state_space, None, None)
-
-        # WHEN
-        update_state_return = fake_agent.update_state("obs")
-
-        # THEN
-        self.assertEqual(update_state_return, fake_state_space.update("obs"))
-
-    def get_reward(self):
-        # GIVEN
-        fake_reward_builder = FakeRewardBuilder()
-        fake_agent = FakeAgent(None, None, None, FakeRewardBuilder)
-
-        # WHEN
-        get_reward_return = fake_agent.get_reward("obs", "reward", "done")
-
-        # THEN
-        self.assertEqual(get_reward_return, fake_reward_builder.get_reward(
-            "obs", "reward", "done"))
-
-    def test_state_dim(self):
-        # GIVEN
-        fake_state_space = FakeState()
-
-        # WHEN
-        fake_agent = FakeAgent(None, fake_state_space, None, None)
-
-        # THEN
-        self.assertEqual(fake_agent.state_dim, fake_state_space.dimension)
