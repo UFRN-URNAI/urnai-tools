@@ -42,10 +42,12 @@ class TestAgentBase(unittest.TestCase):
 
         # WHEN
         step_return = fake_agent.step()
+        choose_action_return = fake_agent.choose_action(FakeActionSpace())
 
         # THEN
         assert isinstance(AgentBase, ABCMeta)
         assert step_return is None
+        assert choose_action_return is None
 
     def test_reset(self):
         # GIVEN

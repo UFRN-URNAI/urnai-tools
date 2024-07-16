@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from urnai.actions.action_base import ActionBase
 from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.models.model_base import ModelBase
 from urnai.states.state_base import StateBase
@@ -25,6 +26,13 @@ class AgentBase(ABC):
 
     @abstractmethod
     def step(self) -> None:
+        ...
+
+    @abstractmethod
+    def choose_action(self, action_space : ActionSpaceBase) -> ActionBase:
+        """
+        Method that contains the agent's strategy for choosing actions
+        """
         ...
 
     def reset(self, episode=0) -> None:
