@@ -2,15 +2,11 @@ import numpy as np
 from pysc2.env import sc2_env
 from pysc2.lib import units
 
-from urnai.constants import SC2Constants
-from urnai.sc2.states.utils import (
-    append_player_and_enemy_grids,
-    create_raw_units_amount_dict,
-)
-from urnai.states.state_base import StateBase
+from urnai.sc2.states.starcraft2_state import StarCraft2State
+from urnai.sc2.states.utils import create_raw_units_amount_dict
 
 
-class TerranState(StateBase):
+class TerranState(StarCraft2State):
 
     def __init__(
         self,
@@ -18,66 +14,36 @@ class TerranState(StateBase):
         use_raw_units: bool = True,
         raw_resolution: int = 64,
     ):
-        self.grid_size = grid_size
+        super().__init__(grid_size, use_raw_units, raw_resolution)
         self.player_race = sc2_env.Race.terran
-        self.use_raw_units = use_raw_units
-        self.raw_resolution = raw_resolution
-        self.reset()
 
     def update(self, obs):
-        new_state = [
-            # Adds general information from the player.
-            obs.player.minerals / SC2Constants.MAX_MINERALS,
-            obs.player.vespene / SC2Constants.MAX_VESPENE,
-            obs.player.food_cap / SC2Constants.MAX_UNITS,
-            obs.player.food_used / SC2Constants.MAX_UNITS,
-            obs.player.food_army / SC2Constants.MAX_UNITS,
-            obs.player.food_workers / SC2Constants.MAX_UNITS,
-            (obs.player.food_cap - obs.player.food_used) / SC2Constants.MAX_UNITS,
-            obs.player.army_count / SC2Constants.MAX_UNITS,
-            obs.player.idle_worker_count / SC2Constants.MAX_UNITS,
-        ]
+        state = super().update(obs)
 
         if self.use_raw_units:
             raw_units_amount_dict = create_raw_units_amount_dict(
                 obs, sc2_env.features.PlayerRelative.SELF)
-            new_state.extend(
-                [
-                    # Adds information related to player's Terran units/buildings.
-                    raw_units_amount_dict[units.Terran.CommandCenter]
-                    + raw_units_amount_dict[units.Terran.OrbitalCommand]
-                    + raw_units_amount_dict[units.Terran.PlanetaryFortress] / 2,
-                    raw_units_amount_dict[units.Terran.SupplyDepot] / 18,
-                    raw_units_amount_dict[units.Terran.Refinery] / 4,
-                    raw_units_amount_dict[units.Terran.EngineeringBay],
-                    raw_units_amount_dict[units.Terran.Armory],
-                    raw_units_amount_dict[units.Terran.MissileTurret] / 4,
-                    raw_units_amount_dict[units.Terran.SensorTower] / 1,
-                    raw_units_amount_dict[units.Terran.Bunker] / 4,
-                    raw_units_amount_dict[units.Terran.FusionCore],
-                    raw_units_amount_dict[units.Terran.GhostAcademy],
-                    raw_units_amount_dict[units.Terran.Barracks] / 3,
-                    raw_units_amount_dict[units.Terran.Factory] / 2,
-                    raw_units_amount_dict[units.Terran.Starport] / 2,
-                ]
-            )
-            new_state = append_player_and_enemy_grids(
-                obs, new_state, self.grid_size, self.raw_resolution
-            )
+            units_amount_info = [
+                raw_units_amount_dict[units.Terran.CommandCenter]
+                + raw_units_amount_dict[units.Terran.OrbitalCommand]
+                + raw_units_amount_dict[units.Terran.PlanetaryFortress] / 2,
+                raw_units_amount_dict[units.Terran.SupplyDepot] / 18,
+                raw_units_amount_dict[units.Terran.Refinery] / 4,
+                raw_units_amount_dict[units.Terran.EngineeringBay],
+                raw_units_amount_dict[units.Terran.Armory],
+                raw_units_amount_dict[units.Terran.MissileTurret] / 4,
+                raw_units_amount_dict[units.Terran.SensorTower] / 1,
+                raw_units_amount_dict[units.Terran.Bunker] / 4,
+                raw_units_amount_dict[units.Terran.FusionCore],
+                raw_units_amount_dict[units.Terran.GhostAcademy],
+                raw_units_amount_dict[units.Terran.Barracks] / 3,
+                raw_units_amount_dict[units.Terran.Factory] / 2,
+                raw_units_amount_dict[units.Terran.Starport] / 2,
+            ]
+            state = np.squeeze(state)
+            state = np.append(state, units_amount_info)
+            self._dimension = len(state)
+            state = np.expand_dims(state, axis=0)
+            self._state = state
 
-        self._dimension = len(new_state)
-        final_state = np.expand_dims(new_state, axis=0)
-        self._state = final_state
-        return final_state
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def dimension(self):
-        return self._dimension
-
-    def reset(self):
-        self._state = None
-        self._dimension = None
+        return state

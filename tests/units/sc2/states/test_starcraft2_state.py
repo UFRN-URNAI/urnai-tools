@@ -1,17 +1,16 @@
 import unittest
 
-from pysc2.env import sc2_env
 from pysc2.lib.named_array import NamedDict
 
-from urnai.sc2.states.zerg_state import ZergState
+from urnai.sc2.states.starcraft2_state import StarCraft2State
 
 
-class TestZergState(unittest.TestCase):
+class TestStarCraft2State(unittest.TestCase):
 
-    
-    def test_zerg_state_no_raw(self):
+
+    def test_starcraft2_state_no_raw(self):
         # GIVEN
-        state = ZergState(use_raw_units=False)
+        state = StarCraft2State(use_raw_units=False)
         obs = NamedDict({
             'player': NamedDict({
                 'minerals': 100,
@@ -27,13 +26,12 @@ class TestZergState(unittest.TestCase):
         # WHEN
         state.update(obs)
         # THEN
-        assert state.player_race == sc2_env.Race.zerg
         assert state.dimension == 9
         assert len(state.state[0]) == 9
 
-    def test_zerg_state_raw(self):
+    def test_starcraft2_state_raw(self):
         # GIVEN
-        state = ZergState(grid_size=6, use_raw_units=True)
+        state = StarCraft2State(grid_size=5, use_raw_units=True)
         obs = NamedDict({
             'player': NamedDict({
                 'minerals': 100,
@@ -65,6 +63,5 @@ class TestZergState(unittest.TestCase):
         # WHEN
         state.update(obs)
         # THEN
-        assert state.player_race == sc2_env.Race.zerg
-        assert state.dimension == 22 + ((6 * 6) * 2)
-        assert len(state.state[0]) == 22 + ((6 * 6) * 2)
+        assert state.dimension == 9 + ((5 * 5) * 2)
+        assert len(state.state[0]) == 9 + ((5 * 5) * 2)

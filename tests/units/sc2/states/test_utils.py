@@ -1,5 +1,6 @@
 import unittest
 
+from pysc2.lib import features
 from pysc2.lib.named_array import NamedDict
 
 from urnai.sc2.states.utils import (
@@ -16,21 +17,21 @@ class TestAuxSC2State(unittest.TestCase):
             'raw_units': [
                 NamedDict({
                     'unit_type': 1,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 1,
                     'y': 1,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 2,
                     'y': 2,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 4,
+                    'alliance': features.PlayerRelative.ENEMY,
                     'build_progress': 100,
                     'x': 63,
                     'y': 63,
@@ -51,21 +52,21 @@ class TestAuxSC2State(unittest.TestCase):
             'raw_units': [
                 NamedDict({
                     'unit_type': 1,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 1,
                     'y': 1,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 2,
                     'y': 2,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 4,
+                    'alliance': features.PlayerRelative.ENEMY,
                     'build_progress': 100,
                     'x': 63,
                     'y': 63,
@@ -73,7 +74,7 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        dict = create_raw_units_amount_dict(obs, 1)
+        dict = create_raw_units_amount_dict(obs, features.PlayerRelative.SELF)
         # THEN
         assert len(dict) == 2
         assert dict[1] == 1
@@ -85,21 +86,21 @@ class TestAuxSC2State(unittest.TestCase):
             'raw_units': [
                 NamedDict({
                     'unit_type': 1,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 1,
                     'y': 1,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 2,
                     'y': 2,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 4,
+                    'alliance': features.PlayerRelative.ENEMY,
                     'build_progress': 100,
                     'x': 63,
                     'y': 63,
@@ -107,7 +108,7 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        dict = create_raw_units_amount_dict(obs, 4)
+        dict = create_raw_units_amount_dict(obs, features.PlayerRelative.ENEMY)
         # THEN
         assert len(dict) == 1
         assert dict[1] == 0
@@ -130,21 +131,21 @@ class TestAuxSC2State(unittest.TestCase):
             'raw_units': [
                 NamedDict({
                     'unit_type': 1,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 1,
                     'y': 1,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 1,
+                    'alliance': features.PlayerRelative.SELF,
                     'build_progress': 100,
                     'x': 2,
                     'y': 2,
                 }),
                 NamedDict({
                     'unit_type': 2,
-                    'alliance': 4,
+                    'alliance': features.PlayerRelative.ENEMY,
                     'build_progress': 100,
                     'x': 63,
                     'y': 63,
@@ -152,7 +153,7 @@ class TestAuxSC2State(unittest.TestCase):
             ]
         })
         # WHEN
-        dict = create_raw_units_amount_dict(obs, 3)
+        dict = create_raw_units_amount_dict(obs, features.PlayerRelative.NEUTRAL)
         # THEN
         assert len(dict) == 0
         assert dict == {}

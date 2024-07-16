@@ -1,5 +1,6 @@
 import unittest
 
+from pysc2.env import sc2_env
 from pysc2.lib.named_array import NamedDict
 
 from urnai.sc2.states.protoss_state import ProtossState
@@ -26,6 +27,7 @@ class TestProtossState(unittest.TestCase):
         # WHEN
         state.update(obs)
         # THEN
+        assert state.player_race == sc2_env.Race.protoss
         assert state.dimension == 9
         assert len(state.state[0]) == 9
 
@@ -63,5 +65,6 @@ class TestProtossState(unittest.TestCase):
         # WHEN
         state.update(obs)
         # THEN
+        assert state.player_race == sc2_env.Race.protoss
         assert state.dimension == 22 + ((5 * 5) * 2)
         assert len(state.state[0]) == 22 + ((5 * 5) * 2)
