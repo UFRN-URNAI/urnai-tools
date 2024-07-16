@@ -26,19 +26,19 @@ class TerranState(StarCraft2State):
             units_amount_info = [
                 raw_units_amount_dict[units.Terran.CommandCenter]
                 + raw_units_amount_dict[units.Terran.OrbitalCommand]
-                + raw_units_amount_dict[units.Terran.PlanetaryFortress] / 2,
-                raw_units_amount_dict[units.Terran.SupplyDepot] / 18,
-                raw_units_amount_dict[units.Terran.Refinery] / 4,
+                + raw_units_amount_dict[units.Terran.PlanetaryFortress],
+                raw_units_amount_dict[units.Terran.SupplyDepot],
+                raw_units_amount_dict[units.Terran.Refinery],
                 raw_units_amount_dict[units.Terran.EngineeringBay],
                 raw_units_amount_dict[units.Terran.Armory],
-                raw_units_amount_dict[units.Terran.MissileTurret] / 4,
-                raw_units_amount_dict[units.Terran.SensorTower] / 1,
-                raw_units_amount_dict[units.Terran.Bunker] / 4,
+                raw_units_amount_dict[units.Terran.MissileTurret],
+                raw_units_amount_dict[units.Terran.SensorTower],
+                raw_units_amount_dict[units.Terran.Bunker],
                 raw_units_amount_dict[units.Terran.FusionCore],
                 raw_units_amount_dict[units.Terran.GhostAcademy],
-                raw_units_amount_dict[units.Terran.Barracks] / 3,
-                raw_units_amount_dict[units.Terran.Factory] / 2,
-                raw_units_amount_dict[units.Terran.Starport] / 2,
+                raw_units_amount_dict[units.Terran.Barracks],
+                raw_units_amount_dict[units.Terran.Factory],
+                raw_units_amount_dict[units.Terran.Starport],
             ]
             state = np.squeeze(state)
             state = np.append(state, units_amount_info)
