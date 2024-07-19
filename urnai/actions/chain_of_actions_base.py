@@ -14,7 +14,7 @@ class ChainOfActionsBase(ABC):
 	
 	def get_action(self, action_index) -> ActionBase:
 		if action_index < self.length:
-			self.action_list[action_index]
+			return self.action_list[action_index]
 
 	@property
 	def length(self) -> int:
