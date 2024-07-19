@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from urnai.actions.action_base import ActionBase
 
+
 class ActionSpaceBase(ABC):
     """
     ActionSpace works as an extra abstraction layer used by the agent
