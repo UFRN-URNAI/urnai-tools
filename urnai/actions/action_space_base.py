@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from urnai.actions.action_base import ActionBase
 
 class ActionSpaceBase(ABC):
     """
@@ -31,12 +32,12 @@ class ActionSpaceBase(ABC):
         ...
 
     @abstractmethod
-    def get_actions(self) -> list[int]:
+    def get_actions(self) -> list[ActionBase]:
         """Returns all the actions that the agent can choose from."""
         ...
 
     @abstractmethod
-    def get_excluded_actions(self, obs) -> list[int]:
+    def get_excluded_actions(self, obs) -> list[ActionBase]:
         """Returns a subset of actions that can't be chosen by the agent."""
         ...
 
