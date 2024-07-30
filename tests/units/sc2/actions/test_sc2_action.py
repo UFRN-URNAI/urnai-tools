@@ -7,7 +7,7 @@ from urnai.actions.sc2_action import SC2Action
 _BUILD_REFINERY = actions.RAW_FUNCTIONS.Build_Refinery_pt
 _NO_OP = actions.FUNCTIONS.no_op
 
-class TestActionBase(unittest.TestCase):
+class TestSC2Action(unittest.TestCase):
 
     def test_run(self):
 
