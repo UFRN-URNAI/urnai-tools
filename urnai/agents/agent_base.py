@@ -54,6 +54,6 @@ class AgentBase(ABC):
         call the model's learn method.
         """
         if self.previous_state is not None:
-            next_state = self.update_state(obs)
+            next_state = self.state_space.update(obs)
             self.model.learn(self.previous_state, self.previous_action,
                               reward, next_state, done)
