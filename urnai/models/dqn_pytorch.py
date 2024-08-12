@@ -11,6 +11,7 @@ from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.models.model_base import ModelBase
 from urnai.models.model_builder import ModelBuilder
 from urnai.states.state_base import StateBase
+from urnai.base.persistence_pickle import PersistencePickle
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -115,6 +116,8 @@ class DQNPytorch(ModelBase):
         self.experiences = namedtuple(
             'Experience',
             field_names=['state', 'action', 'reward', 'next_state', 'done'])
+        
+        self.persistence = PersistencePickle(self)
 
     def make_model(self):
         model = QNetwork(
