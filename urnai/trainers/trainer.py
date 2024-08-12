@@ -88,6 +88,7 @@ class Trainer:
 
                 if done:
                     print("Episode: %d, Reward: %d" % (current_episodes, ep_reward))
+                    self.agent.save("saves/")
                     break
 
             # if this is not a test (evaluation), saving is enabled and we are in a multiple

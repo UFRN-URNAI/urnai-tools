@@ -8,6 +8,7 @@ class ModelBase(ABC):
 	
 	def __init__(self):
 		self.learning_data = {}
+		self.persistence = None
 	
 	@abstractmethod
 	def learn(self, current_state, action, reward, next_state):

@@ -108,7 +108,7 @@ class PersistencePickle(Persistence):
     def _get_dict(self):
         pickleable_attr_dict = {}
 
-        for attr in self.object_to_save._get_attributes():
+        for attr in self._get_attributes():
             pickleable_attr_dict[attr] = getattr(self.object_to_save, attr)
 
         return pickleable_attr_dict
