@@ -37,6 +37,7 @@ def declare_trainer():
 def main(unused_argv):
     try:
         trainer = declare_trainer()
+        #trainer.load("saves/")
         trainer.train()
         # trainer.play()
 

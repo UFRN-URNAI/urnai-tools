@@ -30,3 +30,9 @@ class ModelBase(ABC):
 		One such exploration algorithm commonly used it the epsilon greedy strategy.
 		"""
 		pass
+
+	def save(self, persist_path) -> None:
+		self.persistence.save(persist_path)
+
+	def load(self, persist_path) -> None:
+		self.persistence.load(persist_path)

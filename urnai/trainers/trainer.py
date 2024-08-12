@@ -25,6 +25,9 @@ class Trainer:
     def train(self, reward_from_agent=True):
         self.training_loop(is_training=True, reward_from_agent=reward_from_agent)
 
+    def load(self, persist_path):
+        self.agent.model.load(persist_path)
+
     def play(self, reward_from_agent=True):
         self.training_loop(is_training=False, reward_from_agent=reward_from_agent)
 
@@ -88,7 +91,7 @@ class Trainer:
 
                 if done:
                     print("Episode: %d, Reward: %d" % (current_episodes, ep_reward))
-                    self.agent.save("saves/")
+                    self.agent.model.save("saves/")
                     break
 
             # if this is not a test (evaluation), saving is enabled and we are in a multiple

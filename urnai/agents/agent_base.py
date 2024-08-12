@@ -57,9 +57,3 @@ class AgentBase(ABC):
             next_state = self.state_space.update(obs)
             self.model.learn(self.previous_state, self.previous_action,
                               reward, next_state, done)
-            
-    def save(self, savepath) -> None:
-        if (self.model.persistence == None):
-            raise 'No persistence set in model'
-        
-        self.model.persistence.save(savepath)

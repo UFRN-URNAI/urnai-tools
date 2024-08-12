@@ -118,6 +118,7 @@ class DQNPytorch(ModelBase):
             field_names=['state', 'action', 'reward', 'next_state', 'done'])
         
         self.persistence = PersistencePickle(self)
+        self.persistence.attr_block_list.append(['persistence'])
 
     def make_model(self):
         model = QNetwork(
