@@ -11,14 +11,15 @@ sys.path.insert(0, os.getcwd())
 
 
 class SC2Agent(AgentBase):
-    def __init__(self, action_space : ActionSpaceBase, state_builder : StateBase, model: ModelBase, reward_builder: RewardBase):
-        super(SC2Agent, self).__init__(action_space, state_builder, model, reward_builder)
+    def __init__(self, action_space : ActionSpaceBase, state_builder : StateBase, 
+                 model: ModelBase, reward_builder: RewardBase):
+        super().__init__(action_space, state_builder, model, reward_builder)
         # self.reward = 0
         self.episodes = 0
         self.steps = 0
 
     def reset(self, episode=0):
-        super(SC2Agent, self).reset(episode)
+        super().reset(episode)
         self.episodes += 1
 
     def step(self, obs, done, is_training=True):
@@ -27,7 +28,8 @@ class SC2Agent(AgentBase):
         if self.action_space.is_action_done():
             current_state = self.state_space.update(obs)
             excluded_actions = self.action_space.get_excluded_actions(obs)
-            predicted_action_idx = self.model.choose_action(current_state, excluded_actions,
+            predicted_action_idx = self.model.choose_action(current_state, 
+                                                            excluded_actions,
                                                             is_training)
             self.previous_action = predicted_action_idx
             self.previous_state = current_state

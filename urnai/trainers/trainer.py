@@ -11,8 +11,8 @@ sys.path.insert(0, parentdir)
 class Trainer:
     # TODO: Add an option to play every x episodes, instead of just training non-stop
 
-    def __init__(self, env, agent, max_training_episodes, max_playing_episodes, max_steps_training,
-                 max_steps_playing,
+    def __init__(self, env, agent, max_training_episodes, max_playing_episodes, 
+                 max_steps_training, max_steps_playing,
                  ):
 
         self.env = env
@@ -52,9 +52,10 @@ class Trainer:
             obs = self.env.reset()
             step_reward = 0
             done = False
-            # Passing the episode to the agent reset, so that it can be passed to model reset
-            # Allowing the model to track the episode number, and decide if it should diminish the
-            # Learning Rate, depending on the currently selected strategy.
+            # Passing the episode to the agent reset, so that it can be passed to model 
+            # reset, allowing the model to track the episode number, and decide if it 
+            # should diminish the Learning Rate, depending on the currently selected 
+            # strategy.
             self.agent.reset(current_episodes)
 
             ep_reward = 0
@@ -94,8 +95,9 @@ class Trainer:
                     self.agent.model.save("saves/")
                     break
 
-            # if this is not a test (evaluation), saving is enabled and we are in a multiple
-            # of our save_every variable then we save the model and generate graphs
+            # if this is not a test (evaluation), saving is enabled and we are in a 
+            # multiple of our save_every variable then we save the model and generate 
+            # graphs
             # TODO
             # if is_training \
             #         and self.enable_save \

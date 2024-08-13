@@ -85,7 +85,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 'now', unit.tag, [new_army_x, new_army_y]))
+                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
+                              'now', unit.tag, [new_army_x, new_army_y]))
 
     def move_right(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -97,7 +98,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 'now', unit.tag, [new_army_x, new_army_y]))
+                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 
+                              'now', unit.tag, [new_army_x, new_army_y]))
 
     def move_down(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -109,7 +111,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 'now', unit.tag, [new_army_x, new_army_y]))
+                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
+                              'now', unit.tag, [new_army_x, new_army_y]))
 
     def move_up(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -121,8 +124,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 'now', unit.tag, [new_army_x, new_army_y]))
-                # actions.RAW_FUNCTIONS.Move_pt('now', unit.tag, [new_army_x, new_army_y]))
+                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
+                              'now', unit.tag, [new_army_x, new_army_y]))
 
     def get_action_name_str_by_int(self, action_int):
         action_str = ''

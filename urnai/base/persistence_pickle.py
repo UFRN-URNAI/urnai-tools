@@ -56,12 +56,14 @@ class PersistencePickle(Persistence):
 		If you wish to block one particular pickleable attribute, put it
         in self.attr_block_list as a string.
         """
-        if not hasattr(self.object_to_save, 'attr_block_list') or self.attr_block_list is None:
+        if not hasattr(self.object_to_save, 'attr_block_list') \
+            or self.attr_block_list is None:
             self.attr_block_list = []
 
         attr_block_list = self.attr_block_list + ['attr_block_list', 'processes']
 
-        full_attr_list = [attr for attr in dir(self.object_to_save) if not attr.startswith('__')
+        full_attr_list = [attr for attr in dir(self.object_to_save) \
+                          if not attr.startswith('__')
                           and not callable(getattr(self.object_to_save, attr))
                           and attr not in attr_block_list
                           and 'abc' not in attr]

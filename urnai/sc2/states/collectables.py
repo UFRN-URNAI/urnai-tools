@@ -76,22 +76,6 @@ class CollectablesState(StateBase):
         return map_
 
     def build_basic_map(self, obs):
-        # old map generation code
-        # layer 3 is base (2 walkable area, 0 not)
-        # layer 4 is units (1 friendly, 2 enemy, 16 mineral shards, 3 neutral
-        # for y in range(len(obs.feature_minimap[3])):
-        #     for x in range(len(obs.feature_minimap[3][y])):
-        #         if obs.feature_minimap[3][y][x] == 2: map_[y][x] = 270 #drts walkable area
-
-        # for y in range(len(obs.feature_minimap[4])):
-        #     for x in range(len(obs.feature_minimap[4][y])):
-        #         if obs.feature_minimap[4][y][x] == 1: map_[y][x] = 1 #drts 1 is peasant, 7
-        #         is archer, which one is needed for the current map
-        #         elif obs.feature_minimap[4][y][x] == 2: map_[y][x] = 7 #drts 1 is peasant, 7
-        #         is archer, which one is needed for the current map
-        #         elif obs.feature_minimap[4][y][x] == 16: map_[y][x] = 100 #drts 1000 was
-        #         chosen by me to represent virtual shards
-        #         elif obs.feature_minimap[4][y][x] == 3: map_[y][x] = 102 #drts 102 is gold
 
         map_ = np.zeros(obs.feature_minimap[0].shape)
         marines = sc2aux.get_units_by_type(obs, sc2units.Terran.Marine)
@@ -173,7 +157,7 @@ class CollectablesState(StateBase):
         # position 1: distance y to closest shard
         self.non_spatial_state[1] = int(y)
         # position 2: number of remaining shards
-        #        self.non_spatial_state[2] = np.count_nonzero(obs.feature_minimap[4] == 16)
+        #        self.non_spatial_state[2]=np.count_nonzero(obs.feature_minimap[4]==16)
         self.normalize_non_spatial_list()
         return self.non_spatial_state
 
@@ -217,9 +201,9 @@ class CollectablesState(StateBase):
     
     def lower_featuremap_resolution(self, map, rf):  # rf = reduction_factor
         """
-        Reduces a matrix "resolution" by a reduction factor. If we have a 64x64 matrix and rf=4 the map
-        will be reduced to 16x16 in which
-        every new element of the matrix is an average from 4x4=16 elements from the original matrix
+        Reduces a matrix "resolution" by a reduction factor. If we have a 64x64 matrix 
+        and rf=4 the map will be reduced to 16x16 in which every new element of the 
+        matrix is an average from 4x4=16 elements from the original matrix
         """
         if rf == 1:
             return map
@@ -234,6 +218,7 @@ class CollectablesState(StateBase):
                 # reduction_array = map[rf*i:rf*i+rf, rf*j:rf*j+rf].flatten()
                 # reduced_map[i,j]  = Counter(reduction_array).most_common(1)[0][0]
 
-                reduced_map[i, j] = (map[rf * i:rf * i + rf, rf * j:rf * j + rf].sum()) / (rf * rf)
+                reduced_map[i, j] = ((map[rf * i:rf * i + rf, rf * j:rf * j + rf].sum())
+                                     / (rf * rf))
 
         return reduced_map

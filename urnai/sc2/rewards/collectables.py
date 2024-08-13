@@ -29,7 +29,8 @@ class CollectablesReward(RewardBase):
         return reward
 
     def filter_non_mineral_shard_units(self, obs):
-        filtered_map = np.zeros((len(obs.feature_minimap[0]), len(obs.feature_minimap[0][0])))
+        filtered_map = np.zeros((len(obs.feature_minimap[0]), 
+                                 len(obs.feature_minimap[0][0])))
         for unit in sc2aux.get_all_neutral_units(obs):
             filtered_map[unit.y][unit.x] = 1
 
