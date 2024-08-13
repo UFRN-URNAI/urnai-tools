@@ -10,3 +10,6 @@ class RewardBase(ABC):
 
     @abstractmethod
     def get_reward(self, obs, reward, done) -> int: ...
+
+    @abstractmethod
+    def reset(self) -> None: ...

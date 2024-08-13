@@ -45,7 +45,7 @@ class AgentBase(ABC):
         self.previous_state = None
         self.action_space.reset()
         self.model.ep_reset(episode)
-        # self.reward.reset()
+        self.reward.reset()
         self.state_space.reset()
 
     def learn(self, obs, reward, done) -> None:

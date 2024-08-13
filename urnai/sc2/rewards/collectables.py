@@ -27,6 +27,10 @@ class CollectablesReward(RewardBase):
         
         self.previous_state = obs
         return reward
+    
+    def reset(self) -> None:
+        self.previous_state = None
+        self.old_collectable_counter = STATE_MAXIMUM_NUMBER_OF_MINERAL_SHARDS
 
     def filter_non_mineral_shard_units(self, obs):
         filtered_map = np.zeros((len(obs.feature_minimap[0]), 
