@@ -1,6 +1,7 @@
 import inspect
 import os
 import sys
+from datetime import datetime
 
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
@@ -11,9 +12,11 @@ sys.path.insert(0, parentdir)
 class Trainer:
     # TODO: Add an option to play every x episodes, instead of just training non-stop
 
-    def __init__(self, env, agent, max_training_episodes, max_playing_episodes, 
-                 max_steps_training, max_steps_playing,
-                 ):
+    def __init__(
+            self, env, agent, max_training_episodes, max_playing_episodes, 
+            max_steps_training, max_steps_playing, enable_save=True, save_every=10,
+            save_path= None, file_name=None,
+            ):
 
         self.env = env
         self.agent = agent
@@ -21,6 +24,16 @@ class Trainer:
         self.max_playing_episodes = max_playing_episodes
         self.max_steps_training = max_steps_training
         self.max_steps_playing = max_steps_playing
+        self.enable_save = enable_save
+        self.save_every = save_every
+        if save_path is None:
+            save_path = os.path.expanduser('~') + os.path.sep + 'urnai_saved_trainings'
+        if file_name is None:
+            file_name=str(datetime.now()).replace(' ','_').replace(':','_').replace('.',
+                                                                                    '_')
+        # self.full_save_path = save_path + os.path.sep + file_name
+        # TODO: Change this to a user defined path
+        self.full_save_path = "saves/"
 
     def train(self, reward_from_agent=True):
         self.training_loop(is_training=True, reward_from_agent=reward_from_agent)
@@ -92,24 +105,20 @@ class Trainer:
 
                 if done:
                     print("Episode: %d, Reward: %d" % (current_episodes, ep_reward))
-                    self.agent.model.save("saves/")
+                    # self.agent.model.save("saves/")
                     break
 
-            # if this is not a test (evaluation), saving is enabled and we are in a 
-            # multiple of our save_every variable then we save the model and generate 
-            # graphs
-            # TODO
-            # if is_training \
-            #         and self.enable_save \
-            #         and current_episodes > 0 \
-            #         and current_episodes % self.save_every == 0:
-            #     self.save(self.full_save_path)
+            # if the agent is training, saving is enabled and we are in a 
+            # multiple of our save_every variable then we save the model
+            if is_training \
+                    and self.enable_save \
+                    and current_episodes > 0 \
+                    and current_episodes % self.save_every == 0:
+                self.agent.model.save(self.full_save_path)
 
 
         self.env.close()
 
         # Saving the model at the end of the training loop
-        # TODO
-        # if self.enable_save:
-        #     if is_training:
-        #         self.save(self.full_save_path)
+        if self.enable_save and is_training:
+                self.agent.model.save(self.full_save_path)

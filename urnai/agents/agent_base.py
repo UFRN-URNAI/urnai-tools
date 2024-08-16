@@ -28,12 +28,12 @@ class AgentBase(ABC):
     def step(self) -> None:
         ...
 
-    # @abstractmethod
-    # def choose_action(self, action_space : ActionSpaceBase) -> ActionBase:
-    #     """
-    #     Method that contains the agent's strategy for choosing actions
-    #     """
-    #     ...
+    @abstractmethod
+    def choose_action(self, action_space : ActionSpaceBase) -> int:
+        """
+        Method that contains the agent's strategy for choosing actions
+        """
+        ...
 
     def reset(self, episode=0) -> None:
         """

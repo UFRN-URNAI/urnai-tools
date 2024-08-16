@@ -64,12 +64,11 @@ class DQNPytorch(ModelBase):
     def __init__(self, action_wrapper: ActionSpaceBase, state_builder: StateBase, 
                  gamma=0.99, learning_rate=0.001, learning_rate_min=0.0001,
                  learning_rate_decay=0.99995, learning_rate_decay_ep_cutoff=0,
-                 name='DQNPytorch', epsilon_start=1.0, epsilon_min=0.01,
-                 epsilon_decay_rate=0.995, per_episode_epsilon_decay=False, 
+                 name='DQNPytorch', 
                  batch_size=64, memory_maxlen=50000, min_memory_size=1000,
                  build_model=ModelBuilder.DEFAULT_BUILD_MODEL, seed_value=None, 
-                 cpu_only=False, epsilon_linear_decay=False, 
-                 lr_linear_decay=False, epsilon_decay_ep_start=0):
+                 cpu_only=False, 
+                 lr_linear_decay=False):
 
         # -----------------------------------------------
         self.seed_value = seed_value
@@ -89,14 +88,6 @@ class DQNPytorch(ModelBase):
         self.actions = action_wrapper.get_actions()
         self.action_size = action_wrapper.size
         self.state_size = state_builder.dimension
-
-        # EXPLORATION PARAMETERS FOR EPSILON GREEDY STRATEGY
-        self.epsilon_greedy = epsilon_start
-        self.epsilon_min = epsilon_min
-        self.epsilon_decay_rate = epsilon_decay_rate
-        self.per_episode_epsilon_decay = per_episode_epsilon_decay
-        self.epsilon_linear_decay = epsilon_linear_decay
-        self.epsilon_decay_ep_start = epsilon_decay_ep_start
 
         # self.tensorboard_callback_logdir = ''
         self.tensorboard_callback = None
@@ -174,9 +165,6 @@ class DQNPytorch(ModelBase):
         # to do: add tau to model definition so that it can be passed here
         self.soft_update(self.model, self.target_model)
 
-        if not self.per_episode_epsilon_decay:
-            self.decay_epsilon()
-
     def soft_update(self, local_model, target_model, tau=1e-3):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
@@ -190,25 +178,6 @@ class DQNPytorch(ModelBase):
                                              local_model.parameters()):
             target_param.data.copy_(
                 tau * local_param.data + (1 - tau) * target_param.data)
-
-    def choose_action(self, state, excluded_actions, is_training=True):
-        """
-        If current epsilon greedy strategy is reached a random action will 
-        be returned. If not, self.predict will be called to choose the action 
-        with the highest Q-Value.
-        """
-        if not is_training:
-            return self.predict(state, excluded_actions)
-
-        else:
-            if np.random.rand() <= self.epsilon_greedy:
-                random_action = random.choice(self.actions)
-                # Removing excluded actions
-                while random_action in excluded_actions:
-                    random_action = random.choice(self.actions)
-                return random_action
-            else:
-                return self.predict(state, excluded_actions)
 
     def predict(self, state, excluded_actions):
         """Gets the action with the highest Q-value from our DQN PyTorch model"""
@@ -264,11 +233,9 @@ class DQNPytorch(ModelBase):
     
     def ep_reset(self, episode=0):
         """
-        This method is mainly used to enact the decay_epsilon and decay_lr
+        This method is mainly used to enact the decay_lr
         at the end of every episode.
         """
-        if self.per_episode_epsilon_decay and episode >= self.epsilon_decay_ep_start:
-            self.decay_epsilon()
 
         if (episode > self.learning_rate_decay_ep_cutoff 
             and self.learning_rate_decay != 1):
@@ -286,19 +253,6 @@ class DQNPytorch(ModelBase):
         else:
             if self.learning_rate > self.learning_rate_min:
                 self.learning_rate *= self.learning_rate_decay
-    
-    def decay_epsilon(self):
-        """
-        Implements the epsilon greedy strategy, effectivelly lowering the current
-        epsilon greedy value by multiplying it by the epsilon_decay_rate
-        (the higher the value, the less it lowers the epsilon_decay).
-        """
-        if self.epsilon_linear_decay:
-            if self.epsilon_greedy > self.epsilon_min:
-                self.epsilon_greedy -= (1 - self.epsilon_decay_rate)
-        else:
-            if self.epsilon_greedy > self.epsilon_min:
-                self.epsilon_greedy *= self.epsilon_decay_rate
 
 
 class QNetwork(nn.Module):
