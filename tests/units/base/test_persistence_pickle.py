@@ -8,6 +8,10 @@ class FakePersistencePickle(PersistencePickle):
     def __init__(self, threaded_saving=False):
         super().__init__(threaded_saving)
 
+class SimpleClass:
+    def __init__(self):
+        pass
+
 class TestPersistence(unittest.TestCase):
 
     @patch('urnai.base.persistence_pickle.PersistencePickle._simple_save')
@@ -46,21 +50,23 @@ class TestPersistence(unittest.TestCase):
     def test_get_attributes(self):
 
         # GIVEN
-        fake_persistence_pickle = FakePersistencePickle()
+        obj_to_save = SimpleClass()
+        fake_persistence_pickle = FakePersistencePickle(obj_to_save)
 
         # WHEN
         return_list = fake_persistence_pickle._get_attributes()
 
         # THEN
-        self.assertEqual(return_list, ['threaded_saving'])
+        self.assertEqual(return_list, [])
 
     def test_get_dict(self):
 
         # GIVEN
-        fake_persistence_pickle = FakePersistencePickle()
+        obj_to_save = SimpleClass()
+        fake_persistence_pickle = FakePersistencePickle(obj_to_save)
 
         # WHEN
         return_dict = fake_persistence_pickle._get_dict()
 
         # THEN
-        self.assertEqual(return_dict, {"threaded_saving": False})
+        self.assertEqual(return_dict, {})

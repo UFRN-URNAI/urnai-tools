@@ -11,6 +11,10 @@ class FakePersistence(Persistence):
     def __init__(self, threaded_saving=False):
         super().__init__(threaded_saving)
 
+class SimpleClass:
+    def __init__(self):
+        pass
+
 class TestPersistence(unittest.TestCase):
 
     def test_abstract_methods(self):
@@ -41,7 +45,7 @@ class TestPersistence(unittest.TestCase):
 
         # THEN
         self.assertEqual(_get_def_save_stamp_return,
-                          fake_persistence.__class__.__name__ + '_')
+                          fake_persistence.object_to_save.__class__.__name__ + '_')
 
     def test_get_full_persistance_path(self):
 
@@ -90,7 +94,8 @@ class TestPersistence(unittest.TestCase):
     def test_restore_attributes(self):
 
         # GIVEN
-        fake_persistence = FakePersistence()
+        obj_to_save = SimpleClass()
+        fake_persistence = FakePersistence(obj_to_save)
         dict_to_restore = {"TestAttribute1": 314, "TestAttribute2": "string"}
 
         # WHEN
@@ -98,6 +103,6 @@ class TestPersistence(unittest.TestCase):
         fake_persistence._restore_attributes(dict_to_restore)
 
         # THEN
-        assert hasattr(fake_persistence, "TestAttribute1") is True
-        assert hasattr(fake_persistence, "TestAttribute2") is False
-        self.assertEqual(fake_persistence.TestAttribute1, 314)
+        assert hasattr(fake_persistence.object_to_save, "TestAttribute1") is True
+        assert hasattr(fake_persistence.object_to_save, "TestAttribute2") is False
+        self.assertEqual(fake_persistence.object_to_save.TestAttribute1, 314)

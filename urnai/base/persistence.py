@@ -10,10 +10,11 @@ class Persistence(ABC):
 	to save on disk.
     """
 
-    def __init__(self, threaded_saving=False):
+    def __init__(self, object_to_save, threaded_saving=False):
         self.threaded_saving = threaded_saving
         self.attr_block_list = []
         self.processes = []
+        self.object_to_save = object_to_save
 
     def _get_default_save_stamp(self):
         """
@@ -21,7 +22,7 @@ class Persistence(ABC):
         file name that should be used while
         persisting the object.
         """
-        return self.__class__.__name__ + '_'
+        return self.object_to_save.__class__.__name__ + '_'
 
     def get_full_persistance_path(self, persist_path):
         """This method returns the default persistance path."""
@@ -75,4 +76,4 @@ class Persistence(ABC):
     def _restore_attributes(self, dict_to_restore):
         for key in dict_to_restore:
             if key not in self.attr_block_list:   
-                setattr(self, key, dict_to_restore[key])
+                setattr(self.object_to_save, key, dict_to_restore[key])
