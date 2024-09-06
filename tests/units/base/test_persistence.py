@@ -11,7 +11,7 @@ class FakePersistence(Persistence):
     def __init__(self, threaded_saving=False):
         super().__init__(threaded_saving)
 
-class SimpleClass():
+class SimpleClass:
     def __init__(self):
         pass
 
