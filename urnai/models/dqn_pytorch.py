@@ -122,7 +122,7 @@ class DQNPytorch(ModelBase):
         self.memory.append(experience)
 
     def learn(self, s, a, r, s_, done):
-        """Applies the learn strategy of the DQL algorithm using PyTorche's methods."""
+        """Applies the learn strategy of the DQL algorithm using PyTorch's methods."""
         self.memorize(s, a, r, s_, done)
         if len(self.memory) < self.min_memory_size:
             return

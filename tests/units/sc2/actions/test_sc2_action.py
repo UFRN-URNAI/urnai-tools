@@ -2,7 +2,7 @@ import unittest
 
 from pysc2.lib import actions
 
-from urnai.actions.sc2_action import SC2Action
+from urnai.sc2.actions.sc2_action import SC2Action
 
 _BUILD_REFINERY = actions.RAW_FUNCTIONS.Build_Refinery_pt
 _NO_OP = actions.FUNCTIONS.no_op
