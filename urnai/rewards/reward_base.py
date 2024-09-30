@@ -9,8 +9,14 @@ class RewardBase(ABC):
     """
 
     @abstractmethod
-    def get_reward(self, obs: list[list], default_reward: int, terminated: bool, 
-                   truncated: bool) -> int: ...
+    def get(
+        self,
+        obs: list[list],
+        default_reward: int,
+        terminated: bool, 
+        truncated: bool
+    ) -> int: 
+        raise NotImplementedError(...)
 
     @abstractmethod
     def reset(self) -> None: ...
