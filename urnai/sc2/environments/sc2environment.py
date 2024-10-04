@@ -113,6 +113,6 @@ class SC2Env(EnvironmentBase):
         terminated = any(o.player_result for o in self.env_instance._obs)
         current_steps = self.env_instance._episode_steps
         limit_steps = self.env_instance._episode_length
-        truncated = current_steps >= limit_steps
+        truncated = bool(current_steps >= limit_steps)
 
         return obs, reward, terminated, truncated
