@@ -16,7 +16,8 @@ class RewardBase(ABC):
         terminated: bool, 
         truncated: bool
     ) -> int: 
-        raise NotImplementedError(...)
+        raise NotImplementedError("Get method not implemented. You should implement " +
+                                  "it in your RewardBase subclass.")
 
     @abstractmethod
     def reset(self) -> None: ...

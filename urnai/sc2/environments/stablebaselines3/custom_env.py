@@ -53,7 +53,8 @@ class CustomEnv(gym.Env):
         return obs, info
 
     def render(self, mode: str) -> None:
-        raise NotImplementedError(...)
+        raise NotImplementedError("Render method not implemented. If necessary, you " +
+                                  "should implement it in your CustomEnv subclass.")
 
     def close(self) -> None:
         self._env.close()
