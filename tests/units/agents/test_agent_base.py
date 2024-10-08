@@ -80,3 +80,16 @@ class TestAgentBase(unittest.TestCase):
 
         # THEN
         assert learn_return is None
+
+    def test_learn_with_previous_state(self):
+        # GIVEN
+        fake_model = FakeModel()
+        fake_state_space = FakeState()
+        fake_agent = FakeAgent(None, fake_state_space, fake_model, None)
+        fake_agent.previous_state = "previous_state"
+
+        # WHEN
+        learn_return = fake_agent.learn("obs", "reward", "done")
+
+        # THEN
+        assert learn_return is None
