@@ -10,7 +10,7 @@ class ModelBase(ABC):
 		self.learning_data = {}
 	
 	@abstractmethod
-	def learn(self, current_state, action, reward, next_state):
+	def learn(self, current_state, action, reward, next_state, done):
 		"""Learning strategy"""
 		...
 	

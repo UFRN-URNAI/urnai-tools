@@ -15,7 +15,7 @@ class TestModelBase(unittest.TestCase):
 
 		fake_model = FakeModel()
 		learn_return = fake_model.learn("current_state",
-			"action", "reward", "next_state")
+			"action", "reward", "next_state", "done")
 		predict_return = fake_model.predict("state")
 		learning_data = fake_model.learning_data
 
