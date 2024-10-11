@@ -51,3 +51,27 @@ class TestActionSpaceBase(unittest.TestCase):
 
         # THEN
         self.assertEqual(fake_action_space.size, 0)
+    
+    def test_get_actions_id(self):
+
+        # GIVEN
+        fake_action_space = FakeActionSpace()
+
+        # WHEN
+        fake_action_space.get_actions = MagicMock(return_value=[])
+
+        # THEN
+        self.assertEqual(fake_action_space.get_actions_id(), [])
+
+    def test_get_actions_id_with_actions(self):
+
+        # GIVEN
+        fake_action_space = FakeActionSpace()
+
+        # WHEN
+        fake_action_space.get_actions = MagicMock(
+            return_value=[MagicMock(__id__="action1"), MagicMock(__id__="action2")]
+        )
+
+        # THEN
+        self.assertEqual(fake_action_space.get_actions_id(), ["action1", "action2"])
