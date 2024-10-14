@@ -74,17 +74,17 @@ class SC2Env(EnvironmentBase):
                 realtime=self.realtime,
             )
 
-    def step(self, action_list: list) -> tuple[list[list], list[int], bool, bool]:
+    def step(self, action_list: list) -> tuple[list, int, bool, bool]:
         timestep = self.env_instance.step(action_list)
         obs, reward, terminated, truncated = self._parse_timestep(timestep)
         self.terminated = terminated
         self.truncated = truncated
-        return obs, reward, terminated, truncated
+        return obs[0], reward[0], terminated, truncated
 
-    def reset(self) -> list[list]:
+    def reset(self) -> list:
         timestep = self.env_instance.reset()
         obs, *_ = self._parse_timestep(timestep)
-        return obs
+        return obs[0]
 
     def close(self) -> None:
         self.env_instance.close()
