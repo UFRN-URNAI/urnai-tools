@@ -58,7 +58,7 @@ class TestSC2Environment(unittest.TestCase):
         obs = env.reset()
         # THEN
         env.env_instance.reset.assert_called_once()
-        assert isinstance(obs[0], NamedDict)
+        assert isinstance(obs, NamedDict)
     
     @patch('pysc2.env.sc2_env.SC2Env')
     def test_step_method(self, scenv_mock):
@@ -78,12 +78,12 @@ class TestSC2Environment(unittest.TestCase):
         obs, reward, terminated, truncated = env.step([actions.RAW_FUNCTIONS.no_op()])
         # THEN
         env.env_instance.step.assert_called_once_with([actions.RAW_FUNCTIONS.no_op()])
-        assert isinstance(obs[0], NamedDict)
-        assert obs[0].step_mul == 16
-        assert isinstance(obs[0].map_size, point.Point)
-        assert obs[0].map_size.x == 64
-        assert obs[0].map_size.y == 64
-        assert reward[0] == 0
+        assert isinstance(obs, NamedDict)
+        assert obs.step_mul == 16
+        assert isinstance(obs.map_size, point.Point)
+        assert obs.map_size.x == 64
+        assert obs.map_size.y == 64
+        assert reward == 0
         assert terminated is False
         assert truncated is False
 
