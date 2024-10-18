@@ -37,9 +37,9 @@ class CustomEnv(gym.Env):
 
         obs, reward, terminated, truncated = self._env.step(action)
 
-        self._obs = obs[0]
+        self._obs = obs
         obs = self._state.update(self._obs)
-        reward = self._reward.get(self._obs, reward[0], terminated, truncated)
+        reward = self._reward.get(self._obs, reward, terminated, truncated)
         info = {}
         return obs, reward, terminated, truncated, info
 
@@ -47,7 +47,7 @@ class CustomEnv(gym.Env):
             self, seed: int = None, options: dict = None
         ) -> GymResetReturn:
         obs = self._env.reset()
-        self._obs = obs[0]
+        self._obs = obs
         obs = self._state.update(self._obs)
         info = {}
         return obs, info
