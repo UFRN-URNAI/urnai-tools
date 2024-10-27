@@ -55,12 +55,12 @@ tasks:
   test-coverage:
     desc: Check the test coverage report.
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} coverage report -m
+      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp ${PACKAGE_NAME} coverage report -m
 
   unit-test:
     desc: Runs the unit tests.
     cmds:
       - |
-        ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp \
+        ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp \
           --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
           coverage run -m pytest tests
