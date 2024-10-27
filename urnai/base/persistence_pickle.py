@@ -27,8 +27,7 @@ class PersistencePickle(Persistence):
         Then all unpickleable attributes are set to None
         and the object is pickled.
 
-        Finally the nulled attributes are
-        restored.
+        Finally, the nulled attributes are restored.
         """
         path = self.get_full_persistance_path(persist_path)
 		
@@ -106,9 +105,6 @@ class PersistencePickle(Persistence):
         return pickleable_list
 
     def _get_dict(self):
-        pickleable_attr_dict = {}
-
-        for attr in self._get_attributes():
-            pickleable_attr_dict[attr] = getattr(self, attr)
-
-        return pickleable_attr_dict
+        return {
+            attr: getattr(self, attr) for attr in self._get_attributes()
+        }

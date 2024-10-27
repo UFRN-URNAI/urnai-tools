@@ -50,7 +50,7 @@ tasks:
   shell:
     desc: Runs the shell of a container.
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp -it ${PACKAGE_NAME} /bin/bash
+      - ${CMD_DOCKER_RUN} -u ${UID}:${GID -v ${ROOT}:/tmp -it ${PACKAGE_NAME} /bin/bash
 
   test-coverage:
     desc: Check the test coverage report.
@@ -64,3 +64,9 @@ tasks:
         ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp \
           --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
           coverage run -m pytest tests
+
+  test:
+    desc: Runs unit-test and test-coverage commands.
+    cmds:
+      - task: unit-test
+      - task: test-coverage
