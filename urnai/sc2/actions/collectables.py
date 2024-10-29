@@ -5,13 +5,13 @@ from pysc2.lib import actions
 
 from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.sc2.actions import sc2_actions_aux as scaux
-from urnai.sc2.actions.sc2_action import SC2Action
+from urnai.sc2.actions.sc2_actions import sc2_raw_action_classes as sc2_actions
 
 
 class CollectablesActionSpace(ActionSpaceBase):
 
     def __init__(self):
-        self.noaction = [actions.RAW_FUNCTIONS.no_op()]
+        self.noaction = [sc2_actions["no_op"]().run()] #actions.RAW_FUNCTIONS.no_op()
         self.move_number = 0
 
         self.hor_threshold = 2
@@ -48,7 +48,7 @@ class CollectablesActionSpace(ActionSpaceBase):
     def get_action(self, action_idx, obs):
         action = None
         if len(self.pending_actions) == 0:
-            action = [actions.RAW_FUNCTIONS.no_op()]
+            action = self.noaction
         else:
             action = [self.pending_actions.pop()]
         self.solve_action(action_idx, obs)
@@ -85,8 +85,10 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                              'now', unit.tag, [new_army_x, new_army_y]))
+                sc2_actions["Move_pt"]().run(
+                    'now', unit.tag,[new_army_x, new_army_y]))
+                #SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 
+                              #'now', unit.tag, [new_army_x, new_army_y]))
 
     def move_right(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -98,8 +100,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 
-                              'now', unit.tag, [new_army_x, new_army_y]))
+                sc2_actions["Move_pt"]().run(
+                    'now', unit.tag,[new_army_x, new_army_y]))
 
     def move_down(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -111,8 +113,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                              'now', unit.tag, [new_army_x, new_army_y]))
+                sc2_actions["Move_pt"]().run(
+                    'now', unit.tag,[new_army_x, new_army_y]))
 
     def move_up(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
@@ -124,8 +126,8 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                              'now', unit.tag, [new_army_x, new_army_y]))
+                sc2_actions["Move_pt"]().run(
+                    'now', unit.tag,[new_army_x, new_army_y]))
 
     def get_action_name_str_by_int(self, action_int):
         action_str = ''
