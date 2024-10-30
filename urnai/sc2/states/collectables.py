@@ -1,4 +1,5 @@
 import math
+from enum import Enum
 from statistics import mean
 
 import numpy as np
@@ -7,27 +8,25 @@ from pysc2.lib import units as sc2units
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.states.state_base import StateBase
 
-# from urnai.utils.constants import Games, RTSGeneralization
 
-STATE_MAP = 'map'
-STATE_NON_SPATIAL = 'non_spatial_only'
-STATE_BOTH = 'map_and_non_spatial'
+class CollectablesMethod(Enum):
+    STATE_MAP = 'map'
+    STATE_NON_SPATIAL = 'non_spatial_only'
+    STATE_BOTH = 'map_and_non_spatial'
+
 STATE_MAP_DEFAULT_REDUCTIONFACTOR = 1
 STATE_MAX_COLL_DIST = 15
 
 
 class CollectablesState(StateBase):
 
-    def __init__(self, trim_map=False, method=STATE_MAP):
+    def __init__(self, trim_map : bool = False, 
+                 method : CollectablesMethod = CollectablesMethod.STATE_MAP):
         self.previous_state = None
         self.method = method
-        # number of quadrants is the amount of parts
-        # the map should be reduced
-        # this helps the agent to
-        # deal with the big size
-        # of state space
-        # if -1 (default value), the map
-        # wont be reduced
+        # number of quadrants is the amount of parts the map should be reduced
+        # this helps the agent to deal with the big size of state space
+        # if 1 (default value), the map wont be reduced
         self.map_reduction_factor = STATE_MAP_DEFAULT_REDUCTIONFACTOR
         self.non_spatial_maximums = [
             STATE_MAX_COLL_DIST,
@@ -53,11 +52,11 @@ class CollectablesState(StateBase):
 
     def update(self, obs):
         state = []
-        if self.method == STATE_MAP:
+        if self.method == CollectablesMethod.STATE_MAP:
             state = self.build_map(obs)
-        elif self.method == STATE_NON_SPATIAL:
+        elif self.method == CollectablesMethod.STATE_NON_SPATIAL:
             state = self.build_non_spatial_state(obs)
-        elif self.method == STATE_BOTH:
+        elif self.method == CollectablesMethod.STATE_BOTH:
             state = self.build_map(obs)
             state += self.build_non_spatial_state(obs)
 
@@ -107,7 +106,7 @@ class CollectablesState(StateBase):
     # TODO: Remove magic numbers
     @property
     def dimension(self):
-        if self.method == STATE_MAP:
+        if self.method == CollectablesMethod.STATE_MAP:
             if self.trim_map:
                 a = int(22 / self.map_reduction_factor)
                 b = int(16 / self.map_reduction_factor)
@@ -115,7 +114,7 @@ class CollectablesState(StateBase):
                 a = int(64 / self.map_reduction_factor)
                 b = int(64 / self.map_reduction_factor)
             return int(a * b)
-        elif self.method == STATE_NON_SPATIAL:
+        elif self.method == CollectablesMethod.STATE_NON_SPATIAL:
             return len(self.non_spatial_state)
     
     @property

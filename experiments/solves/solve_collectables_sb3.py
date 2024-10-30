@@ -1,4 +1,7 @@
 import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from gymnasium import spaces
 from pysc2.env import sc2_env
@@ -8,12 +11,12 @@ from urnai.sc2.actions.collectables import CollectablesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.rewards.collectables import CollectablesReward
-from urnai.sc2.states.collectables import CollectablesState
+from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
 
 players = [sc2_env.Agent(sc2_env.Race.terran)]
 env = SC2Env(map_name='CollectMineralShards', visualize=False, 
             step_mul=16, players=players)
-state = CollectablesState(method='non_spatial_only')
+state = CollectablesState(method=CollectablesMethod.STATE_NON_SPATIAL)
 urnai_action_space = CollectablesActionSpace()
 reward = CollectablesReward()
 
@@ -23,7 +26,7 @@ observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
 
 # Create the custom environment
 custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
-                       action_space)
+                    action_space)
 
 
 # models_dir = "saves/models/DQN"
@@ -62,7 +65,9 @@ obs = vec_env.reset()
 total_episodes = 0
 total_reward = 0
 
-for _ in range(10000):
+total_steps = 10000
+
+for _ in range(total_steps):
     action, _state = model.predict(obs, deterministic=True)
     obs, rewards, done, info = vec_env.step(action)
 
