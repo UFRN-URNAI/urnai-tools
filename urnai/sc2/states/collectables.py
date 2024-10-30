@@ -18,9 +18,9 @@ STATE_MAX_COLL_DIST = 15
 
 class CollectablesState(StateBase):
 
-    def __init__(self, trim_map=False):
+    def __init__(self, trim_map=False, method=STATE_MAP):
         self.previous_state = None
-        self.method = STATE_MAP
+        self.method = method
         # number of quadrants is the amount of parts
         # the map should be reduced
         # this helps the agent to
@@ -148,7 +148,7 @@ class CollectablesState(StateBase):
                 x_closest_distance = x - mineral_shard_x
                 y_closest_distance = y - mineral_shard_y
 
-        return abs(x_closest_distance), abs(y_closest_distance)
+        return x_closest_distance, y_closest_distance
 
     def build_non_spatial_state(self, obs):
         x, y = self.get_closest_mineral_shard_x_y(obs)

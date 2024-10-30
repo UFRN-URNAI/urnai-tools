@@ -49,6 +49,8 @@ class CustomEnv(gym.Env):
         obs = self._env.reset()
         self._obs = obs
         obs = self._state.update(self._obs)
+        self._reward.reset()
+        self._reward.get(self._obs, 0, False, False)
         info = {}
         return obs, info
 

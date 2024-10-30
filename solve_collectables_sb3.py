@@ -13,13 +13,13 @@ from urnai.sc2.states.collectables import CollectablesState
 players = [sc2_env.Agent(sc2_env.Race.terran)]
 env = SC2Env(map_name='CollectMineralShards', visualize=False, 
             step_mul=16, players=players)
-state = CollectablesState()
+state = CollectablesState(method='non_spatial_only')
 urnai_action_space = CollectablesActionSpace()
 reward = CollectablesReward()
 
 # Define action and observation space
 action_space = spaces.Discrete(n=4, start=0)
-observation_space = spaces.Box(low=0, high=255, shape=(4096, ), dtype=float)
+observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
 
 # Create the custom environment
 custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
@@ -46,22 +46,31 @@ model=PPO("MlpPolicy", custom_env, verbose=1, tensorboard_log=logdir)
 
 TIMESTEPS = 10000
 for i in range(1,30):
-    model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name="DQN")
+    model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name="PPO")
     model.save(f"{models_dir}/{TIMESTEPS*i}")
 
 ## 1 - End
 
 ## 2 - Load model
-# model = PPO.load(f"{models_dir}/40000.zip", env = custom_env)
+# model = PPO.load(f"{models_dir}/290000.zip", env = custom_env)
 ## 2 - End
 
 vec_env = model.get_env()
 obs = vec_env.reset()
 
 # Test model
+total_episodes = 0
+total_reward = 0
+
 for _ in range(10000):
     action, _state = model.predict(obs, deterministic=True)
-    # print(action)
     obs, rewards, done, info = vec_env.step(action)
+
+    total_reward += rewards
+    if done:
+        total_episodes += 1
+        print(f"Episode: {total_episodes}, Total Reward: {total_reward}")
+        obs = vec_env.reset()  # Reset the environment
+        total_reward = 0  # Reset reward for the new episode
 
 env.close()
