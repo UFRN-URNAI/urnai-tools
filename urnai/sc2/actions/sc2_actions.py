@@ -3,11 +3,12 @@ from urnai.actions.action_base import ActionBase
 
 sc2_raw_action_classes = {}
 
-def constructor(self):
+def constructor():
     ...
 
-def run_method(self, *args) -> actions.FunctionCall:
-    return self.my_action_function(*args)
+@classmethod
+def run_method(cls, *args) -> actions.FunctionCall:
+    return cls.my_action_function(*args)
 
 for sc2_action in actions.RAW_FUNCTIONS:
 

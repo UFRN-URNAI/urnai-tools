@@ -11,7 +11,7 @@ from urnai.sc2.actions.sc2_actions import sc2_raw_action_classes as sc2_actions
 class CollectablesActionSpace(ActionSpaceBase):
 
     def __init__(self):
-        self.noaction = [sc2_actions["no_op"]().run()] #actions.RAW_FUNCTIONS.no_op()
+        self.noaction = [sc2_actions["no_op"].run()] #actions.RAW_FUNCTIONS.no_op()
         self.move_number = 0
 
         self.hor_threshold = 2
@@ -85,7 +85,7 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                sc2_actions["Move_pt"]().run(
+                sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
                 #SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 
                               #'now', unit.tag, [new_army_x, new_army_y]))
@@ -100,7 +100,7 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                sc2_actions["Move_pt"]().run(
+                sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
     def move_down(self, obs):
@@ -113,7 +113,7 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                sc2_actions["Move_pt"]().run(
+                sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
     def move_up(self, obs):
@@ -126,7 +126,7 @@ class CollectablesActionSpace(ActionSpaceBase):
 
         for unit in army:
             self.pending_actions.append(
-                sc2_actions["Move_pt"]().run(
+                sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
     def get_action_name_str_by_int(self, action_int):
