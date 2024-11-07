@@ -1,17 +1,16 @@
 from statistics import mean
 
 from pysc2.env import sc2_env
-from pysc2.lib import actions
 
 from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.sc2.actions import sc2_actions_aux as scaux
-from urnai.sc2.actions.sc2_actions import sc2_raw_action_classes as sc2_actions
+from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
 
 
 class CollectablesActionSpace(ActionSpaceBase):
 
     def __init__(self):
-        self.noaction = [sc2_actions["no_op"].run()] #actions.RAW_FUNCTIONS.no_op()
+        self.noaction = [sc2_actions["no_op"].run()]
         self.move_number = 0
 
         self.hor_threshold = 2
@@ -87,8 +86,6 @@ class CollectablesActionSpace(ActionSpaceBase):
             self.pending_actions.append(
                 sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
-                #SC2Action.run(actions.RAW_FUNCTIONS.Move_pt, 
-                              #'now', unit.tag, [new_army_x, new_army_y]))
 
     def move_right(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)

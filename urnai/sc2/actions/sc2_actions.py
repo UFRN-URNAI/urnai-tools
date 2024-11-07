@@ -1,7 +1,13 @@
 from pysc2.lib import actions
+
 from urnai.actions.action_base import ActionBase
 
-sc2_raw_action_classes = {}
+"""
+This file creates a dict which stores a class for each of the actions in PySC2.
+"""
+
+raw_functions_classes = {}
+functions_classes = {}
 
 def constructor():
     ...
@@ -12,7 +18,7 @@ def run_method(cls, *args) -> actions.FunctionCall:
 
 for sc2_action in actions.RAW_FUNCTIONS:
 
-    sc2_raw_action_class = type(sc2_action.name, (ActionBase,), {
+    raw_function_class = type(sc2_action.name, (ActionBase,), {
 
         "__init__" : constructor,
         "my_action_function": sc2_action,
@@ -20,4 +26,16 @@ for sc2_action in actions.RAW_FUNCTIONS:
 
     })
 
-    sc2_raw_action_classes[sc2_action.name] = sc2_raw_action_class
+    raw_functions_classes[sc2_action.name] = raw_function_class
+
+for sc2_action in actions.FUNCTIONS:
+
+    functions_class = type(sc2_action.name, (ActionBase,), {
+
+        "__init__" : constructor,
+        "my_action_function": sc2_action,
+        "run": run_method,
+
+    })
+
+    functions_classes[sc2_action.name] = functions_class

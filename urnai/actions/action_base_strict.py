@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from typing import Any
+
 from urnai.actions.action_base import ActionBase
+
 
 class ActionBaseStrict(ActionBase):
 	
