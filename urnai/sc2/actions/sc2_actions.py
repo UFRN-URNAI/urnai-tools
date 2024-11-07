@@ -14,9 +14,9 @@ for sc2_action in actions.RAW_FUNCTIONS:
 
     sc2_raw_action_class = type(sc2_action.name, (ActionBase,), {
 
-    "__init__" : constructor,
-    "my_action_function": sc2_action,
-    "run": run_method,
+        "__init__" : constructor,
+        "my_action_function": sc2_action,
+        "run": run_method,
 
     })
 
