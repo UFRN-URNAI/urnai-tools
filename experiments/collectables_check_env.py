@@ -8,9 +8,9 @@ from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3.common.env_checker import check_env
 
+from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.actions.collectables import CollectablesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
-from urnai.sc2.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.rewards.collectables import CollectablesReward
 from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
 
