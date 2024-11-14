@@ -3,6 +3,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
@@ -12,70 +13,44 @@ from urnai.sc2.actions.collectables import CollectablesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.rewards.collectables import CollectablesReward
 from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
-
-players = [sc2_env.Agent(sc2_env.Race.terran)]
-env = SC2Env(map_name='CollectMineralShards', visualize=False, 
-            step_mul=16, players=players)
-state = CollectablesState(method=CollectablesMethod.STATE_NON_SPATIAL)
-urnai_action_space = CollectablesActionSpace()
-reward = CollectablesReward()
-
-# Define action and observation space
-action_space = spaces.Discrete(n=4, start=0)
-observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
-
-# Create the custom environment
-custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
-                    action_space)
+from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
 
-# models_dir = "saves/models/DQN"
-models_dir = "saves/models/PPO"
-logdir = "saves/logs"
+def declare_trainer():
+    players = [sc2_env.Agent(sc2_env.Race.terran)]
+    env = SC2Env(map_name='CollectMineralShards', visualize=False, 
+                step_mul=16, players=players)
+    state = CollectablesState(method=CollectablesMethod.STATE_NON_SPATIAL)
+    urnai_action_space = CollectablesActionSpace()
+    reward = CollectablesReward()
 
-if not os.path.exists(models_dir):
-    os.makedirs(models_dir)
+    # Define action and observation space
+    action_space = spaces.Discrete(n=4, start=0)
+    observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
 
-if not os.path.exists(logdir):
-    os.makedirs(logdir)
+    # Create the custom environment
+    custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
+                        action_space)
 
-# If training from scratch, uncomment 1
-# If loading a model, uncomment 2
+    # models_dir = "saves/models/DQN"
+    models_dir = "saves/models/PPO"
+    logdir = "saves/logs"
 
-## 1 - Train and Save model
+    model=PPO("MlpPolicy", custom_env, verbose=1, tensorboard_log=logdir)
 
-# model=DQN("MlpPolicy",custom_env,buffer_size=100000,verbose=1,tensorboard_log=logdir)
-model=PPO("MlpPolicy", custom_env, verbose=1, tensorboard_log=logdir)
+    trainer = SB3Trainer(custom_env, models_dir, logdir, model)
 
-TIMESTEPS = 10000
-for i in range(1,30):
-    model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name="PPO")
-    model.save(f"{models_dir}/{TIMESTEPS*i}")
+    return trainer
 
-## 1 - End
+def main(unused_argv):
+    try:
+        trainer = declare_trainer()
+        trainer.train_model(timesteps=10000, reset_num_timesteps=False, 
+                            tb_log_name="PPO", repeat_times=30)
+        # trainer.load_model(f"{trainer.models_dir}/290000")
+        trainer.test_model(total_steps=10000, deterministic=True)
+    except KeyboardInterrupt:
+        print("Training interrupted by user")
 
-## 2 - Load model
-# model = PPO.load(f"{models_dir}/290000.zip", env = custom_env)
-## 2 - End
-
-vec_env = model.get_env()
-obs = vec_env.reset()
-
-# Test model
-total_episodes = 0
-total_reward = 0
-
-total_steps = 10000
-
-for _ in range(total_steps):
-    action, _state = model.predict(obs, deterministic=True)
-    obs, rewards, done, info = vec_env.step(action)
-
-    total_reward += rewards
-    if done:
-        total_episodes += 1
-        print(f"Episode: {total_episodes}, Total Reward: {total_reward}")
-        obs = vec_env.reset()  # Reset the environment
-        total_reward = 0  # Reset reward for the new episode
-
-env.close()
+if __name__ == '__main__':
+    app.run(main)
