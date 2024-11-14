@@ -9,9 +9,6 @@ This file creates a dict which stores a class for each of the actions in PySC2.
 raw_functions_classes = {}
 functions_classes = {}
 
-def constructor():
-    ...
-
 @classmethod
 def run_method(cls, *args) -> actions.FunctionCall:
     return cls.my_action_function(*args)
@@ -20,7 +17,6 @@ for sc2_action in actions.RAW_FUNCTIONS:
 
     raw_function_class = type(sc2_action.name, (ActionBase,), {
 
-        "__init__" : constructor,
         "my_action_function": sc2_action,
         "run": run_method,
 
@@ -32,7 +28,6 @@ for sc2_action in actions.FUNCTIONS:
 
     functions_class = type(sc2_action.name, (ActionBase,), {
 
-        "__init__" : constructor,
         "my_action_function": sc2_action,
         "run": run_method,
 
