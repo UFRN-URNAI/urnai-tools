@@ -60,9 +60,7 @@ class CollectablesState(StateBase):
             state = self.build_map(obs)
             state += self.build_non_spatial_state(obs)
 
-        state = np.asarray(state).flatten()
         self._dimension = len(state)
-        # state = state.reshape((1, len(state)))
         self._state = state
 
         return state
@@ -76,16 +74,18 @@ class CollectablesState(StateBase):
 
     def build_basic_map(self, obs):
 
-        map_ = np.zeros(obs.feature_minimap[0].shape)
+        map_ = np.zeros(
+            (obs.feature_minimap[0].shape[0],
+            obs.feature_minimap[0].shape[1], 3), dtype=np.uint8)
         marines = sc2aux.get_units_by_type(obs, sc2units.Terran.Marine)
         shards = sc2aux.get_all_neutral_units(obs)
 
         for marine in marines:
-            map_[marine.y][marine.x] = 7
+            map_[marine.y][marine.x] = (255, 0, 0)
 
         for shard in shards:
-            map_[shard.y][shard.x] = 100
-
+            map_[shard.y][shard.x] = (0, 255, 0)
+        
         return map_
 
     def normalize_map(self, map_):

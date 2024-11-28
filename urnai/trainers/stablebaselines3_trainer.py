@@ -20,7 +20,7 @@ class SB3Trainer:
         self.model = self.model.load(model_path, env = self.custom_env)
     
     def train_model(self, timesteps: int = 10000, callback: MaybeCallback = None,
-                    log_interval: int = 100, tb_log_name: str = "run",
+                    log_interval: int = 1, tb_log_name: str = "run",
                     reset_num_timesteps: bool = True, progress_bar: bool = False,
                     repeat_times: int = 1):
         for repeat_time in range(repeat_times):

@@ -20,13 +20,13 @@ def declare_trainer():
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     env = SC2Env(map_name='CollectMineralShards', visualize=False, 
                 step_mul=16, players=players)
-    state = CollectablesState(method=CollectablesMethod.STATE_NON_SPATIAL)
+    state = CollectablesState(method=CollectablesMethod.STATE_MAP)
     urnai_action_space = CollectablesActionSpace()
     reward = CollectablesReward()
 
     # Define action and observation space
     action_space = spaces.Discrete(n=4, start=0)
-    observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
+    observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=float)
 
     # Create the custom environment
     custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
@@ -48,7 +48,7 @@ def main(unused_argv):
         trainer.train_model(timesteps=10000, reset_num_timesteps=False, 
                             tb_log_name="PPO", repeat_times=30)
         # trainer.load_model(f"{trainer.models_dir}/290000")
-        trainer.test_model(total_steps=10000, deterministic=True)
+        # trainer.test_model(total_steps=10000, deterministic=True)
     except KeyboardInterrupt:
         print("Training interrupted by user")
 
