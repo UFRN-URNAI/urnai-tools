@@ -22,13 +22,13 @@ class SB3Trainer:
     def train_model(self, timesteps: int = 10000, callback: MaybeCallback = None,
                     log_interval: int = 1, tb_log_name: str = "run",
                     reset_num_timesteps: bool = True, progress_bar: bool = False,
-                    repeat_times: int = 1):
+                    repeat_times: int = 1, start_from: int = 1):
         for repeat_time in range(repeat_times):
             self.model.learn(total_timesteps = timesteps, callback = callback,
                              log_interval = log_interval, tb_log_name = tb_log_name,
                              reset_num_timesteps = reset_num_timesteps,
                              progress_bar = progress_bar)
-            self.model.save(f"{self.models_dir}/{timesteps*(repeat_time + 1)}")
+            self.model.save(f"{self.models_dir}/{timesteps*(repeat_time + start_from)}")
     
     def test_model(self, total_steps: int = 10000, deterministic: bool = True):
         vec_env = self.model.get_env()
