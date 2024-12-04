@@ -158,6 +158,7 @@ class CollectablesState(StateBase):
         # position 2: number of remaining shards
         #        self.non_spatial_state[2]=np.count_nonzero(obs.feature_minimap[4]==16)
         self.normalize_non_spatial_list()
+        self.non_spatial_state = np.array(self.non_spatial_state)
         return self.non_spatial_state
 
     def calculate_distance(self, x1, y1, x2, y2):
@@ -175,7 +176,7 @@ class CollectablesState(StateBase):
         self._state = None
         self._dimension = None
     
-    def trim_matrix(matrix, x1, y1, x2, y2):
+    def trim_matrix(self, matrix, x1, y1, x2, y2):
         """
         If you have a 2D numpy array
         and you want a submatrix of that array,
