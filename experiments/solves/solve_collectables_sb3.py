@@ -10,15 +10,30 @@ from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
 
+import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.actions.collectables import CollectablesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.rewards.collectables import CollectablesReward
 from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
+from wandb.integration.sb3 import WandbCallback
 
 
-def declare_trainer():
+def declare_wandb_run(config_dict : dict, run_id : str = None):
+
+    wandb_run = wandb.init(
+        project='solve_collectables',
+        config=config_dict,
+        name=config_dict['model_save_name'],
+        sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+        resume="must" if run_id else None,
+        id=run_id
+    )
+
+    return wandb_run
+    
+def declare_trainer(config_dict : dict):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     env = SC2Env(map_name='CollectMineralShards', visualize=False, 
                 step_mul=16, players=players)
@@ -34,26 +49,30 @@ def declare_trainer():
     custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
                         action_space)
 
-    model_name = "PPOMlp"
-    models_dir = f"saves/models/{model_name}"
+    models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
 
-    conf_dict = {
-             "policy":"MlpPolicy",
-             "model_save_name": model_name}
+    model=PPO(config_dict['policy'], custom_env, verbose=1, tensorboard_log=logdir)
 
-    model=PPO("CnnPolicy", custom_env, verbose=1, tensorboard_log=logdir)
-
-    trainer = SB3Trainer(custom_env, models_dir, logdir, model, model_name, 
-                         "solve_collectables", conf_dict)
+    trainer = SB3Trainer(
+        custom_env, models_dir, logdir, model, config_dict['model_save_name']
+    )
 
     return trainer
 
 def main(unused_argv):
     try:
-        trainer = declare_trainer()
+        config_dict = {
+            "policy":"MlpPolicy",
+            "model_save_name": "PPOMlp"}
+        wandb_run = declare_wandb_run(config_dict)
+        trainer = declare_trainer(config_dict)
         # trainer.load_model(f"{trainer.models_dir}/100000")
-        trainer.alternate_train_test(iterations=100, train_steps=10000, test_steps=1000)
+        trainer.alternate_train_test(
+            iterations=100, train_steps=5000, test_steps=2400, test_episodes=100,
+            callback=WandbCallback()
+        )
+        wandb_run.finish()
     except KeyboardInterrupt:
         print("Training interrupted by user")
 
