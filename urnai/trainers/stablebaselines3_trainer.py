@@ -1,6 +1,7 @@
 import os
 
 from stable_baselines3.common.base_class import BaseAlgorithm
+from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
 import wandb
@@ -30,13 +31,20 @@ class SB3Trainer:
             repeat_times:int = 1, start_from:int = 1, callback : MaybeCallback = None
         ) -> None:
         
-        for repeat_time in range(repeat_times):
-            self.model.learn(total_timesteps = timesteps, callback = callback,
-                             log_interval = log_interval,
-                             reset_num_timesteps = reset_num_timesteps,
-                             progress_bar = progress_bar,
-                             tb_log_name = self.model_name)
-            self.model.save(f"{self.models_dir}/{timesteps*(repeat_time + start_from)}")
+        try:
+            for repeat_time in range(repeat_times):
+                self.model.learn(total_timesteps = timesteps, callback = callback,
+                                log_interval = log_interval,
+                                reset_num_timesteps = reset_num_timesteps,
+                                progress_bar = progress_bar,
+                                tb_log_name = self.model_name)
+                self.model.save(f"{self.models_dir}/{timesteps*(repeat_time
+                                                                 + start_from)}")
+
+            return evaluate_policy(self.model, self.custom_env,
+                                    n_eval_episodes=5, deterministic=True)
+        finally:
+            self.custom_env.close()
     
     def test_model(
             self, total_steps: int = 10000, episodes : int = 100,
