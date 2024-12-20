@@ -85,11 +85,20 @@ def print_study_results(study):
 def main(unused_argv):
     try:
 
-        wandb_kwargs = {"project": "solve_collectables"}
+        run_id = None
+        wandb_kwargs = {"project": "solve_collectables",
+                        "resume" : "must" if run_id else None,
+                        "id" : run_id}
         wandbc = WeightsAndBiasesCallback(metric_name="mean_reward",
                                            wandb_kwargs=wandb_kwargs)
 
-        study = optuna.create_study(direction="maximize")
+        study_name = "cool_study"
+        study = optuna.create_study(
+                study_name=study_name,
+                direction="maximize",
+                storage=f"sqlite:///{study_name}.db",
+                load_if_exists=True)
+        
         study.optimize(objective, n_trials=5, callbacks=[wandbc])
 
         print_study_results(study)

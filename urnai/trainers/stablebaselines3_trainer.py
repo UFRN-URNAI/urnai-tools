@@ -1,10 +1,10 @@
 import os
 
+import wandb
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
-import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
 
@@ -38,8 +38,8 @@ class SB3Trainer:
                                 reset_num_timesteps = reset_num_timesteps,
                                 progress_bar = progress_bar,
                                 tb_log_name = self.model_name)
-                self.model.save(f"{self.models_dir}/{timesteps*(repeat_time
-                                                                 + start_from)}")
+                time_id = timesteps*(repeat_time + start_from)
+                self.model.save(f"{self.models_dir}/{time_id}")
 
             return evaluate_policy(self.model, self.custom_env,
                                     n_eval_episodes=5, deterministic=True)
