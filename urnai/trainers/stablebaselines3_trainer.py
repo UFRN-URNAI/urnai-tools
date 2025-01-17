@@ -9,9 +9,10 @@ from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
 
 class SB3Trainer:
-    def __init__(self, custom_env : CustomEnv, models_dir : str, logdir : str, 
-                 model : BaseAlgorithm, model_name : str):
-        self.custom_env = custom_env
+    def __init__(self, train_env : CustomEnv, eval_env : CustomEnv, models_dir : str, 
+                 logdir : str, model : BaseAlgorithm, model_name : str):
+        self.train_env = train_env
+        self.eval_env = eval_env
         self.models_dir = models_dir
         self.model = model
         self.model_name = model_name
@@ -31,50 +32,45 @@ class SB3Trainer:
             repeat_times:int = 1, start_from:int = 1, callback : MaybeCallback = None
         ) -> None:
         
-        try:
-            for repeat_time in range(repeat_times):
-                self.model.learn(total_timesteps = timesteps, callback = callback,
-                                log_interval = log_interval,
-                                reset_num_timesteps = reset_num_timesteps,
-                                progress_bar = progress_bar,
-                                tb_log_name = self.model_name)
-                time_id = timesteps*(repeat_time + start_from)
-                self.model.save(f"{self.models_dir}/{time_id}")
-
-            return evaluate_policy(self.model, self.custom_env,
-                                    n_eval_episodes=5, deterministic=True)
-        finally:
-            self.custom_env.close()
+        for repeat_time in range(repeat_times):
+            self.model.learn(total_timesteps = timesteps, callback = callback,
+                            log_interval = log_interval,
+                            reset_num_timesteps = reset_num_timesteps,
+                            progress_bar = progress_bar,
+                            tb_log_name = self.model_name)
+            time_id = timesteps*(repeat_time + start_from)
+            self.model.save(f"{self.models_dir}/{time_id}")
     
     def test_model(
-            self, total_steps: int = 10000, episodes : int = 100,
-            deterministic: bool = True
-        ) -> None:
+            self, episodes : int = 10, deterministic: bool = True,
+            render = False, callback = None, reward_threshold = None,
+            return_episode_rewards = False, warn = True, wandb_log = False
+        ) -> tuple[float, float] | tuple[list[float], list[int]]:
 
-        vec_env = self.model.get_env()
-        obs = vec_env.reset()
+        episode_rewards = evaluate_policy(model = self.model, env = self.eval_env, 
+                        n_eval_episodes=episodes, 
+                        deterministic=deterministic, 
+                        render=render,
+                        callback=callback,
+                        reward_threshold=reward_threshold,
+                        return_episode_rewards=return_episode_rewards,
+                        warn=warn
+                        )
 
-        total_reward = 0
-        curr_step = 0
-        for _ in range(episodes):
-            done = False
-            while not done:
-                action, _state = self.model.predict(obs, deterministic=deterministic)
-                obs, rewards, done, info = vec_env.step(action)
+        if wandb_log:
+            if return_episode_rewards:
+                for reward in episode_rewards[0]:
+                    wandb.log({"eval/total_reward": reward})
+            else:
+                wandb.log({"eval/total_reward": episode_rewards[0]})
+        
+        return episode_rewards
 
-                total_reward += rewards
-                curr_step += 1
-            wandb.log({
-                "eval/total_reward": total_reward
-            })
-            total_reward = 0  # Reset reward for the new episode
-            if curr_step >= total_steps:
-                break
-    
     def alternate_train_test(
             self, iterations : int = 100, train_steps : int = 10000, 
-            train_repeat_times : int = 1, test_steps : int = 10000, 
-            test_episodes : int = 100, callback : MaybeCallback = None
+            train_repeat_times : int = 1, test_episodes : int = 100, 
+            callback : MaybeCallback = None, return_episode_rewards : bool = True,
+            wandb_log : bool = True
         ) -> None:
 
         for iteration in range(iterations):
@@ -82,5 +78,7 @@ class SB3Trainer:
                 timesteps=train_steps, repeat_times=train_repeat_times,
                 start_from=iteration*train_repeat_times +1, callback=callback
             )
-            self.test_model(total_steps=test_steps, episodes = test_episodes)
+            self.test_model(episodes = test_episodes,
+                            return_episode_rewards = return_episode_rewards,
+                            wandb_log = wandb_log)
     

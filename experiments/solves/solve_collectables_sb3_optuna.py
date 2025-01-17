@@ -10,6 +10,7 @@ from gymnasium import spaces
 from optuna.integration.wandb import WeightsAndBiasesCallback
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
+from stable_baselines3.common.monitor import Monitor
 
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.actions.collectables import CollectablesActionSpace
@@ -34,6 +35,9 @@ def declare_trainer(trial, config_dict : dict):
     # Create the custom environment
     custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
                         action_space)
+    
+    train_env = Monitor(custom_env)
+    eval_env = Monitor(custom_env)
 
     models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
@@ -51,7 +55,7 @@ def declare_trainer(trial, config_dict : dict):
                 gae_lambda=gae_lambda)
 
     trainer = SB3Trainer(
-        custom_env, models_dir, logdir, model, config_dict['model_save_name']
+        train_env, eval_env, models_dir, logdir, model, config_dict['model_save_name']
     )
 
     return trainer
@@ -64,8 +68,10 @@ def objective(trial):
     trainer = declare_trainer(trial, config_dict)
 
     # trainer.load_model(f"{trainer.models_dir}/100000")
-    mean_reward, _ = trainer.train_model(timesteps = 1000,
-                                         repeat_times = 1)
+    trainer.train_model(timesteps = 1000, repeat_times = 1)
+    mean_reward, _ = trainer.test_model(episodes = 5, return_episode_rewards = False,
+                                         wandb_log = False)
+    trainer.train_env.close()
 
     return mean_reward
 

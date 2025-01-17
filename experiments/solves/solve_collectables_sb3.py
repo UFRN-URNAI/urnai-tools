@@ -9,6 +9,7 @@ from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
+from stable_baselines3.common.monitor import Monitor
 
 import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
@@ -49,13 +50,15 @@ def declare_trainer(config_dict : dict):
     custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
                         action_space)
 
+    train_env = Monitor(custom_env)
+    eval_env = Monitor(custom_env)
     models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
 
     model=PPO(config_dict['policy'], custom_env, verbose=1, tensorboard_log=logdir)
 
     trainer = SB3Trainer(
-        custom_env, models_dir, logdir, model, config_dict['model_save_name']
+        train_env, eval_env, models_dir, logdir, model, config_dict['model_save_name']
     )
 
     return trainer
@@ -69,8 +72,9 @@ def main(unused_argv):
         trainer = declare_trainer(config_dict)
         # trainer.load_model(f"{trainer.models_dir}/100000")
         trainer.alternate_train_test(
-            iterations=100, train_steps=5000, test_steps=2400, test_episodes=100,
-            callback=WandbCallback()
+            iterations=100, train_steps=5000, test_episodes=20,
+            callback=WandbCallback(),
+            return_episode_rewards=True, wandb_log=True
         )
         wandb_run.finish()
     except KeyboardInterrupt:
