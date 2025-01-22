@@ -42,7 +42,7 @@ class CollectablesReward(RewardBase):
             elif(self.score >= 1):
                 reward = -500
             else:
-                reward = -10000
+                reward = -1000
         
         self.previous_state = obs
         return reward

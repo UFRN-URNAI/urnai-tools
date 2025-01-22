@@ -1,6 +1,5 @@
 import unittest
 
-from pysc2.env import sc2_env
 from pysc2.lib import actions
 from pysc2.lib.named_array import NamedDict
 
@@ -49,7 +48,7 @@ class TestCollectablesActionSpace(unittest.TestCase):
         # WHEN
         is_action_done_return = actionSpace.is_action_done()
         # THEN
-        assert is_action_done_return == True
+        assert is_action_done_return
 
     def test_reset(self):
         # GIVEN
