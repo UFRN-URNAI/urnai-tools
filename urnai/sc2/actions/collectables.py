@@ -29,7 +29,6 @@ class CollectablesActionSpace(ActionSpaceBase):
         self.action_indices = range(len(self.actions))
 
         self.pending_actions = []
-        self.named_actions = None
 
     def is_action_done(self):
         # return len(self.pending_actions) == 0
