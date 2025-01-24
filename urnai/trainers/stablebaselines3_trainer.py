@@ -1,11 +1,10 @@
 import os
 
-import wandb
-
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
+import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
 
@@ -61,7 +60,7 @@ class SB3Trainer:
                             progress_bar = progress_bar,
                             tb_log_name = self.model_name)
             time_id = timesteps*(repeat_time + start_from)
-            self.model.save(f"{self.models_dir}/{time_id}/.save")
+            self.model.save(f"{self.models_dir}/{time_id}.save")
     
     def test_model(
             self, episodes : int = 10, deterministic: bool = True,
@@ -84,7 +83,8 @@ class SB3Trainer:
                 for reward in episode_rewards[0]:
                     wandb.log({"eval/total_reward": reward, "log_step": self.log_step})
             else:
-                wandb.log({"eval/total_reward": episode_rewards[0], "log_step": self.log_step})
+                wandb.log({"eval/total_reward": episode_rewards[0],
+                            "log_step": self.log_step})
         
             self.log_step += 1
         

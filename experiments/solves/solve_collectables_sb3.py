@@ -34,7 +34,7 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
 
     return wandb_run
     
-def declare_trainer(config_dict : dict, hyperparameters : dict = {}):
+def declare_trainer(config_dict : dict, hyperparameters : dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
     observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8)
@@ -52,7 +52,9 @@ def declare_trainer(config_dict : dict, hyperparameters : dict = {}):
     models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
 
-    model=PPO(config_dict['policy'], custom_env, verbose=1, tensorboard_log=logdir, **hyperparameters)
+    model=PPO(config_dict['policy'], custom_env, verbose=1,
+        tensorboard_log=logdir,
+        **(hyperparameters if hyperparameters is not None else {}))
 
     trainer = SB3Trainer(
         train_env, eval_env, models_dir, logdir, model, config_dict['model_save_name']
