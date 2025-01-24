@@ -15,17 +15,15 @@ from urnai.sc2.rewards.collectables import CollectablesReward
 from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
 
 players = [sc2_env.Agent(sc2_env.Race.terran)]
+action_space = spaces.Discrete(n=4, start=0)
+observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
+
 env = SC2Env(map_name='CollectMineralShards', visualize=False, 
             step_mul=16, players=players)
 state = CollectablesState(method=CollectablesMethod.STATE_NON_SPATIAL)
 urnai_action_space = CollectablesActionSpace()
 reward = CollectablesReward()
-
-# Define action and observation space
-action_space = spaces.Discrete(n=4, start=0)
-observation_space = spaces.Box(low=0, high=255, shape=(2, ), dtype=float)
-
-# Create the custom environment
 custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
                     action_space)
+
 check_env(custom_env, warn=True)

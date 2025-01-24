@@ -27,35 +27,32 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
         project='solve_collectables',
         config=config_dict,
         name=config_dict['model_save_name'],
-        sync_tensorboard=True,  # auto-upload sb3's tensorboard metrics
+        sync_tensorboard=True,
         resume="must" if run_id else None,
         id=run_id
     )
 
     return wandb_run
     
-def declare_trainer(config_dict : dict):
+def declare_trainer(config_dict : dict, hyperparameters : dict = {}):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
+    action_space = spaces.Discrete(n=4, start=0)
+    observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8)
+
     env = SC2Env(map_name='CollectMineralShards', visualize=False, 
                 step_mul=16, players=players)
     state = CollectablesState(method=CollectablesMethod.STATE_MAP)
     urnai_action_space = CollectablesActionSpace()
     reward = CollectablesReward()
-
-    # Define action and observation space
-    action_space = spaces.Discrete(n=4, start=0)
-    observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8)
-
-    # Create the custom environment
-    custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
-                        action_space)
-
+    custom_env = CustomEnv(env, state, urnai_action_space, reward,
+                            observation_space, action_space)
     train_env = Monitor(custom_env)
     eval_env = Monitor(custom_env)
+
     models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
 
-    model=PPO(config_dict['policy'], custom_env, verbose=1, tensorboard_log=logdir)
+    model=PPO(config_dict['policy'], custom_env, verbose=1, tensorboard_log=logdir, **hyperparameters)
 
     trainer = SB3Trainer(
         train_env, eval_env, models_dir, logdir, model, config_dict['model_save_name']
@@ -67,10 +64,10 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "PPOMlp"}
+            "model_save_name": "PPOMlp_teste6"}
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)
-        # trainer.load_model(f"{trainer.models_dir}/100000")
+        trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
             iterations=100, train_steps=5000, test_episodes=20,
             callback=WandbCallback(),

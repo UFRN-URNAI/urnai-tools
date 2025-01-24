@@ -28,8 +28,26 @@ class SB3Trainer:
             os.makedirs(logdir)
     
     def load_model(self, model_path):
-        self.model = self.model.load(model_path, env = self.custom_env)
-    
+        self.model = self.model.load(model_path, env = self.train_env)
+
+    def load_most_recent_model(self, model_path):
+        directory = os.fsencode(model_path)
+        most_recent_model_filename = None
+        greatest_timestamp = 0
+            
+        for file in os.listdir(directory):
+            filename = os.fsdecode(file)
+            if ".save" in filename: 
+                timestep = int(filename.split(".")[0])
+                if timestep > greatest_timestamp:
+                    greatest_timestamp = timestep
+                    most_recent_model_filename = filename
+        
+        if most_recent_model_filename is None:
+            raise Exception(f"No models found in {model_path}")
+
+        self.load_model(f"{model_path}/{most_recent_model_filename}")
+
     def train_model(
             self, timesteps: int = 10000, log_interval: int = 1,
             reset_num_timesteps: bool = False, progress_bar: bool = False, 
@@ -43,7 +61,7 @@ class SB3Trainer:
                             progress_bar = progress_bar,
                             tb_log_name = self.model_name)
             time_id = timesteps*(repeat_time + start_from)
-            self.model.save(f"{self.models_dir}/{time_id}")
+            self.model.save(f"{self.models_dir}/{time_id}/.save")
     
     def test_model(
             self, episodes : int = 10, deterministic: bool = True,
