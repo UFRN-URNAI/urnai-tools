@@ -28,9 +28,6 @@ class SC2Env(EnvironmentBase):
     ):
         super().__init__(map_name, visualize, reset_done)
 
-        # TODO: Investigar como remover essa dependência
-        flags.FLAGS(sys.argv)
-
         self.step_mul = step_mul
         self.game_steps_per_episode = game_steps_per_episode
         self.spatial_dim = spatial_dim

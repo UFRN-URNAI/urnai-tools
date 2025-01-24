@@ -26,7 +26,6 @@ class CustomEnv(gym.Env):
         self._action_space = urnai_action_space
         self._reward = reward
         self._obs = None
-        # space variables, used internally by the gymnasium library
         self.action_space = action_space
         self.observation_space = observation_space
 
