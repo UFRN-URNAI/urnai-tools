@@ -30,23 +30,17 @@ class SB3Trainer:
         self.model = self.model.load(model_path, env = self.train_env)
 
     def load_most_recent_model(self, model_path):
-        directory = os.fsencode(model_path)
-        most_recent_model_filename = None
-        greatest_timestamp = 0
-            
-        for file in os.listdir(directory):
-            filename = os.fsdecode(file)
-            if ".save" in filename: 
-                timestep = int(filename.split(".")[0])
-                if timestep > greatest_timestamp:
-                    greatest_timestamp = timestep
-                    most_recent_model_filename = filename
+        save_files = list(filter(lambda filename : ".save" in  filename,
+                                  os.listdir(model_path)))
         
-        if most_recent_model_filename is None:
+        if len(save_files) == 0:
             raise Exception(f"No models found in {model_path}")
-
-        self.load_model(f"{model_path}/{most_recent_model_filename}")
-
+        else:
+            def only_digits(filename):
+                return ''.join(c for c in filename if c.isdigit())
+            save_files.sort(reverse=True, key=only_digits)
+            self.load_model(f"{model_path}/{save_files[0]}")
+    
     def train_model(
             self, timesteps: int = 10000, log_interval: int = 1,
             reset_num_timesteps: bool = False, progress_bar: bool = False, 
