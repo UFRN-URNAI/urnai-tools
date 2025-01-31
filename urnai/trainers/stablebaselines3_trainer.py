@@ -1,10 +1,11 @@
 import os
 
+import wandb
+
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
-import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
 
@@ -37,7 +38,7 @@ class SB3Trainer:
             raise Exception(f"No models found in {model_path}")
         else:
             def only_digits(filename):
-                return ''.join(c for c in filename if c.isdigit())
+                return int(''.join(c for c in filename if c.isdigit()))
             save_files.sort(reverse=True, key=only_digits)
             self.load_model(f"{model_path}/{save_files[0]}")
     

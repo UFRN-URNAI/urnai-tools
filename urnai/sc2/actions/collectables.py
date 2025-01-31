@@ -31,8 +31,7 @@ class CollectablesActionSpace(ActionSpaceBase):
         self.pending_actions = []
 
     def is_action_done(self):
-        # return len(self.pending_actions) == 0
-        return True
+        return len(self.pending_actions) == 0
 
     def reset(self):
         self.move_number = 0

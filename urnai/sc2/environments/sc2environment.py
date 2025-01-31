@@ -1,6 +1,3 @@
-import sys
-
-from absl import flags
 from pysc2.env import sc2_env
 from pysc2.env.environment import TimeStep
 from pysc2.lib import actions, features
