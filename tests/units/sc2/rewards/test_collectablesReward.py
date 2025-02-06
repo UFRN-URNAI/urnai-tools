@@ -1,6 +1,6 @@
 import unittest
-import numpy as np
 
+import numpy as np
 from pysc2.lib import features
 from pysc2.lib.named_array import NamedDict
 

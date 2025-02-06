@@ -9,6 +9,7 @@ from optuna.integration.wandb import WeightsAndBiasesCallback
 
 from experiments.solves.solve_collectables_sb3 import declare_trainer
 
+
 def objective(trial):
 
     config_dict = {
