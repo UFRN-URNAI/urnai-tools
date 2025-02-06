@@ -65,12 +65,6 @@ class CollectablesActionSpace(ActionSpaceBase):
                 elif action == self.movedown:
                     self.move_down(obs)
         else:
-            # if action_idx was None, this means that the actionwrapper
-            # was not resetted properly, so I will reset it here
-            # this is not the best way to fix this
-            # but until we cannot find why the agent is
-            # not resetting the action wrapper properly
-            # i'm gonna leave this here
             self.reset()
 
     def move_left(self, obs):
