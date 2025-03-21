@@ -115,3 +115,7 @@ tmp/
 
 # Adds
 .idea/
+
+# Experiments
+/saves
+/wandb

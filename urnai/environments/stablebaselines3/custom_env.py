@@ -26,7 +26,6 @@ class CustomEnv(gym.Env):
         self._action_space = urnai_action_space
         self._reward = reward
         self._obs = None
-        # space variables, used internally by the gymnasium library
         self.action_space = action_space
         self.observation_space = observation_space
 
@@ -49,6 +48,8 @@ class CustomEnv(gym.Env):
         obs = self._env.reset()
         self._obs = obs
         obs = self._state.update(self._obs)
+        self._reward.reset()
+        self._reward.get(self._obs, 0, False, False)
         info = {}
         return obs, info
 

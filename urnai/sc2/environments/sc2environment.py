@@ -1,6 +1,3 @@
-import sys
-
-from absl import flags
 from pysc2.env import sc2_env
 from pysc2.env.environment import TimeStep
 from pysc2.lib import actions, features
@@ -27,9 +24,6 @@ class SC2Env(EnvironmentBase):
             minimap: int = 64,
     ):
         super().__init__(map_name, visualize, reset_done)
-
-        # TODO: Investigar como remover essa dependência
-        flags.FLAGS(sys.argv)
 
         self.step_mul = step_mul
         self.game_steps_per_episode = game_steps_per_episode
