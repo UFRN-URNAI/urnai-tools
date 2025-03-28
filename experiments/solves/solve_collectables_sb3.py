@@ -5,20 +5,20 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+import wandb
 from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
+from wandb.integration.sb3 import WandbCallback
 
-import wandb
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.sc2.actions.collectables import CollectablesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.rewards.collectables import CollectablesReward
 from urnai.sc2.states.collectables import CollectablesMethod, CollectablesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
-from wandb.integration.sb3 import WandbCallback
 
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):

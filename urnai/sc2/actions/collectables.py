@@ -6,6 +6,7 @@ from urnai.actions.action_space_base import ActionSpaceBase
 from urnai.sc2.actions import sc2_actions_aux as scaux
 from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
 
+
 class CollectablesActionSpace(ActionSpaceBase):
 
     def __init__(self):
