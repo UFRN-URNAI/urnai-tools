@@ -4,7 +4,7 @@ from pysc2.lib import actions
 from pysc2.lib.named_array import NamedDict
 
 from urnai.sc2.actions.collectables import CollectablesActionSpace
-from urnai.sc2.actions.sc2_action import SC2Action
+from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
 
 EXAMPLE_OBSERVATION = NamedDict({
     'player': NamedDict({
@@ -37,8 +37,7 @@ EXAMPLE_OBSERVATION = NamedDict({
     ]
 })
 
-MOVE_LEFT_ACTION = SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                        'now', 0, [-1, 1])
+MOVE_LEFT_ACTION = sc2_actions["Move_pt"].run('now', 0, [-1, 1])
 
 class TestCollectablesActionSpace(unittest.TestCase):
 
@@ -145,8 +144,7 @@ class TestCollectablesActionSpace(unittest.TestCase):
         actionSpace.move_right(obs)
         # THEN
         assert actionSpace.pending_actions == [
-            SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                        'now', 0, [3, 1])]
+            sc2_actions["Move_pt"].run('now', 0, [3, 1])]
     
     def test_move_up(self):
         # GIVEN
@@ -156,8 +154,7 @@ class TestCollectablesActionSpace(unittest.TestCase):
         actionSpace.move_up(obs)
         # THEN
         assert actionSpace.pending_actions == [
-            SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                        'now', 0, [1, -1])]
+            sc2_actions["Move_pt"].run('now', 0, [1, -1])]
 
     def test_move_down(self):
         # GIVEN
@@ -167,8 +164,7 @@ class TestCollectablesActionSpace(unittest.TestCase):
         actionSpace.move_down(obs)
         # THEN
         assert actionSpace.pending_actions == [
-            SC2Action.run(actions.RAW_FUNCTIONS.Move_pt,
-                        'now', 0, [1, 3])]
+            sc2_actions["Move_pt"].run('now', 0, [1, 3])]
         
     def test_get_action_name_str_by_int(self):
         # GIVEN
