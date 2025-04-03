@@ -58,11 +58,11 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
                 if action == self.do_nothing:
                     self.collect_idle(obs)
                 elif action == self.build_supply_depot:
-                    self.build_supply_depot(obs)
+                    self.build_supply_depot_(obs)
                 elif action == self.build_barrack:
-                    self.build_barrack(obs)
+                    self.build_barrack_(obs)
                 elif action == self.build_marine:
-                    self.build_marine(obs)
+                    self.build_marine_(obs)
         else:
             self.reset()
 
@@ -70,7 +70,7 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
         scv = scaux.get_random_idle_worker(obs, sc2_env.Race.terran)
         mineral = random.choice(
             scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField))
-        if scv != scaux._NO_UNITS:
+        if scv is not scaux._NO_UNITS:
             self.pending_actions.append(
                 sc2_actions["Harvest_Gather_unit"].run('queued', scv.tag, mineral.tag))
 

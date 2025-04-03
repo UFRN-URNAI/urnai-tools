@@ -20,7 +20,7 @@ defined in sc2_wrapper.py and the PySC2 library.
 """
 
 """CONSTANTS USED TO DO GENERAL CHECKS"""
-_NO_UNITS = 'no_units'
+_NO_UNITS = None
 _TERRAN = sc2_env.Race.terran
 _PROTOSS = sc2_env.Race.protoss
 _ZERG = sc2_env.Race.zerg
@@ -119,3 +119,6 @@ def get_random_idle_worker(obs, player_race):
             if worker.order_length == 0:  # checking if worker is idle
                 return worker
     return _NO_UNITS
+
+def get_my_units_amount(obs, unit_type):
+    return len(get_units_by_type(obs, unit_type, features.PlayerRelative.SELF))
