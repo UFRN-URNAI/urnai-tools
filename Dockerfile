@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:2.0.2
+FROM mambaorg/micromamba:2.0.8
 
 # Create environment
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
