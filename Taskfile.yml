@@ -1,41 +1,74 @@
 ---
 version: '3'
 
-env:
+vars:
+  LINTER_COMMIT_TARGET_BRANCH: origin/v2
+  LINTER_DOCKER_IMAGE: urnai/linter:latest
   PACKAGE_NAME: urnai
-  DOCKER_LINTER_IMAGE: urnai/linter:latest
-  LINT_COMMIT_TARGET_BRANCH: origin/v2
   TEST_CONTAINER_NAME: urnai_test
-  ROOT:
-    sh: pwd
-  CMD_DOCKER_RUN: docker run --rm
   VIRTUAL_ENVIRONMENT: urnai_env
 
+env:
+  CMD_DOCKER_RUN: docker run --rm
+  ROOT:
+    sh: pwd
+  UID:
+    sh: id -u
+  GID:
+    sh: id -g
+
 tasks:
+  default:
+    desc: "List all tasks."
+    cmds:
+      - task --list-all
+
   build:
     desc: Builds the Docker image.
-    deps: [ config-hooks ]
+    summary: |
+      Builds the Docker image.
+
+      Examples:
+        - task build
+    deps:
+      - config-hooks
     cmds:
-      - docker build -t ${PACKAGE_NAME} .
+      - docker build -t {{ .PACKAGE_NAME }} .
 
   build-no-cache:
     desc: Builds the Docker image without using cache.
-    deps: [ config-hooks ]
+    summary: |
+      Builds the Docker image without using cache.
+
+      Examples:
+        - task build-no-cache
+    deps:
+      - config-hooks
     cmds:
-      - docker build --no-cache -t ${PACKAGE_NAME} .
+      - docker build --no-cache -t {{ .PACKAGE_NAME }} .
 
   config-hooks:
     desc: Configure git hooks.
+    summary: |
+      Configure git hooks.
+
+      Examples:
+        - task config-hooks
     cmds:
       - git config core.hooksPath .githooks
 
   lint:
     desc: Applies the linters.
+    summary: |
+      Applies the linters.
+
+      Examples:
+        - task lint
     cmds:
-      - docker pull ${DOCKER_LINTER_IMAGE}
+      - docker pull {{ .LINTER_DOCKER_IMAGE }}
       - |
-        ${CMD_DOCKER_RUN} -v ${ROOT}:/app ${DOCKER_LINTER_IMAGE} " \
-          lint-commit ${LINT_COMMIT_TARGET_BRANCH} \
+        ${CMD_DOCKER_RUN} -v ${ROOT}:/app {{ .LINTER_DOCKER_IMAGE }} " \
+          lint-commit {{ .LINTER_COMMIT_TARGET_BRANCH }} \
           && lint-markdown \
           && lint-yaml \
           && lint-shell-script \
@@ -43,30 +76,58 @@ tasks:
           && lint-python ."
 
   run:
-    desc: Runs a specific Python file.
+    desc: Runs a specific Python script.
+    summary: |
+      Runs a specific Python script.
+
+      Arguments:
+        CLI_ARGS: Python script path.
+
+      Examples:
+        - task run -- ./experiments/solves/collectables_check_env.py
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp ${PACKAGE_NAME} python {{.CLI_ARGS}}
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
   shell:
-    desc: Runs the shell of a container.
+    desc: Runs the container shell.
+    summary: |
+      Runs the container shell.
+
+      Examples:
+        - task shell
     cmds:
-      - ${CMD_DOCKER_RUN} -u ${UID}:${GID -v ${ROOT}:/tmp -it ${PACKAGE_NAME} /bin/bash
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp -it {{ .PACKAGE_NAME }} /bin/bash
 
   test-coverage:
     desc: Check the test coverage report.
+    summary: |
+      Check the test coverage report.
+
+      Examples:
+        - task test-coverage
     cmds:
-      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp ${PACKAGE_NAME} coverage report -m
+      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp {{ .PACKAGE_NAME }} coverage report -m
 
   unit-test:
     desc: Runs the unit tests.
+    summary: |
+      Runs the unit tests.
+
+      Examples:
+        - task unit-test
     cmds:
       - |
         ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp \
-          --name ${TEST_CONTAINER_NAME} ${PACKAGE_NAME} \
+          --name {{ .TEST_CONTAINER_NAME }} {{ .PACKAGE_NAME }} \
           coverage run -m pytest tests
 
   test:
-    desc: Runs unit-test and test-coverage commands.
+    desc: Runs `unit-test` and `test-coverage` commands.
+    summary: |
+      Runs `unit-test` and `test-coverage` commands.
+
+      Examples:
+        - task test
     cmds:
       - task: unit-test
       - task: test-coverage
