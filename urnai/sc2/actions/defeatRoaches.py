@@ -32,12 +32,12 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
         self.action_indices = range(len(self.actions))
 
     def solve_action(self, action_idx, obs):
-
-        action_idx = action_idx - 6 if action_idx > 7 else (
-            0 if action_idx < 4 else 1
-        )
-
         if action_idx is not None:
+
+            action_idx = action_idx - 6 if action_idx > 7 else (
+                0 if action_idx < 4 else 1
+            )
+
             if action_idx is not self.noaction:
                 action = self.actions[action_idx]
                 if action == Actions.ATTACK:
@@ -74,6 +74,10 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
             return closest_unit
 
     def get_army_avg(self, army):
+        if len(army) == 0:
+            raise ValueError("Cannot calculate get_army_avg " +
+                            "because 'army' is empty.")
+
         xs, ys = [], []
         for unit in army:
             try:
@@ -89,7 +93,11 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
 
     def attack_nearest_inside_radius(self, obs, radius):
         race = sc2_env.Race.terran
-        army_x, army_y = self.get_army_avg(scaux.select_army(obs, race))
+        my_army = scaux.select_army(obs, race)
+        if len(my_army) == 0:
+            return []
+        
+        army_x, army_y = self.get_army_avg(my_army)
 
         nearest_enemy_unit = self.get_nearest_enemy_unit_inside_radius(
             army_x, army_y, obs, radius)
@@ -110,6 +118,10 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
 
     def runaway(self, obs, speed = 2):
         race = sc2_env.Race.terran
+        my_army = scaux.select_army(obs, race)
+        if len(my_army) == 0:
+            return []
+        
         p_army_x, p_army_y = self.get_army_avg(scaux.select_army(obs, race))
         e_army_x, e_army_y = self.get_army_avg(scaux.select_enemy_army(obs))
 
