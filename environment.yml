@@ -3,7 +3,7 @@ version: 1
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
+  - python=3.10
   - pip=23.2.1
   - wandb=0.15.8
   - pytorch=2.0.0

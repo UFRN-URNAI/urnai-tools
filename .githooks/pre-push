@@ -1,25 +1,14 @@
-#!/bin/sh
-# shellcheck disable=2028
+#!/bin/bash
 
-warning() {
-  echo "\\e[1;33m$1"
-}
-
-alertMessages() {
-  warning "One or more $1 are failing."
-  warning "Please fix those $1 before pushing your branch"
-}
-
-if task lint
-then
-  if task unit-test test-coverage
-  then
-    exit 0
-  else
-    alertMessages "unit tests"
-    exit 1
-  fi
-else
-  alertMessages "linter checks"
+handle_failure() {
+  echo "❌ Error: $1 failed!"
   exit 1
-fi
+}
+
+echo "🔍 Running lint checks..."
+task lint || handle_failure "lint"
+
+echo "🧪 Running test coverage..."
+task test || handle_failure "test-coverage"
+
+echo "✅ All checks passed successfully!"
