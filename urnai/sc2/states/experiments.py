@@ -1,10 +1,9 @@
 from abc import abstractmethod
-import math
 from enum import Enum
+import math
 
 import numpy as np
 
-import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.states.state_base import StateBase
 
 

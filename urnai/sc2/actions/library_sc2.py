@@ -5,6 +5,7 @@ from pysc2.env import sc2_env
 from urnai.sc2.actions import sc2_actions_aux as scaux
 from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
 
+
 def move_direction(obs, direction : dict):
     army = scaux.select_army(obs, sc2_env.Race.terran)
     xs = [unit.x for unit in army]

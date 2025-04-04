@@ -1,13 +1,15 @@
 import math
-from statistics import mean
 from enum import Enum, auto
+from statistics import mean
 
 from pysc2.env import sc2_env
 
 from urnai.sc2.actions import sc2_actions_aux as scaux
 from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
+
 from .experiments import ExperimentsActionSpace
-from .library_sc2 import move_left, move_right, move_up, move_down
+from .library_sc2 import move_down, move_left, move_right, move_up
+
 
 class Actions(Enum):
     ATTACK = 0

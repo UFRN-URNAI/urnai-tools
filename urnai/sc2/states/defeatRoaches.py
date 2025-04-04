@@ -1,8 +1,11 @@
 import numpy as np
+
 from pysc2.lib import units as sc2units
 
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
+
 from .experiments import ExperimentsState, StateType
+
 
 STATE_MAP_DEFAULT_REDUCTIONFACTOR = 1
 STATE_MAX_COLL_DIST = 15
