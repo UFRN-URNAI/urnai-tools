@@ -36,7 +36,7 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
     
 def declare_trainer(config_dict : dict, hyperparameters : dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
-    action_space = spaces.Discrete(n=5, start=0)
+    action_space = spaces.Discrete(n = 12, start = 0)
     observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8)
 
     env = SC2Env(map_name='DefeatRoaches', visualize=False, 
@@ -46,6 +46,7 @@ def declare_trainer(config_dict : dict, hyperparameters : dict = None):
     reward = DefeatRoachesReward()
 
     #TODO: create check_env
+    #TODO: tests for the new classes
 
     custom_env = CustomEnv(env, state, urnai_action_space, reward,
                             observation_space, action_space)
@@ -74,7 +75,7 @@ def main(unused_argv):
         trainer = declare_trainer(config_dict)
         #trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            iterations=100, train_steps=5000, test_episodes=20,
+            iterations=100, train_steps=10000, test_episodes=20,
             callback=None, #TODO: put wandb back
             return_episode_rewards=True, wandb_log=False
         )

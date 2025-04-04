@@ -10,11 +10,12 @@ from .experiments import ExperimentsActionSpace
 from .library_sc2 import move_left, move_right, move_up, move_down
 
 class Actions(Enum):
+    ATTACK = 0
+    RUNAWAY = 1
     MOVELEFT = auto()
     MOVERIGHT = auto()
     MOVEUP = auto()
     MOVEDOWN = auto()
-    ATTACK = auto()
 
 class DefeatRoachesActionSpace(ExperimentsActionSpace):
 
@@ -29,10 +30,19 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
         self.action_indices = range(len(self.actions))
 
     def solve_action(self, action_idx, obs):
+
+        action_idx = action_idx - 6 if action_idx > 7 else (
+            0 if action_idx < 4 else 1
+        )
+
         if action_idx is not None:
             if action_idx is not self.noaction:
                 action = self.actions[action_idx]
-                if action == Actions.MOVELEFT:
+                if action == Actions.ATTACK:
+                    self.do_action(self.attack(obs))
+                if action == Actions.RUNAWAY:
+                    self.do_action(self.runaway(obs))
+                elif action == Actions.MOVELEFT:
                     self.do_action(move_left(obs))
                 elif action == Actions.MOVERIGHT:
                     self.do_action(move_right(obs))
@@ -40,8 +50,6 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
                     self.do_action(move_up(obs))
                 elif action == Actions.MOVEDOWN:
                     self.do_action(move_down(obs))
-                elif action == Actions.ATTACK:
-                    self.do_action(self.attack(obs))
         else:
             self.reset()
 
@@ -63,9 +71,7 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
         if closest_unit is not None:
             return closest_unit
 
-    def get_race_unit_avg(self, obs, race):
-        army = scaux.select_army(obs, race)
-
+    def get_army_avg(self, army):
         xs, ys = [], []
         for unit in army:
             try:
@@ -81,7 +87,7 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
 
     def attack_nearest_inside_radius(self, obs, radius):
         race = sc2_env.Race.terran
-        army_x, army_y = self.get_race_unit_avg(obs, race)
+        army_x, army_y = self.get_army_avg(scaux.select_army(obs, race))
 
         nearest_enemy_unit = self.get_nearest_enemy_unit_inside_radius(
             army_x, army_y, obs, radius)
@@ -100,3 +106,19 @@ class DefeatRoachesActionSpace(ExperimentsActionSpace):
     def attack(self, obs):
         return self.attack_nearest_inside_radius(obs, self.maximum_attack_range)
 
+    def runaway(self, obs, speed = 2):
+        race = sc2_env.Race.terran
+        p_army_x, p_army_y = self.get_army_avg(scaux.select_army(obs, race))
+        e_army_x, e_army_y = self.get_army_avg(scaux.select_enemy_army(obs))
+
+        dx = speed * (-1 if e_army_x - p_army_x > 0 else 1)
+        dy = speed * (-1 if e_army_y - p_army_y > 0 else 1)
+
+        return_actions = []
+        army = scaux.select_army(obs, race)
+        for unit in army:
+            return_actions.append(
+                sc2_actions['Move_pt'].run('now',
+                unit.tag, [p_army_x + dx, p_army_y + dy]))
+
+        return return_actions
