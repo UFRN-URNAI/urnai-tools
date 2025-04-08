@@ -1,12 +1,13 @@
+import numpy as np
 from pysc2.lib import units as sc2units
 
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.states.state_base import StateBase
 
-STATE_MAXIMUM_GOLD_OR_MINERALS = 10000
-MAXIMUM_NUMBER_OF_FARM_OR_SUPPLY_DEPOT = 1
-MAXIMUM_NUMBER_OF_BARRACKS = 1
-MAXIMUM_NUMBER_OF_ARCHERS_MARINES = 20
+STATE_MAXIMUM_MINERALS = 10000
+MAXIMUM_NUMBER_OF_SUPPLY_DEPOT = 7
+MAXIMUM_NUMBER_OF_BARRACKS = 2
+MAXIMUM_NUMBER_OF_MARINES = 100
 
 
 class BuildMarinesState(StateBase):
@@ -14,10 +15,10 @@ class BuildMarinesState(StateBase):
     def __init__(self):
         
         self.non_spatial_maximums = [
-            STATE_MAXIMUM_GOLD_OR_MINERALS,
-            MAXIMUM_NUMBER_OF_FARM_OR_SUPPLY_DEPOT,
+            STATE_MAXIMUM_MINERALS,
+            MAXIMUM_NUMBER_OF_SUPPLY_DEPOT,
             MAXIMUM_NUMBER_OF_BARRACKS,
-            MAXIMUM_NUMBER_OF_ARCHERS_MARINES,
+            MAXIMUM_NUMBER_OF_MARINES,
         ]
         self.non_spatial_minimums = [0, 0, 0, 0]
         self.non_spatial_state = [0, 0, 0, 0]
@@ -30,6 +31,7 @@ class BuildMarinesState(StateBase):
 
         self._dimension = len(state)
         self._state = state
+        self.non_spatial_state = np.array(self.non_spatial_state)
 
         return state
 
