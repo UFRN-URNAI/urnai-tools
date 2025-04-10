@@ -1,4 +1,4 @@
-from pysc2.lib import units
+from pysc2.lib import features, units
 
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 
@@ -33,7 +33,8 @@ class DefeatRoachesReward(ExperimentsReward):
         return reward
 
     def get_roach_amount(self, obs):
-        return len(sc2aux.get_units_by_type(obs, units.Zerg.Roach))
+        return len(sc2aux.get_units_by_type(obs, units.Zerg.Roach,
+                        alliance=features.PlayerRelative.ENEMY))
     
     def get_marine_amount(self, obs):
-        return len(sc2aux.get_units_by_type(obs, units.Zerg.Roach))
+        return len(sc2aux.get_units_by_type(obs, units.Terran.Marine))
