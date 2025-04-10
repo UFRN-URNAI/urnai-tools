@@ -42,7 +42,6 @@ def get_units_by_type(obs, unit_type, alliance=features.PlayerRelative.SELF):
             and unit.alliance == alliance
             and unit.build_progress == 100]
 
-
 def get_neutral_units_by_type(obs, unit_type):
     return [unit for unit in obs.raw_units
             if unit.unit_type == unit_type

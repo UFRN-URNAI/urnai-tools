@@ -1,6 +1,6 @@
 import numpy as np
 
-from pysc2.lib import units as sc2units
+from pysc2.lib import units as sc2units, features
 
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 
@@ -23,7 +23,8 @@ class DefeatRoachesState(ExperimentsState):
             (obs.feature_minimap[0].shape[0],
             obs.feature_minimap[0].shape[1], 3), dtype=np.uint8)
         marines = sc2aux.get_units_by_type(obs, sc2units.Terran.Marine)
-        roaches = sc2aux.get_units_by_type(obs, sc2units.Zerg.Roach)
+        roaches = sc2aux.get_units_by_type(obs, sc2units.Zerg.Roach,
+                                        features.PlayerRelative.ENEMY)
 
         for marine in marines:
             map_[marine.y][marine.x] = (255, 0, 0)
@@ -32,17 +33,6 @@ class DefeatRoachesState(ExperimentsState):
             map_[roach.y][roach.x] = (0, 255, 0)
         
         return map_
-
-    def normalize_non_spatial_list(self):
-        for i in range(len(self.non_spatial_state)):
-            value = self.non_spatial_state[i]
-            max_ = self.non_spatial_maximums[i]
-            min_ = self.non_spatial_minimums[i]
-            value = self.normalize_value(value, max_, min_)
-            self.non_spatial_state[i] = value  
-
-    def build_non_spatial_state(self, obs):
-        return None
 
     def reduce_map(self, map_):
         if self.trim_map:

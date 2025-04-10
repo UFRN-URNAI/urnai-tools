@@ -94,6 +94,14 @@ class ExperimentsState(StateBase):
     def normalize_value(self, value, max_, min_=0):
         return (value - min_) / (max_ - min_)
     
+    def normalize_non_spatial_list(self):
+        for i in range(len(self.non_spatial_state)):
+            value = self.non_spatial_state[i]
+            max_ = self.non_spatial_maximums[i]
+            min_ = self.non_spatial_minimums[i]
+            value = self.normalize_value(value, max_, min_)
+            self.non_spatial_state[i] = value
+
     @property
     def dimension(self):
         if self.method == StateType.STATE_MAP:
@@ -113,9 +121,8 @@ class ExperimentsState(StateBase):
     def state(self):
         return self._state
 
-    @abstractmethod
     def build_non_spatial_state(self, obs):
-        ...
+        return None
     
     def calculate_distance(self, x1, y1, x2, y2):
         dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
@@ -164,11 +171,11 @@ class ExperimentsState(StateBase):
         if reduction_factor == 1:
             return map
 
-        N, M = map.shape
+        N, M, Z = map.shape
         N = N // reduction_factor
         M = M // reduction_factor
 
-        reduced_map = np.empty((N, M))
+        reduced_map = np.empty((N, M, Z))
         for i in range(N):
             for j in range(M):
                 rf = reduction_factor
