@@ -25,6 +25,9 @@ class DefeatRoachesReward(ExperimentsReward):
             rwdMarines = (current_marine_amount - previous_marine_amount)
 
             reward = (rwdMarines - rwdRoaches) * 1000
+
+            if (truncated or terminated):
+                reward += 10000 * (2 ** (-current_roach_amount))
         
         self.previous_state = obs
         return reward
