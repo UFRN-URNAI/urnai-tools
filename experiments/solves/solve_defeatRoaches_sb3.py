@@ -45,9 +45,6 @@ def declare_trainer(config_dict : dict, hyperparameters : dict = None):
     urnai_action_space = DefeatRoachesActionSpace()
     reward = DefeatRoachesReward()
 
-    #TODO: tests for the new classes
-    #TODO: tests for experiments and library_sc2
-
     custom_env = CustomEnv(env, state, urnai_action_space, reward,
                             observation_space, action_space)
     train_env = Monitor(custom_env)
