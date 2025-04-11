@@ -2,7 +2,6 @@ import numpy as np
 import unittest
 
 from urnai.sc2.states.defeatRoaches import DefeatRoachesState
-from urnai.sc2.states.experiments import StateType
 
 from pysc2.lib import units
 from pysc2.lib.named_array import NamedDict
@@ -124,10 +123,9 @@ class TestDefeatRoachesState(unittest.TestCase):
 
         # THEN
         assert reduced_map.shape == expected_shape
-        for y in range(expected_shape[0]):
-            for x in range(expected_shape[1]):
-                if not np.array_equal(reduced_map[y][x], obs.feature_minimap[0][20 + y][22 + x]):
-                    assert False
+        assert np.array_equal(reduced_map,
+             obs.feature_minimap[0][20:(20 + expected_shape[0]),
+                                    22:(22 + expected_shape[1])])
 
     def test_reduce_map_trim_and_reduction(self):
         # GIVEN
