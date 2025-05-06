@@ -21,13 +21,13 @@ class WandbLogger(LoggerBase):
         wandb.define_metric("train/*", step_metric="train_step")
         wandb.define_metric("eval/*", step_metric="eval_step")
 
-    def set_mode(self, train: bool):
+    def set_mode(self, train: bool) -> None:
         if train:
             self.mode = Mode.TRAIN
         else:
             self.mode = Mode.EVAL
 
-    def log(self, data: dict):
+    def log(self, data: dict) -> None:
         step_idx = self.mode.value
         step_name = self.step_name[step_idx]
         num_step = self.num_steps[step_idx]

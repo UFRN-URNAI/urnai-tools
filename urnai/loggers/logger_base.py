@@ -7,7 +7,7 @@ class LoggerBase(ABC):
     """
 
     @abstractmethod
-    def set_mode(self, train: bool):
+    def set_mode(self, train: bool) -> None:
         """
         Set the mode of the logger.
         :param train: True for training mode, False for evaluation mode.
@@ -15,7 +15,7 @@ class LoggerBase(ABC):
         ...
     
     @abstractmethod
-    def log(self, **kwargs):
+    def log(self, **kwargs) -> None:
         """
         Log a message.
         """
