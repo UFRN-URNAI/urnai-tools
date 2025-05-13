@@ -10,13 +10,15 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 
 import wandb
-from urnai.environments.stablebaselines3.custom_env import CustomEnv
+from urnai.environments.stablebaselines3.custom_env_buildmarines import (
+    CustomEnvBuildMarines,
+)
+from urnai.loggers.wandb_logger import WandbLogger
 from urnai.sc2.actions.buildmarines import BuildMarinesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
-from wandb.integration.sb3 import WandbCallback
 
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
@@ -32,30 +34,48 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
 
     return wandb_run
     
-def declare_trainer(config_dict : dict, hyperparameters : dict = None):
+def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
-    observation_space = spaces.Box(low=0, high=255, shape=(4, ), dtype=float)
+    observation_space = spaces.Box(low=0, high=255, shape=(4,), dtype=float)
 
-    env = SC2Env(map_name='BuildMarines', visualize=False, 
-                step_mul=32, players=players)
-    state = BuildMarinesState()
-    urnai_action_space = BuildMarinesActionSpace()
-    reward = BuildMarinesReward()
-    custom_env = CustomEnv(env, state, urnai_action_space, reward,
-                            observation_space, action_space)
-    train_env = Monitor(custom_env)
-    eval_env = Monitor(custom_env)
+    logger = WandbLogger()  # Uma única instância de logger compartilhada
+
+    # SC2Env separados para treino e avaliação
+    train_sc2_env = SC2Env(map_name='BuildMarines', step_mul=32, players=players)
+    eval_sc2_env = SC2Env(map_name='BuildMarines', step_mul=32, players=players)
+
+    # Instâncias separadas dos componentes com estado
+    train_state = BuildMarinesState()
+    train_action_space = BuildMarinesActionSpace()
+    train_reward = BuildMarinesReward()
+
+    eval_state = BuildMarinesState()
+    eval_action_space = BuildMarinesActionSpace()
+    eval_reward = BuildMarinesReward()
+
+    # CustomEnv separados para treino e avaliação
+    train_custom_env = CustomEnvBuildMarines(train_sc2_env, train_state, 
+                                             train_action_space, train_reward,
+                                             observation_space, action_space, logger)
+    eval_custom_env = CustomEnvBuildMarines(eval_sc2_env, eval_state, 
+                                            eval_action_space, eval_reward, 
+                                            observation_space, action_space, logger)
+
+    # Wrappers Monitor
+    train_env = Monitor(train_custom_env)
+    eval_env = Monitor(eval_custom_env)
 
     models_dir = f"saves/models/{config_dict['model_save_name']}"
     logdir = "saves/logs"
 
-    model=PPO(config_dict['policy'], custom_env, verbose=1,
-        tensorboard_log=logdir,
-        **(hyperparameters if hyperparameters is not None else {}))
+    model = PPO(config_dict['policy'], train_env, verbose=1,
+                tensorboard_log=logdir,
+                **(hyperparameters if hyperparameters is not None else {}))
 
     trainer = SB3Trainer(
-        train_env, eval_env, models_dir, logdir, model, config_dict['model_save_name']
+        train_env, eval_env, models_dir, logdir, model,
+        config_dict['model_save_name'], logger=logger
     )
 
     return trainer
@@ -64,15 +84,24 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "PPOMlp_BuildMarines"}
+            "model_save_name": "TestEarlyStopping"}
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)
         # trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            iterations=100, train_steps=1000, test_episodes=10,
-            callback=WandbCallback(),
+            iterations=100000, train_steps=10000, test_episodes=5,
+            callback=None,
             return_episode_rewards=True, wandb_log=True
         )
+        # trainer.test_model(
+        #     episodes=100, deterministic=True, render=False,
+        #     wandb_log=False
+        # )
+        # trainer.train_model(
+        #     timesteps=100000, log_interval=1,
+        #     reset_num_timesteps=False, progress_bar=True, 
+        #     repeat_times=1, start_from=1, callback=WandbCallback()
+        # )
         wandb_run.finish()
     except KeyboardInterrupt:
         print("Training interrupted by user")

@@ -8,7 +8,9 @@ from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3.common.env_checker import check_env
 
-from urnai.environments.stablebaselines3.custom_env import CustomEnv
+from urnai.environments.stablebaselines3.custom_env_buildmarines import (
+    CustomEnvBuildMarines,
+)
 from urnai.sc2.actions.buildmarines import BuildMarinesActionSpace
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.rewards.buildmarines import BuildMarinesReward
@@ -23,7 +25,7 @@ env = SC2Env(map_name='BuildMarines', visualize=False,
 state = BuildMarinesState()
 urnai_action_space = BuildMarinesActionSpace()
 reward = BuildMarinesReward()
-custom_env = CustomEnv(env, state, urnai_action_space, reward, observation_space, 
-                    action_space)
+custom_env = CustomEnvBuildMarines(env, state, urnai_action_space, reward, 
+                                   observation_space, action_space)
 
 check_env(custom_env, warn=True)

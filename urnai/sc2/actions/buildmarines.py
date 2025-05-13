@@ -37,12 +37,14 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
     def __init__(self):
         super().__init__()
 
-        self.do_nothing = 7
-        self.build_supply_depot = 8
-        self.build_barrack = 9
-        self.build_marine = 10
-        self.actions = [self.do_nothing, self.build_supply_depot, self.build_barrack,
-                        self.build_marine]
+        self.do_nothing = "Collect"
+        self.build_supply_depot = "Build_SupplyDepot_pt"
+        self.build_barrack = "Build_Barracks_pt"
+        self.build_marine = "BuildMarine"
+        self.actions = {0: self.do_nothing,
+                        1: self.build_supply_depot, 
+                        2: self.build_barrack, 
+                        3: self.build_marine}
         self.named_actions = ['do_nothing', 'build_supply_depot', 'build_barrack', 
                               'build_marine']
         self.action_indices = range(len(self.actions))
@@ -58,9 +60,11 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
                 if action == self.do_nothing:
                     self.collect_idle(obs)
                 elif action == self.build_supply_depot:
-                    self.build_supply_depot_(obs)
+                    coord = random.choice(self.supply_depot_coords)
+                    self.build_pt(obs, coord, self.build_supply_depot)
                 elif action == self.build_barrack:
-                    self.build_barrack_(obs)
+                    coord = random.choice(self.barrack_coords)
+                    self.build_pt(obs, coord, self.build_barrack)
                 elif action == self.build_marine:
                     self.build_marine_(obs)
         else:
@@ -80,23 +84,13 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
         length = len(scvs)
         scv = scvs[random.randint(0, length - 1)]
         return scv
-
-    def build_supply_depot_(self, obs):
-        random_coord = random.choice(self.supply_depot_coords)
-        x, y = random_coord['x'], random_coord['y']
-        scv = self.select_random_scv(obs)
-        # append action to build supply depot
-        self.pending_actions.append(
-            sc2_actions["Build_SupplyDepot_pt"].run('now', scv.tag, [x, y]))
-
-    def build_barrack_(self, obs):
-        coord = random.choice(self.barrack_coords)
+    
+    def build_pt(self, obs, coord, build_action_pt):
         x, y = coord['x'], coord['y']
         scv = self.select_random_scv(obs)
-        # append action to build barrack
+        # append action to build building
         self.pending_actions.append(
-            sc2_actions["Build_Barracks_pt"].run('now', scv.tag, [x, y]))
-
+            sc2_actions[build_action_pt].run('now', scv.tag, [x, y]))
 
     def build_marine_(self, obs):
         barracks = scaux.get_units_by_type(obs, units.Terran.Barracks)
