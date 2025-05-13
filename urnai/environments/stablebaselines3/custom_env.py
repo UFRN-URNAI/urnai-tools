@@ -18,7 +18,7 @@ class CustomEnv(gym.Env):
 
     def __init__(self, env: EnvironmentBase, state: StateBase, 
                  urnai_action_space: ActionSpaceBase, reward: RewardBase, 
-                 observation_space: spaces.Space, action_space: spaces.Space):
+                 observation_space: spaces.Space, action_space: spaces.Space, **kwargs):
         super().__init__()
 
         self._env = env
@@ -32,13 +32,13 @@ class CustomEnv(gym.Env):
     def step(
             self, action: Union[int, np.ndarray]
         ) -> GymStepReturn:
-        action = self._action_space.get_action(action, self._obs)
+        chosen_action = self._action_space.get_action(action, self._obs)
 
-        obs, reward, terminated, truncated = self._env.step(action)
+        obs, reward, terminated, truncated = self._env.step(chosen_action)
 
         self._obs = obs
         obs = self._state.update(self._obs)
-        reward = self._reward.get(self._obs, reward, terminated, truncated)
+        reward = self._reward.get(self._obs, reward, terminated, truncated, action)
         info = {}
         return obs, reward, terminated, truncated, info
 

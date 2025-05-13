@@ -14,7 +14,8 @@ class RewardBase(ABC):
         obs: list[list],
         default_reward: int,
         terminated: bool, 
-        truncated: bool
+        truncated: bool,
+        **kwargs: dict,
     ) -> int: 
         raise NotImplementedError("Get method not implemented. You should implement " +
                                   "it in your RewardBase subclass.")
