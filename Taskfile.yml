@@ -92,7 +92,10 @@ tasks:
       Examples:
         - task run -- ./experiments/solves/collectables_check_env.py
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
+      - |
+        ${CMD_DOCKER_RUN} \
+          -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
+          {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
   run-ui:
     desc: Runs a specific Python script, but with UI activated.
@@ -131,7 +134,11 @@ tasks:
       Examples:
         - task test-coverage
     cmds:
-      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} {{ .PACKAGE_NAME }} coverage report -m
+      - |
+        ${CMD_DOCKER_RUN} \
+          -u ${UID}:${GID}
+          -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
+          {{ .PACKAGE_NAME }} coverage report -m
 
   unit-test:
     desc: Runs the unit tests.
