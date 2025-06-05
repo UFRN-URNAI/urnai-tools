@@ -7,6 +7,7 @@ vars:
   PACKAGE_NAME: urnai
   TEST_CONTAINER_NAME: urnai_test
   VIRTUAL_ENVIRONMENT: urnai_env
+  DOCKER_URNAI_DIR: /home/mambauser/urnai
 
 env:
   CMD_DOCKER_RUN: docker run --rm
@@ -16,6 +17,11 @@ env:
     sh: id -u
   GID:
     sh: id -g
+#  DISPLAY:
+#    sh: echo $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}'):0
+  DISPLAY:
+    sh: echo $(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0.0
+  LIBGL_ALWAYS_INDIRECT: 1
 
 tasks:
   default:
@@ -86,7 +92,26 @@ tasks:
       Examples:
         - task run -- ./experiments/solves/collectables_check_env.py
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
+
+  run-ui:
+    desc: Runs a specific Python script, but with UI activated.
+    summary: |
+      Runs a specific Python script, but with UI activated.
+
+      Arguments:
+        CLI_ARGS: Python script path.
+
+      Examples:
+        - task run-ui -- ./experiments/solves/collectables_check_env.py
+    cmds:
+      - |
+        ${CMD_DOCKER_RUN} \
+          -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
+          -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+          -e DISPLAY=$DISPLAY \
+          --net=host \
+          {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
   shell:
     desc: Runs the container shell.
@@ -96,7 +121,7 @@ tasks:
       Examples:
         - task shell
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:/tmp -it {{ .PACKAGE_NAME }} /bin/bash
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} -it {{ .PACKAGE_NAME }} /bin/bash
 
   test-coverage:
     desc: Check the test coverage report.
@@ -106,7 +131,7 @@ tasks:
       Examples:
         - task test-coverage
     cmds:
-      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp {{ .PACKAGE_NAME }} coverage report -m
+      - ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} {{ .PACKAGE_NAME }} coverage report -m
 
   unit-test:
     desc: Runs the unit tests.
@@ -117,7 +142,7 @@ tasks:
         - task unit-test
     cmds:
       - |
-        ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:/tmp \
+        ${CMD_DOCKER_RUN} -u ${UID}:${GID} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
           --name {{ .TEST_CONTAINER_NAME }} {{ .PACKAGE_NAME }} \
           coverage run -m pytest tests
 
