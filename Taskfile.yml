@@ -17,8 +17,6 @@ env:
     sh: id -u
   GID:
     sh: id -g
-#  DISPLAY:
-#    sh: echo $(cat /etc/resolv.conf | grep nameserver | awk '{print $2}'):0
   DISPLAY:
     sh: echo $(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0.0
   LIBGL_ALWAYS_INDIRECT: 1
