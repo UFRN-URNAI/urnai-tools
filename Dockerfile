@@ -21,6 +21,7 @@ WORKDIR /home/mambauser/urnai
 
 # User and packages
 USER root
+# hadolint ignore=DL3004,DL3008
 RUN apt-get update -yq \
     && apt-get install --no-install-recommends -yq \
       sudo \
