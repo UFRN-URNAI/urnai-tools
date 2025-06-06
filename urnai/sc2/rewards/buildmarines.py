@@ -16,9 +16,9 @@ class BuildMarinesReward(RewardBase):
         self.total_reward = 0
         config_dict = config_dict or {}
         self.w_supply = config_dict.get("w_supply", 3.0)
-        self.w_barrack = config_dict.get("w_barrack", 5.0)
+        self.w_barrack = config_dict.get("w_barrack", 8.0)
         self.w_marine = config_dict.get("w_marine", 1.5)
-        self.penalty_no_supply = config_dict.get("penalty_no_supply", 0.15)
+        self.penalty_no_supply = config_dict.get("penalty_no_supply", 0.25)
         self.penalty_no_barrack = config_dict.get("penalty_no_barrack", 0.1)
 
     def get(self, obs, default_reward, terminated, truncated, action_idx = -1) -> int:

@@ -18,7 +18,7 @@ from urnai.sc2.states.buildmarines import BuildMarinesState
 
 players = [sc2_env.Agent(sc2_env.Race.terran)]
 action_space = spaces.Discrete(n=4, start=0)
-observation_space = spaces.Box(low=0, high=255, shape=(4, ), dtype=float)
+observation_space = spaces.Box(low=0.0, high=1.0, shape=(4, ), dtype=float)
 
 env = SC2Env(map_name='BuildMarines', visualize=False, 
             step_mul=16, players=players)

@@ -20,11 +20,15 @@ from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
+EPISODE_MINUTES = 15
+STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
+STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
+
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
 
     wandb_run = wandb.init(
-        project='solve_buildmarines',
+        project='buildmarines-reward-best-experiments',
         config=config_dict,
         name=config_dict['model_save_name'],
         sync_tensorboard=True,
@@ -37,7 +41,7 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
 def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
-    observation_space = spaces.Box(low=0, high=255, shape=(4,), dtype=float)
+    observation_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=float)
 
     logger = WandbLogger()  # Uma única instância de logger compartilhada
 
@@ -84,12 +88,14 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "TestEarlyStopping"}
+            "model_save_name": "TestMoreBarracks2"}
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)
         # trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            iterations=100000, train_steps=10000, test_episodes=5,
+            iterations=100000, 
+            train_steps= int(50 * (STEPS_PER_MINUTE * EPISODE_MINUTES) / 32),
+            test_episodes=10,
             callback=None,
             return_episode_rewards=True, wandb_log=True
         )

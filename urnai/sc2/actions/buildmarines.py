@@ -9,10 +9,10 @@ from urnai.sc2.actions.sc2_actions import raw_functions_classes as sc2_actions
 
 
 class BuildMarinesActionSpace(CollectablesActionSpace):
-    SUPPLY_DEPOT_X = 42
-    SUPPLY_DEPOT_Y = 42
-    BARRACK_X = 39
-    BARRACK_Y = 36
+    BOTTOM_RIGHT_SUPPLY_DEPOT_X = 42
+    BOTTOM_RIGHT_SUPPLY_DEPOT_Y = 43
+    UPPER_RIGHT_BARRACK_X = 41
+    UPPER_RIGHT_BARRACK_Y = 29
 
     # ACTION_DO_NOTHING = 7
     # ACTION_BUILD_SUPPLY_DEPOT = 8
@@ -20,18 +20,32 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
     # ACTION_BUILD_MARINE = 10
 
     MAP_PLAYER_SUPPLY_DEPOT_COORDINATES = [
-        {'x': SUPPLY_DEPOT_X, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 2, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 4, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 6, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 8, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 10, 'y': SUPPLY_DEPOT_Y},
-        {'x': SUPPLY_DEPOT_X - 12, 'y': SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 2, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 4, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 6, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 8, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 10, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 12, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 14, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 5, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 3},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 7, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 3},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 9, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 3},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 6, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 6},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 8, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 6},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 6, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 9},
+        {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 8, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y - 9},
     ]
 
     MAP_PLAYER_BARRACK_COORDINATES = [
-        {'x': BARRACK_X, 'y': BARRACK_Y},
-        {'x': BARRACK_X, 'y': BARRACK_Y - 6},
+        {'x': UPPER_RIGHT_BARRACK_X, 'y': UPPER_RIGHT_BARRACK_Y},
+        {'x': UPPER_RIGHT_BARRACK_X, 'y': UPPER_RIGHT_BARRACK_Y + 3},
+        {'x': UPPER_RIGHT_BARRACK_X, 'y': UPPER_RIGHT_BARRACK_Y + 6},
+        {'x': UPPER_RIGHT_BARRACK_X, 'y': UPPER_RIGHT_BARRACK_Y + 9},
+        {'x': UPPER_RIGHT_BARRACK_X - 4, 'y': UPPER_RIGHT_BARRACK_Y},
+        {'x': UPPER_RIGHT_BARRACK_X - 7, 'y': UPPER_RIGHT_BARRACK_Y},
+        {'x': UPPER_RIGHT_BARRACK_X - 11, 'y': UPPER_RIGHT_BARRACK_Y},
+        {'x': UPPER_RIGHT_BARRACK_X - 14, 'y': UPPER_RIGHT_BARRACK_Y},
     ]
 
     def __init__(self):

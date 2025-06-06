@@ -2,12 +2,18 @@ import numpy as np
 from pysc2.lib import units as sc2units
 
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
+from urnai.sc2.actions.buildmarines import BuildMarinesActionSpace
 from urnai.states.state_base import StateBase
 
 STATE_MAXIMUM_MINERALS = 10000
-MAXIMUM_NUMBER_OF_SUPPLY_DEPOT = 7
-MAXIMUM_NUMBER_OF_BARRACKS = 2
-MAXIMUM_NUMBER_OF_MARINES = 100
+INITIAL_NUMBER_OF_SCV = 12
+INITIAL_NUMBER_OF_SUPPLY = 15
+MAXIMUM_NUMBER_OF_SUPPLY_DEPOT = len(BuildMarinesActionSpace. \
+                                     MAP_PLAYER_SUPPLY_DEPOT_COORDINATES)
+MAXIMUM_NUMBER_OF_BARRACKS = len(BuildMarinesActionSpace. \
+                                 MAP_PLAYER_BARRACK_COORDINATES)
+MAXIMUM_NUMBER_OF_MARINES = INITIAL_NUMBER_OF_SUPPLY - INITIAL_NUMBER_OF_SCV +\
+                            8 * MAXIMUM_NUMBER_OF_SUPPLY_DEPOT
 
 
 class BuildMarinesState(StateBase):
