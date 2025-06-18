@@ -5,11 +5,13 @@ channels:
 dependencies:
   - python=3.10
   - pip=23.2.1
-  - wandb=0.15.8
+  - wandb=0.20.1
   - pytorch=2.0.0
   - stable-baselines3=2.0.0
   - pytest=7.4.0
   - coverage=7.2.7
+  - tensorboard=2.19.0
+  - numpy=1.26.4
   - pip:
       - pysc2==4.0.0
 platforms:

@@ -21,6 +21,9 @@ env:
     sh: echo $(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0.0
   LIBGL_ALWAYS_INDIRECT: 1
 
+dotenv:
+  - .env
+
 tasks:
   default:
     desc: "List all tasks."
@@ -93,6 +96,7 @@ tasks:
       - |
         ${CMD_DOCKER_RUN} \
           -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
+          -e WANDB_API_KEY=$WANDB_API_KEY
           {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
   run-ui:
@@ -111,6 +115,7 @@ tasks:
           -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
           -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
           -e DISPLAY=$DISPLAY \
+          -e WANDB_API_KEY=$WANDB_API_KEY \
           --net=host \
           {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
