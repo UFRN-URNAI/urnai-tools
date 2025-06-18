@@ -96,7 +96,7 @@ tasks:
       - |
         ${CMD_DOCKER_RUN} \
           -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
-          -e WANDB_API_KEY=$WANDB_API_KEY
+          -e WANDB_API_KEY=$WANDB_API_KEY \
           {{ .PACKAGE_NAME }} python {{ .CLI_ARGS }}
 
   run-ui:
