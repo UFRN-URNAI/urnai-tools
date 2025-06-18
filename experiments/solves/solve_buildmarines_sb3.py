@@ -70,8 +70,8 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     train_env = Monitor(train_custom_env)
     eval_env = Monitor(eval_custom_env)
 
-    models_dir = f"saves/models/{config_dict['model_save_name']}"
-    logdir = "saves/logs"
+    models_dir = f"/home/mambauser/saves/models/{config_dict['model_save_name']}"
+    logdir = "/home/mambauser/saves/logs"
 
     model = PPO(config_dict['policy'], train_env, verbose=1,
                 tensorboard_log=logdir,
@@ -93,7 +93,7 @@ def main(unused_argv):
         trainer = declare_trainer(config_dict)
         # trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            iterations=100000, 
+            iterations=100000,
             train_steps= int(50 * (STEPS_PER_MINUTE * EPISODE_MINUTES) / 32),
             test_episodes=10,
             callback=None,
