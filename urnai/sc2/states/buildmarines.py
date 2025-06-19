@@ -34,6 +34,7 @@ class BuildMarinesState(StateBase):
     def update(self, obs):
         state = []
         state = self.build_non_spatial_state(obs)
+        state = np.array(state)
 
         self._dimension = len(state)
         self._state = state
