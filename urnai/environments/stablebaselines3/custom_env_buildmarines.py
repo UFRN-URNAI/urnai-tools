@@ -7,15 +7,16 @@ from stable_baselines3.common.type_aliases import GymResetReturn, GymStepReturn
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
-EPISODE_MINUTES = 2
-STEPS_PER_SECOND = 22.4
+EPISODE_MINUTES = 15
+STEPS_PER_SECOND = 22
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 
 class CustomEnvBuildMarines(CustomEnv):
     """Custom Environment for Build Marines that follows gym interface."""
     
     def __init__(self, env, state, urnai_action_space, reward, observation_space, 
-                 action_space, logger):
+                 action_space, logger, step_mul=32, 
+                 max_steps= EPISODE_MINUTES * STEPS_PER_MINUTE):
         super().__init__(env, state, urnai_action_space, reward, observation_space, 
                          action_space)
         self.actions = {0: "Collect", 1: "BuildSupplyDepot",
@@ -25,8 +26,9 @@ class CustomEnvBuildMarines(CustomEnv):
         self.action_map_reward = {"Collect": 0, "BuildSupplyDepot": 0, 
                                  "BuildBarrack": 0, "BuildMarine": 0}
         self.logger = logger
-        self.max_steps = STEPS_PER_MINUTE * EPISODE_MINUTES
+        self.max_steps = max_steps
         self.step_count = 0
+        self.step_mul = step_mul
     
     def step(
             self, action: Union[int, np.ndarray]
@@ -43,7 +45,7 @@ class CustomEnvBuildMarines(CustomEnv):
         action_name = self.actions[action]
         self.action_map_reward[action_name] += reward
         self.action_map_count[action_name] += 1
-        self.step_count += 32
+        self.step_count += self.step_mul
 
         if self.step_count >= self.max_steps:
             print("Max steps reached.")

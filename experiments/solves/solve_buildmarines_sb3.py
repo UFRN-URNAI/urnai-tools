@@ -23,12 +23,13 @@ from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 EPISODE_MINUTES = 15
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
+MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
 
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
 
     wandb_run = wandb.init(
-        project='buildmarines-reward-best-experiments',
+        project='solve_buildmarines',
         config=config_dict,
         name=config_dict['model_save_name'],
         sync_tensorboard=True,
@@ -42,29 +43,32 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
     observation_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=float)
+    step_mult = 32
 
     logger = WandbLogger()  # Uma única instância de logger compartilhada
 
     # SC2Env separados para treino e avaliação
-    train_sc2_env = SC2Env(map_name='BuildMarines', step_mul=32, players=players)
-    eval_sc2_env = SC2Env(map_name='BuildMarines', step_mul=32, players=players)
+    train_sc2_env = SC2Env(map_name='BuildMarines', step_mul=step_mult, players=players)
+    eval_sc2_env = SC2Env(map_name='BuildMarines', step_mul=step_mult, players=players)
 
     # Instâncias separadas dos componentes com estado
     train_state = BuildMarinesState()
     train_action_space = BuildMarinesActionSpace()
-    train_reward = BuildMarinesReward()
+    train_reward = BuildMarinesReward(config_dict)
 
     eval_state = BuildMarinesState()
     eval_action_space = BuildMarinesActionSpace()
-    eval_reward = BuildMarinesReward()
+    eval_reward = BuildMarinesReward(config_dict)
 
     # CustomEnv separados para treino e avaliação
     train_custom_env = CustomEnvBuildMarines(train_sc2_env, train_state, 
                                              train_action_space, train_reward,
-                                             observation_space, action_space, logger)
+                                             observation_space, action_space, logger,
+                                             step_mult, MAX_STEPS)
     eval_custom_env = CustomEnvBuildMarines(eval_sc2_env, eval_state, 
                                             eval_action_space, eval_reward, 
-                                            observation_space, action_space, logger)
+                                            observation_space, action_space, logger,
+                                            step_mult, MAX_STEPS)
 
     # Wrappers Monitor
     train_env = Monitor(train_custom_env)
@@ -88,13 +92,19 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "TestMoreBarracks2"}
+            "model_save_name": "TestMoreBarracks2",
+            "w_supply": 1.0,
+            "w_barrack": 30.0,
+            "w_marine": 1.5,
+            "penalty_no_supply": 0.0,
+            "penalty_no_barrack": 0.0
+        }
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)
         # trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
             iterations=100000,
-            train_steps= int(50 * (STEPS_PER_MINUTE * EPISODE_MINUTES) / 32),
+            train_steps= int(50 * MAX_STEPS / 32),
             test_episodes=10,
             callback=None,
             return_episode_rewards=True, wandb_log=True
