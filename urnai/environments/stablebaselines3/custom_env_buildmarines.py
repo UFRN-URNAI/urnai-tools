@@ -65,7 +65,6 @@ class CustomEnvBuildMarines(CustomEnv):
         return super().reset(seed=seed, options=options)
 
     def log_reward_per_action(self):
-        print("Episode finished.")
         log_dict = {}
         for action, count in self.action_map_count.items():
             avg_reward = 0.00
@@ -73,21 +72,13 @@ class CustomEnvBuildMarines(CustomEnv):
                 avg_reward = self.action_map_reward[action] / count
             log_dict[f"action/count/{action}"] = count
             log_dict[f"action/avg_reward/{action}"] = avg_reward
-            print(f"Action: {action}, Action Count: {count}, \
-                  Average Reward: {avg_reward:.2f}")
-        print("Total Reward: ", self._reward.total_reward)
         log_dict["total_reward"] = self._reward.total_reward
         marines = sc2aux.get_my_units_amount(self._obs, units.Terran.Marine)
-        print("Marines Built: ", marines)
         log_dict["marines_built"] = marines
         supply_depots = sc2aux.get_my_units_amount(self._obs, units.Terran.SupplyDepot)
-        # print("Supply Depots Built: ", supply_depots)
         log_dict["supply_depots_built"] = supply_depots
         barracks = sc2aux.get_my_units_amount(self._obs, units.Terran.Barracks)
-        # print("Barracks Built: ", barracks)
         log_dict["barracks_built"] = barracks
-        # print("Supply Depots Built: ", self._reward.supply_depots_built)
-        # print("Barracks Built: ", self._reward.barracks_built)
         if self.logger:
             self.logger.log(log_dict)
 
