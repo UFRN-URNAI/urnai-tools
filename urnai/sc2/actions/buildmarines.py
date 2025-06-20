@@ -14,11 +14,6 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
     UPPER_RIGHT_BARRACK_X = 41
     UPPER_RIGHT_BARRACK_Y = 29
 
-    # ACTION_DO_NOTHING = 7
-    # ACTION_BUILD_SUPPLY_DEPOT = 8
-    # ACTION_BUILD_BARRACK = 9
-    # ACTION_BUILD_MARINE = 10
-
     MAP_PLAYER_SUPPLY_DEPOT_COORDINATES = [
         {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
         {'x': BOTTOM_RIGHT_SUPPLY_DEPOT_X - 2, 'y': BOTTOM_RIGHT_SUPPLY_DEPOT_Y},
@@ -70,6 +65,9 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
     def solve_action(self, action_idx, obs):
         if action_idx is not None:
             if action_idx is not self.noaction:
+                if action_idx not in self.actions:
+                    raise ValueError(f"Invalid action index: {action_idx}. "+
+                                     f"Valid actions: {list(self.actions.keys())}")
                 action = self.actions[action_idx]
                 if action == self.do_nothing:
                     self.collect_idle(obs)
@@ -79,22 +77,26 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
                 elif action == self.build_barrack:
                     coord = random.choice(self.barrack_coords)
                     self.build_pt(obs, coord, self.build_barrack)
-                elif action == self.build_marine:
+                else:
                     self.build_marine_(obs)
         else:
             self.reset()
 
     def collect_idle(self, obs):
         scv = scaux.get_random_idle_worker(obs, sc2_env.Race.terran)
-        mineral = random.choice(
-            scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField))
         if scv is not scaux._NO_UNITS:
-            self.pending_actions.append(
-                sc2_actions["Harvest_Gather_unit"].run('queued', scv.tag, mineral.tag))
+            minerals = scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField)
+            if minerals:
+                mineral = random.choice(minerals)
+                self.pending_actions.append(
+                    sc2_actions["Harvest_Gather_unit"].run('queued', scv.tag, 
+                                                           mineral.tag))
 
     def select_random_scv(self, obs):
         # get SCV list
         scvs = scaux.get_units_by_type(obs, units.Terran.SCV)
+        if not scvs:
+            return None
         length = len(scvs)
         scv = scvs[random.randint(0, length - 1)]
         return scv
@@ -103,8 +105,9 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
         x, y = coord['x'], coord['y']
         scv = self.select_random_scv(obs)
         # append action to build building
-        self.pending_actions.append(
-            sc2_actions[build_action_pt].run('now', scv.tag, [x, y]))
+        if scv is not None:
+            self.pending_actions.append(
+                sc2_actions[build_action_pt].run('now', scv.tag, [x, y]))
 
     def build_marine_(self, obs):
         barracks = scaux.get_units_by_type(obs, units.Terran.Barracks)
