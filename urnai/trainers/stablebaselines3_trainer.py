@@ -18,7 +18,7 @@ class SB3Trainer:
         self.model_name = model_name
 
         self.log_step = 0
-        wandb.define_metric("log_step")
+        #wandb.define_metric("log_step")
 
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)

@@ -42,7 +42,6 @@ def get_units_by_type(obs, unit_type, alliance=features.PlayerRelative.SELF):
             and unit.alliance == alliance
             and unit.build_progress == 100]
 
-
 def get_neutral_units_by_type(obs, unit_type):
     return [unit for unit in obs.raw_units
             if unit.unit_type == unit_type
@@ -54,9 +53,10 @@ def get_all_neutral_units(obs):
             if unit.alliance == features.PlayerRelative.NEUTRAL]
 
 
-def select_army(obs, player_race):
-    army = []
+def get_army_unit_types(player_race):
+
     army_unit_types = []
+
     if player_race == _PROTOSS:
         army_unit_types = [
             units.Protoss.Adept, units.Protoss.AdeptPhaseShift, units.Protoss.Archon,
@@ -98,9 +98,29 @@ def select_army(obs, player_race):
             units.Zerg.Ultralisk, units.Zerg.UltraliskBurrowed, units.Zerg.Viper,
             units.Zerg.Zergling, units.Zerg.ZerglingBurrowed,
         ]
+    
+    return army_unit_types
+
+def select_army(obs, player_race):
+    army = []
+    army_unit_types = get_army_unit_types(player_race)
 
     army = [unit for unit in obs.raw_units if
             unit.alliance == features.PlayerRelative.SELF \
                 and unit.unit_type in army_unit_types]
 
+    return army
+
+def select_enemy_army(obs, race = None):
+    army = []
+
+    if race is None:
+        army = [unit for unit in obs.raw_units if
+                unit.alliance == features.PlayerRelative.ENEMY]
+    else:
+        army_unit_types = get_army_unit_types(race)
+        army = [unit for unit in obs.raw_units if
+            unit.alliance == features.PlayerRelative.SELF \
+                and unit.unit_type in army_unit_types]
+    
     return army

@@ -119,3 +119,4 @@ tmp/
 # Experiments
 /saves
 /wandb
+experiments/solves/saves
