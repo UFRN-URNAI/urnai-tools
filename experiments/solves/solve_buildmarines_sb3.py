@@ -1,11 +1,15 @@
 import os
 import sys
 
+import numpy as np
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
+from sb3_contrib import MaskablePPO
+from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 
@@ -44,6 +48,7 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     action_space = spaces.Discrete(n=4, start=0)
     observation_space = spaces.Box(low=0.0, high=1.0, shape=(4,), dtype=float)
     step_mult = 32
+    use_invalid_action_masking = config_dict.get('invalid_action_masking', True)
 
     logger = WandbLogger()  # Uma única instância de logger compartilhada
 
@@ -81,9 +86,22 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
                 tensorboard_log=logdir,
                 **(hyperparameters if hyperparameters is not None else {}))
 
+    if use_invalid_action_masking:
+        def mask_fn(env: CustomEnvBuildMarines) -> np.ndarray:
+            return env.unwrapped.get_action_mask()
+
+        train_env = ActionMasker(train_env, mask_fn)
+        eval_env = ActionMasker(eval_env, mask_fn)
+
+        model = MaskablePPO(config_dict['policy'],train_env,verbose=1,
+            tensorboard_log=logdir,
+            **(hyperparameters if hyperparameters is not None else {})
+        )
+
     trainer = SB3Trainer(
         train_env, eval_env, models_dir, logdir, model,
-        config_dict['model_save_name'], logger=logger
+        config_dict['model_save_name'], logger=logger, 
+        use_masking=use_invalid_action_masking
     )
 
     return trainer
@@ -92,12 +110,13 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "TestMoreBarracks2",
+            "model_save_name": "TestMaskablePPO2",
             "w_supply": 1.0,
-            "w_barrack": 30.0,
+            "w_barrack": 8.0,
             "w_marine": 1.5,
             "penalty_no_supply": 0.0,
-            "penalty_no_barrack": 0.0
+            "penalty_no_barrack": 0.0,
+            "invalid_action_masking": True,
         }
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)

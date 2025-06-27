@@ -115,3 +115,36 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
             barrack = random.choice(barracks)
             self.pending_actions.append(
                 sc2_actions["Train_Marine_quick"].run('now', barrack.tag))
+
+    def _get_units(self, obs, unit_type, alliance=1): # alliance 1 = self
+        return scaux.get_units_by_type(obs, unit_type, alliance)
+    
+    def get_excluded_actions(self, obs):
+        excluded_actions = []
+
+        player = obs.player
+
+        number_of_scvs = len(self._get_units(obs, units.Terran.SCV))
+
+        # 0. Collect is always possible.
+
+        # 1. Supply Depot
+        if player.minerals < 100 or number_of_scvs == 0:
+            excluded_actions.append(1)
+
+        # 2. Barracks
+        supply_depots = self._get_units(obs, units.Terran.SupplyDepot)
+        if player.minerals < 150 or number_of_scvs == 0 or len(supply_depots) == 0:
+            excluded_actions.append(2)
+            
+        # 3. Marine
+        barracks = self._get_units(obs, units.Terran.Barracks)
+        idle_barracks = [b for b in barracks if b.order_length == 0]
+        if (
+            player.minerals < 50
+            or (player.food_cap - player.food_used) < 1
+            or len(idle_barracks) == 0
+        ):
+            excluded_actions.append(3)
+        
+        return excluded_actions

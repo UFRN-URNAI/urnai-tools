@@ -1,7 +1,7 @@
 import os
 
+from sb3_contrib.common.maskable.evaluation import evaluate_policy
 from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
@@ -11,13 +11,14 @@ from urnai.loggers.logger_base import LoggerBase
 class SB3Trainer:
     def __init__(self, train_env : CustomEnv, eval_env : CustomEnv, models_dir : str, 
                  logdir : str, model : BaseAlgorithm, model_name : str, 
-                 logger : LoggerBase = None):
+                 logger : LoggerBase = None, use_masking: bool = True):
         self.train_env = train_env
         self.eval_env = eval_env
         self.models_dir = models_dir
         self.model = model
         self.model_name = model_name
         self.logger = logger
+        self.use_masking = use_masking
 
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)
@@ -74,7 +75,8 @@ class SB3Trainer:
                         callback=callback,
                         reward_threshold=reward_threshold,
                         return_episode_rewards=return_episode_rewards,
-                        warn=warn
+                        warn=warn,
+                        use_masking=self.use_masking,
                         )
         
         return episode_rewards

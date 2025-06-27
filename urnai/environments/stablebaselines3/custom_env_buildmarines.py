@@ -82,5 +82,11 @@ class CustomEnvBuildMarines(CustomEnv):
         if self.logger:
             self.logger.log(log_dict)
 
-
+    def get_action_mask(self) -> np.ndarray:
+        """Get the action mask for the current observation."""
+        excluded_actions_idx = self._action_space.get_excluded_actions(self._obs)
+        mask = np.ones(len(self.actions), dtype=bool)
+        for idx in excluded_actions_idx:
+            mask[idx] = False
+        return mask
         
