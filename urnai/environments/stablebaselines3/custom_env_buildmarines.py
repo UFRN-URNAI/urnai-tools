@@ -7,7 +7,7 @@ from stable_baselines3.common.type_aliases import GymResetReturn, GymStepReturn
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
-EPISODE_MINUTES = 15
+EPISODE_MINUTES = 5
 STEPS_PER_SECOND = 22
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 
@@ -31,18 +31,18 @@ class CustomEnvBuildMarines(CustomEnv):
         self.step_mul = step_mul
     
     def step(
-            self, action: Union[int, np.ndarray]
+            self, action_idx: Union[int, np.ndarray]
         ) -> GymStepReturn:
-        chosen_action = self._action_space.get_action(action, self._obs)
+        action, action_info = self._action_space.get_action(action_idx, self._obs)
 
-        obs, reward, terminated, truncated = self._env.step(chosen_action)
+        obs, reward, terminated, truncated = self._env.step(action)
 
         self._obs = obs
-        obs = self._state.update(self._obs)
-        reward = self._reward.get(self._obs, reward, terminated, truncated, action)
+        obs = self._state.update(self._obs, action_idx)
+        reward = self._reward.get(self._obs, reward, terminated, truncated, action_info=action_info)
         info = {}
 
-        action_name = self.actions[action]
+        action_name = self.actions[action_idx]
         self.action_map_reward[action_name] += reward
         self.action_map_count[action_name] += 1
         self.step_count += self.step_mul
@@ -79,6 +79,7 @@ class CustomEnvBuildMarines(CustomEnv):
         log_dict["total_reward"] = self._reward.total_reward
         marines = sc2aux.get_my_units_amount(self._obs, units.Terran.Marine)
         print("Marines Built: ", marines)
+        print("Has attempted to build barrack before supply: ", self._reward.commited_sin)
         log_dict["marines_built"] = marines
         supply_depots = sc2aux.get_my_units_amount(self._obs, units.Terran.SupplyDepot)
         # print("Supply Depots Built: ", supply_depots)

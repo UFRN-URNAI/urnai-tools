@@ -131,3 +131,9 @@ def get_building_units_by_type(obs, unit_type, alliance=features.PlayerRelative.
             if unit.unit_type == unit_type
             and unit.alliance == alliance
             and unit.build_progress < 100]
+
+def is_building_queue_full(unit):
+    if (unit.unit_type == units.Terran.Barracks):
+        return unit.order_length >= 6
+    else:
+        raise Exception(f"Unknown max queue length for unit {unit.unit_type}")

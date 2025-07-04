@@ -1,6 +1,7 @@
 import numpy as np
 from pysc2.lib import units as sc2units
 
+from collections.abc import Callable
 import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.sc2.actions.buildmarines import BuildMarinesActionSpace
 from urnai.states.state_base import StateBase
@@ -16,9 +17,33 @@ MAXIMUM_NUMBER_OF_MARINES = INITIAL_NUMBER_OF_SUPPLY - INITIAL_NUMBER_OF_SCV +\
                             8 * MAXIMUM_NUMBER_OF_SUPPLY_DEPOT
 
 
+class ObservationHistory:
+    def __init__(self, default_state_func : Callable, history_length : int = 20):
+        self.data = []
+        self.default_state_func = default_state_func
+        self.history_length = history_length
+        self.reset()
+
+    def get(self):
+        return dict([(str(i), self.data[i]) for i in range(self.history_length)])
+    
+    def add(self, obs, action):
+        self.data.append(list(obs) + [self.normalize_action(action)])
+
+        if len(self.data) > self.history_length:
+            self.data.pop(0)
+
+    def reset(self):
+        self.data.clear()
+        for i in range(self.history_length):
+            self.add(self.default_state_func(), 0)
+
+    def normalize_action(self, action):
+        return action/10
+
 class BuildMarinesState(StateBase):
 
-    def __init__(self):
+    def __init__(self, history_length):
         
         self.non_spatial_maximums = [
             STATE_MAXIMUM_MINERALS,
@@ -29,18 +54,21 @@ class BuildMarinesState(StateBase):
         self.non_spatial_minimums = [0, 0, 0, 0]
         self.non_spatial_state = [0, 0, 0, 0]
 
+        self.obs_history = ObservationHistory(
+            default_state_func = lambda: [0, 0, 0, 0], history_length = history_length)
         self.reset()
 
-    def update(self, obs):
+    def update(self, obs, action = 0):
         state = []
         state = self.build_non_spatial_state(obs)
         state = np.array(state)
+        self.obs_history.add(state, action)
 
         self._dimension = len(state)
         self._state = state
         self.non_spatial_state = np.array(self.non_spatial_state)
 
-        return state
+        return self.obs_history.get()
 
     def normalize_non_spatial_list(self):
         for i in range(len(self.non_spatial_state)):

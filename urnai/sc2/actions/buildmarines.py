@@ -66,6 +66,8 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
             BuildMarinesActionSpace.MAP_PLAYER_BARRACK_COORDINATES
         self.supply_depot_coords = \
             BuildMarinesActionSpace.MAP_PLAYER_SUPPLY_DEPOT_COORDINATES
+        
+        self.action_info = {"action_idx" : 0, "chosen_barrack" : None}
     
     def solve_action(self, action_idx, obs):
         if action_idx is not None:
@@ -83,6 +85,14 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
                     self.build_marine_(obs)
         else:
             self.reset()
+
+    def get_action(self, action_idx, obs):
+        self.action_info["chosen_barrack"] = None # Reseting info
+
+        action = super().get_action(action_idx, obs)
+        self.action_info["action_idx"] = action_idx 
+
+        return action, self.action_info
 
     def collect_idle(self, obs):
         scv = scaux.get_random_idle_worker(obs, sc2_env.Race.terran)
@@ -112,3 +122,4 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
             barrack = random.choice(barracks)
             self.pending_actions.append(
                 sc2_actions["Train_Marine_quick"].run('now', barrack.tag))
+            self.action_info["chosen_barrack"] = barrack
