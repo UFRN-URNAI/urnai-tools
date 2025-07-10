@@ -79,7 +79,6 @@ class CustomEnvBuildMarines(CustomEnv):
         log_dict["total_reward"] = self._reward.total_reward
         marines = sc2aux.get_my_units_amount(self._obs, units.Terran.Marine)
         print("Marines Built: ", marines)
-        print("Has attempted to build barrack before supply: ", self._reward.commited_sin)
         log_dict["marines_built"] = marines
         supply_depots = sc2aux.get_my_units_amount(self._obs, units.Terran.SupplyDepot)
         # print("Supply Depots Built: ", supply_depots)
@@ -91,6 +90,14 @@ class CustomEnvBuildMarines(CustomEnv):
         # print("Barracks Built: ", self._reward.barracks_built)
         if self.logger:
             self.logger.log(log_dict)
+
+    def get_action_mask(self) -> np.ndarray:
+        """Get the action mask for the current observation."""
+        excluded_actions_idx = self._action_space.get_excluded_actions(self._obs)
+        mask = np.ones(len(self.actions), dtype=bool)
+        for idx in excluded_actions_idx:
+            mask[idx] = False
+        return mask
 
 
         

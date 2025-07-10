@@ -21,14 +21,8 @@ class BuildMarinesReward(RewardBase):
         self.penalty_no_supply = config_dict.get("penalty_no_supply", 0.25)
         self.penalty_no_barrack = config_dict.get("penalty_no_barrack", 0.1)
 
-        self.tried_to_build_barracks_before_supply = False
-
     def get(self, obs, default_reward, terminated, truncated, **kwargs) -> int:
         action_info = kwargs.get("action_info", {})
-        if len(action_info) > 0:
-            action_idx, chosen_barrack = action_info["action_idx"], action_info["chosen_barrack"]
-        else:
-            action_idx, chosen_barrack = 0, None
 
         reward = 0
 
@@ -61,34 +55,6 @@ class BuildMarinesReward(RewardBase):
             # Negative reward for not having a barrack built
             if(current_barracks == 0):
                 reward -= self.penalty_no_barrack
-            
-            enough_supply_depot = 15 + current_supply_depot * 8 > current_marines + current_scv
-            marine_cost = 50
-            barracks_cost = 150
-            supply_cost = 100
-            max_supply_depot = 15
-            max_barracks = 8
-
-            # Negative reward for when certain actions are prohibited
-
-            if (action_idx == 3): #BuildMarine
-
-                full_queue = chosen_barrack is None or sc2aux.is_building_queue_full(chosen_barrack)
-
-                if (current_barracks == 0 or 
-                    not enough_supply_depot or obs.player.minerals < marine_cost or full_queue):
-                    reward -= 5
-
-            if (action_idx == 2): #BuildBarrack
-                if (prev_barracks == max_barracks or obs.player.minerals < barracks_cost):
-                    reward -= 5
-                if (current_supply_depot == 0):
-                    reward -= 10
-                    self.tried_to_build_barracks_before_supply = True
-
-            if (action_idx == 1): #BuildSupplyDepot
-                if (prev_supply_depot == max_supply_depot or obs.player.minerals < supply_cost):
-                    reward -= 5
         
         self.total_reward += reward
         self.previous_state = obs
@@ -99,5 +65,3 @@ class BuildMarinesReward(RewardBase):
         self.action_map_count = {action: 0 for action in self.actions.values()}
         self.increasing_mineral_count = 0
         self.total_reward = 0
-
-        self.tried_to_build_barracks_before_supply = False

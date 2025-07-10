@@ -96,11 +96,12 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
 
     def collect_idle(self, obs):
         scv = scaux.get_random_idle_worker(obs, sc2_env.Race.terran)
-        mineral = random.choice(
-            scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField))
-        if scv is not scaux._NO_UNITS:
-            self.pending_actions.append(
-                sc2_actions["Harvest_Gather_unit"].run('queued', scv.tag, mineral.tag))
+        minerals = scaux.get_neutral_units_by_type(obs, units.Neutral.MineralField)
+        if len(minerals) > 0:
+            mineral = random.choice(minerals)
+            if scv is not scaux._NO_UNITS:
+                self.pending_actions.append(
+                    sc2_actions["Harvest_Gather_unit"].run('queued', scv.tag, mineral.tag))
 
     def select_random_scv(self, obs):
         # get SCV list
@@ -123,3 +124,39 @@ class BuildMarinesActionSpace(CollectablesActionSpace):
             self.pending_actions.append(
                 sc2_actions["Train_Marine_quick"].run('now', barrack.tag))
             self.action_info["chosen_barrack"] = barrack
+
+    def _get_units(self, obs, unit_type, alliance=1): # alliance 1 = self
+        return scaux.get_units_by_type(obs, unit_type, alliance)
+
+    def get_excluded_actions(self, obs):
+        excluded_actions = []
+
+        player = obs.player
+
+        number_of_scvs = len(self._get_units(obs, units.Terran.SCV))
+
+        barracks = self._get_units(obs, units.Terran.Barracks)
+        supply_depots = self._get_units(obs, units.Terran.SupplyDepot)
+        max_supply_depot = 15
+        max_barracks = 8
+
+        # 0. Collect is always possible.
+
+        # 1. Supply Depot
+        if player.minerals < 100 or number_of_scvs == 0 or supply_depots == max_supply_depot:
+            excluded_actions.append(1)
+
+        # 2. Barracks
+        if player.minerals < 150 or number_of_scvs == 0 or len(supply_depots) == 0 or barracks == max_barracks:
+            excluded_actions.append(2)
+
+        # 3. Marine
+        idle_barracks = [b for b in barracks if b.order_length == 0]
+        if (
+            player.minerals < 50
+            or (player.food_cap - player.food_used) < 1
+            or len(idle_barracks) == 0
+        ):
+            excluded_actions.append(3)
+
+        return excluded_actions

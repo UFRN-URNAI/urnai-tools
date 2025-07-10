@@ -1,13 +1,17 @@
 import os
 import sys
 
+import numpy as np
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from copy import deepcopy
 from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
+from sb3_contrib import MaskablePPO
 from stable_baselines3 import PPO
+from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.monitor import Monitor
 
 import wandb
@@ -21,7 +25,7 @@ from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
-EPISODE_MINUTES = 8
+EPISODE_MINUTES = 15
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
@@ -50,8 +54,9 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
     observation_space = make_history_space_of(
-        spaces.Box(low=0.0, high=1.0, shape=(5,), dtype=float), history_size = 20)
+        spaces.Box(low=0.0, high=1.0, shape=(5,), dtype=float), history_size = config_dict['history_size'])
     step_mult = 32
+    use_invalid_action_masking = config_dict.get('invalid_action_masking', True)
 
     logger = None
     if WANDB_ENABLED:
@@ -90,10 +95,23 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     model = PPO(config_dict['policy'], train_env, verbose=1,
                 tensorboard_log=logdir,
                 **(hyperparameters if hyperparameters is not None else {}))
+    
+    if use_invalid_action_masking:
+        def mask_fn(env: CustomEnvBuildMarines) -> np.ndarray:
+            return env.unwrapped.get_action_mask()
+
+        train_env = ActionMasker(train_env, mask_fn)
+        eval_env = ActionMasker(eval_env, mask_fn)
+
+        model = MaskablePPO(config_dict['policy'],train_env,verbose=1,
+            tensorboard_log=logdir,
+            **(hyperparameters if hyperparameters is not None else {})
+        )
 
     trainer = SB3Trainer(
         train_env, eval_env, models_dir, logdir, model,
-        config_dict['model_save_name'], logger=logger
+        config_dict['model_save_name'], logger=logger, 
+        use_masking=use_invalid_action_masking
     )
 
     return trainer
@@ -102,12 +120,14 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MultiInputPolicy",
-            "model_save_name": "run-new4-8",
+            "model_save_name": "masked-with_history-primarily_reward_marine-2",
             "w_supply": 0.1,
             "w_barrack": 15/80,
             "w_marine": 10,
             "penalty_no_supply": 0,
-            "penalty_no_barrack": 0
+            "penalty_no_barrack": 0,
+            "invalid_action_masking": True,
+            "history_size" : 20
         }
         if WANDB_ENABLED:
             wandb_run = declare_wandb_run(config_dict)
