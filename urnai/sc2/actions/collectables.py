@@ -16,14 +16,14 @@ class CollectablesActionSpace(ActionSpaceBase):
         self.hor_threshold = 2
         self.ver_threshold = 2
 
-        self.moveleft = 0
-        self.moveright = 1
-        self.moveup = 2
-        self.movedown = 3
+        self.move_left = 0
+        self.move_right = 1
+        self.move_up = 2
+        self.move_down = 3
 
         self.excluded_actions = []
 
-        self.actions = [self.moveleft, self.moveright, self.moveup, self.movedown]
+        self.actions = [self.move_left, self.move_right, self.move_up, self.move_down]
         self.named_actions = ['move_left', 'move_right', 'move_up', 'move_down']
         self.action_indices = range(len(self.actions))
 
@@ -61,19 +61,22 @@ class CollectablesActionSpace(ActionSpaceBase):
     def solve_action(self, action_idx, obs):
         if action_idx is not None:
             if action_idx is not self.noaction:
+                if action_idx not in self.actions:
+                    raise ValueError(f"Invalid action index: {action_idx}. "+
+                                     f"Valid actions: {self.actions}")
                 action = self.actions[action_idx]
-                if action == self.moveleft:
-                    self.move_left(obs)
-                elif action == self.moveright:
-                    self.move_right(obs)
-                elif action == self.moveup:
-                    self.move_up(obs)
-                elif action == self.movedown:
-                    self.move_down(obs)
+                if action == self.move_left:
+                    self.move_left_(obs)
+                elif action == self.move_right:
+                    self.move_right_(obs)
+                elif action == self.move_up:
+                    self.move_up_(obs)
+                else:
+                    self.move_down_(obs)
         else:
             self.reset()
 
-    def move_left(self, obs):
+    def move_left_(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
         xs = [unit.x for unit in army]
         ys = [unit.y for unit in army]
@@ -86,7 +89,7 @@ class CollectablesActionSpace(ActionSpaceBase):
                 sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
-    def move_right(self, obs):
+    def move_right_(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
         xs = [unit.x for unit in army]
         ys = [unit.y for unit in army]
@@ -99,7 +102,7 @@ class CollectablesActionSpace(ActionSpaceBase):
                 sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
-    def move_down(self, obs):
+    def move_down_(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
         xs = [unit.x for unit in army]
         ys = [unit.y for unit in army]
@@ -112,7 +115,7 @@ class CollectablesActionSpace(ActionSpaceBase):
                 sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
 
-    def move_up(self, obs):
+    def move_up_(self, obs):
         army = scaux.select_army(obs, sc2_env.Race.terran)
         xs = [unit.x for unit in army]
         ys = [unit.y for unit in army]
@@ -124,18 +127,6 @@ class CollectablesActionSpace(ActionSpaceBase):
             self.pending_actions.append(
                 sc2_actions["Move_pt"].run(
                     'now', unit.tag,[new_army_x, new_army_y]))
-
-    def get_action_name_str_by_int(self, action_int):
-        action_str = ''
-        for attrstr in dir(self):
-            attr = getattr(self, attrstr)
-            if action_int == attr:
-                action_str = attrstr
-
-        return action_str
-
-    def get_no_action(self):
-        return self.noaction
 
     def get_named_actions(self):
         return self.named_actions
@@ -151,9 +142,9 @@ class CollectablesActionSpace(ActionSpaceBase):
         xs = [unit.x for unit in army]
         ys = [unit.y for unit in army]
 
-        if (action == self.moveleft and all(x in [22, 23] for x in xs))\
-        or (action == self.moveright and all(x in [42, 43] for x in xs))\
-        or (action == self.moveup and all(y in [28, 29] for y in ys))\
-        or (action == self.movedown and all(y in [42, 43] for y in ys)):
+        if (action == self.move_left and all(x in [22, 23] for x in xs))\
+        or (action == self.move_right and all(x in [42, 43] for x in xs))\
+        or (action == self.move_up and all(y in [28, 29] for y in ys))\
+        or (action == self.move_down and all(y in [42, 43] for y in ys)):
             return False
         return True

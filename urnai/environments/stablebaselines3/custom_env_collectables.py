@@ -34,6 +34,11 @@ class CustomEnvCollectables(CustomEnv):
 
         obs, reward, terminated, truncated = self._env.step(chosen_action)
 
+        self.step_count += self.step_mul
+        if self.step_count >= self.max_steps:
+            print("Max steps reached.")
+            truncated = True
+        
         self._obs = obs
         obs = self._state.update(self._obs)
         reward = self._reward.get(self._obs, reward, terminated, truncated)
@@ -42,11 +47,6 @@ class CustomEnvCollectables(CustomEnv):
         action_name = self.actions[action]
         self.action_map_reward[action_name] += reward
         self.action_map_count[action_name] += 1
-        self.step_count += self.step_mul
-
-        if self.step_count >= self.max_steps:
-            print("Max steps reached.")
-            truncated = True
 
         if terminated or truncated:
             self.log_reward_per_action()
