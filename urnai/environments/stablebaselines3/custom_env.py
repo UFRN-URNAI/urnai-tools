@@ -18,7 +18,7 @@ class CustomEnv(gym.Env):
 
     def __init__(self, env: EnvironmentBase, state: StateBase, 
                  urnai_action_space: ActionSpaceBase, reward: RewardBase, 
-                 observation_space: spaces.Space, action_space: spaces.Space):
+                 observation_space: spaces.Space, action_space: spaces.Space, **kwargs):
         super().__init__()
 
         self._env = env

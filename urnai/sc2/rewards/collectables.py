@@ -12,6 +12,7 @@ class CollectablesReward(RewardBase):
         self.previous_state = None
         self.old_collectable_counter = STATE_MAXIMUM_NUMBER_OF_MINERAL_SHARDS
         self.score = 0
+        self.total_reward = 0
 
     def get(self, obs, default_reward, terminated, truncated) -> int:
         
@@ -29,7 +30,7 @@ class CollectablesReward(RewardBase):
         
         if(truncated or terminated):
 
-            print("Score: ", self.score)
+            #print("Score: ", self.score)
             
             if(self.score >= 20):
                 reward = 1000
@@ -45,12 +46,14 @@ class CollectablesReward(RewardBase):
                 reward = -1000
         
         self.previous_state = obs
+        self.total_reward += reward
         return reward
     
     def reset(self) -> None:
         self.previous_state = None
         self.old_collectable_counter = STATE_MAXIMUM_NUMBER_OF_MINERAL_SHARDS
         self.score = 0
+        self.total_reward = 0
 
     def filter_non_mineral_shard_units(self, obs):
         filtered_map = np.zeros((len(obs.feature_minimap[0]), 

@@ -14,5 +14,6 @@ dependencies:
   - numpy=1.26.4
   - pip:
       - pysc2==4.0.0
+      - sb3-contrib
 platforms:
   - linux-64

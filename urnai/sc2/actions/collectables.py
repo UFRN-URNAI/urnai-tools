@@ -40,7 +40,14 @@ class CollectablesActionSpace(ActionSpaceBase):
         return self.action_indices
 
     def get_excluded_actions(self, obs):
-        return []
+        """Get the excluded actions based on the current observation."""
+        excluded = []
+
+        for action in self.actions:
+            if not self.is_move_valid(obs, action):
+                excluded.append(action)
+
+        return excluded
 
     def get_action(self, action_idx, obs):
         action = None
@@ -132,3 +139,21 @@ class CollectablesActionSpace(ActionSpaceBase):
 
     def get_named_actions(self):
         return self.named_actions
+
+    def is_move_valid(self, obs, action):
+
+        # Move left -> Army min positions: X: [22, 23]
+        # Move right -> Army max positions: X: [42, 43]
+        # Move up -> Army min positions: Y: [28, 29]
+        # Move down -> Army max positions: Y: [42, 43]
+
+        army = scaux.select_army(obs, sc2_env.Race.terran)
+        xs = [unit.x for unit in army]
+        ys = [unit.y for unit in army]
+
+        if (action == self.moveleft and all(x in [22, 23] for x in xs))\
+        or (action == self.moveright and all(x in [42, 43] for x in xs))\
+        or (action == self.moveup and all(y in [28, 29] for y in ys))\
+        or (action == self.movedown and all(y in [42, 43] for y in ys)):
+            return False
+        return True
