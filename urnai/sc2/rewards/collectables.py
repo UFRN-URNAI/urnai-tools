@@ -1,6 +1,3 @@
-import numpy as np
-
-import urnai.sc2.actions.sc2_actions_aux as sc2aux
 from urnai.rewards.reward_base import RewardBase
 
 MINERALS_PER_SHARD = 100
