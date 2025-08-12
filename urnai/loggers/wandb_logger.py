@@ -1,6 +1,7 @@
 from enum import Enum
 
 import wandb
+
 from urnai.loggers.logger_base import LoggerBase
 
 

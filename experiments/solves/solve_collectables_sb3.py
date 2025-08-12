@@ -45,18 +45,18 @@ def declare_wandb_run(config_dict : dict, run_id : str = None):
     
 def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
-    action_space = spaces.Discrete(n=4, start=0)
+    action_space = spaces.Discrete(n=22*16, start=0)
     observation_space = spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8)
-    step_mult = 12
+    step_mult = 8
     use_invalid_action_masking = config_dict.get('invalid_action_masking', True)
 
     logger = WandbLogger()  # Uma única instância de logger compartilhada
 
     # SC2Env separados para treino e avaliação
     train_sc2_env = SC2Env(map_name='CollectMineralShards', step_mul=step_mult, 
-                           players=players, visualize=False)
+                           players=players, visualize=True)
     eval_sc2_env = SC2Env(map_name='CollectMineralShards', step_mul=step_mult, 
-                          players=players, visualize=False)
+                          players=players, visualize=True)
 
     # Instâncias separadas dos componentes com estado
     train_state = CollectablesState()
@@ -112,8 +112,8 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MlpPolicy",
-            "model_save_name": "MaskablePPO",
-            "invalid_action_masking": True}
+            "model_save_name": "DeepMindCollectables",
+            "invalid_action_masking": False}
         wandb_run = declare_wandb_run(config_dict)
         trainer = declare_trainer(config_dict)
         # trainer.load_most_recent_model(trainer.models_dir)

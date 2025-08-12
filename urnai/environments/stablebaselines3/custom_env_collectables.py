@@ -5,7 +5,7 @@ from stable_baselines3.common.type_aliases import GymResetReturn, GymStepReturn
 
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 
-EPISODE_MINUTES = 2
+EPISODE_MINUTES = 4
 STEPS_PER_SECOND = 16
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 
@@ -63,12 +63,6 @@ class CustomEnvCollectables(CustomEnv):
 
     def log_reward_per_action(self):
         log_dict = {}
-        for action, count in self.action_map_count.items():
-            avg_reward = 0.00
-            if count > 0:
-                avg_reward = self.action_map_reward[action] / count
-            log_dict[f"action/count/{action}"] = count
-            log_dict[f"action/avg_reward/{action}"] = avg_reward
         log_dict["total_reward"] = self._reward.total_reward
         log_dict["shards_collected"] = self._reward.score
         if self.logger:
