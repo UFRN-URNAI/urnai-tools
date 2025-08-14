@@ -7,7 +7,7 @@ from stable_baselines3.common.type_aliases import MaybeCallback
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.loggers.logger_base import LoggerBase
 
-from experiments.solves.progress_remaining import progress_remaining_obj
+from experiments.solves.experiment_progress_recorder import recorder
 
 class SB3Trainer:
     def __init__(self, train_env : CustomEnv, eval_env : CustomEnv, models_dir : str, 
@@ -90,7 +90,8 @@ class SB3Trainer:
             wandb_log : bool = True
         ) -> None:
         for iteration in range(starting_iteration, iterations):
-            progress_remaining_obj.progress = iteration/iterations
+            recorder.set_progress(iteration/iterations)
+
             print(f"Iteration {iteration+1}/{iterations}")
             print(f"Training for {train_steps} steps")
             self.train_model(

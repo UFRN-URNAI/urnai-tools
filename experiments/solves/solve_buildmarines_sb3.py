@@ -26,13 +26,13 @@ from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
-from progress_remaining import progress_remaining_obj
+from experiments.solves.experiment_progress_recorder import recorder
 
-EPISODE_MINUTES = 5
+EPISODE_MINUTES = 1
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
-ITERATIONS = 3
+ITERATIONS = 2
 WANDB_ENABLED = False
 
 
@@ -40,11 +40,11 @@ def exponential_schedule(initial_value : float, final_value : float) -> Callable
     def func(unused_progress_remaining : float) -> float:
         base = final_value + (1 - initial_value)
 
-        global_progres_remaining = progress_remaining_obj.progress_remaining
+        global_progres_remaining = recorder.get_progress()
         new_value = base ** global_progres_remaining - (1 - initial_value)
 
-        print("SCHEDULE UPDATING VALUE TO: ", new_value,
-            " | ", global_progres_remaining * 100, "% TO FINAL VALUE")
+        print("\nSCHEDULE UPDATING VALUE TO: ", new_value,
+            " | ", global_progres_remaining * 100, "% TO FINAL VALUE\n")
         
         return new_value
     return func
@@ -110,7 +110,7 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     models_dir = f"/home/mambauser/urnai/saves/models/{config_dict['model_save_name']}"
     logdir = "/home/mambauser/urnai/saves/logs"
 
-    model = PPO(config_dict['policy'], train_env, verbose=1,
+    model = PPO(config_dict['policy'], train_env, verbose=0,
                 clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
                 tensorboard_log=logdir,
                 **(hyperparameters if hyperparameters is not None else {}))
@@ -122,7 +122,7 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
         train_env = ActionMasker(train_env, mask_fn)
         eval_env = ActionMasker(eval_env, mask_fn)
 
-        model = MaskablePPO(config_dict['policy'],train_env,verbose=1,
+        model = MaskablePPO(config_dict['policy'],train_env,verbose=0,
             clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
             tensorboard_log=logdir,
             **(hyperparameters if hyperparameters is not None else {})
@@ -140,7 +140,7 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MultiInputPolicy",
-            "model_save_name": "reward_at_the_end_marine-4",
+            "model_save_name": "test-performance-singleton",
             "w_supply": 0, #0.1
             "w_barrack": 0, #15/80
             "w_marine": 10,
@@ -153,12 +153,12 @@ def main(unused_argv):
             wandb_run = declare_wandb_run(config_dict)
         
         trainer = declare_trainer(config_dict)
-        trainer.load_most_recent_model(trainer.models_dir)
+        #trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
             starting_iteration=0,
             iterations=ITERATIONS,
-            train_steps= int(1 * MAX_STEPS / 32),
-            test_episodes=10,
+            train_steps=int(1 * MAX_STEPS / 32),
+            test_episodes=1,
             wandb_log=WANDB_ENABLED
         )
 

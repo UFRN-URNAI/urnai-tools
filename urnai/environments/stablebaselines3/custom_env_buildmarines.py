@@ -72,6 +72,9 @@ class CustomEnvBuildMarines(CustomEnv):
         return super().reset(seed=seed, options=options)
 
     def log_reward_per_action(self):
+        if self.logger == None:
+            return
+
         print("Episode finished.")
         log_dict = {}
         for action, count in self.action_map_count.items():
