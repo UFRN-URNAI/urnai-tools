@@ -26,11 +26,13 @@ from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
-EPISODE_MINUTES = 15
+from progress_remaining import progress_remaining_obj
+
+EPISODE_MINUTES = 5
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
-ITERATIONS = 100
+ITERATIONS = 3
 WANDB_ENABLED = False
 
 
@@ -38,15 +40,13 @@ def exponential_schedule(initial_value : float, final_value : float) -> Callable
     def func(unused_progress_remaining : float) -> float:
         base = final_value + (1 - initial_value)
 
-        with open("last_iter_file.txt", 'r') as last_iter_file:
+        global_progres_remaining = progress_remaining_obj.progress_remaining
+        new_value = base ** global_progres_remaining - (1 - initial_value)
 
-            global_progres_remaining = int(last_iter_file.readline())/ITERATIONS
-            new_value = base ** global_progres_remaining - (1 - initial_value)
-
-            print("SCHEDULE UPDATING VALUE TO: ", new_value,
-               " | ", global_progres_remaining * 100, "% TO FINAL VALUE")
-            
-            return new_value
+        print("SCHEDULE UPDATING VALUE TO: ", new_value,
+            " | ", global_progres_remaining * 100, "% TO FINAL VALUE")
+        
+        return new_value
     return func
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
@@ -155,9 +155,9 @@ def main(unused_argv):
         trainer = declare_trainer(config_dict)
         trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            starting_iteration=74,
+            starting_iteration=0,
             iterations=ITERATIONS,
-            train_steps= int(50 * MAX_STEPS / 32),
+            train_steps= int(1 * MAX_STEPS / 32),
             test_episodes=10,
             wandb_log=WANDB_ENABLED
         )

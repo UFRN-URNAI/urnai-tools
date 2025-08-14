@@ -90,7 +90,7 @@ class SB3Trainer:
             wandb_log : bool = True
         ) -> None:
         for iteration in range(starting_iteration, iterations):
-            progress_remaining_obj.progress = iteration/iterations #TODO: Remove later
+            progress_remaining_obj.progress = iteration/iterations
             print(f"Iteration {iteration+1}/{iterations}")
             print(f"Training for {train_steps} steps")
             self.train_model(
