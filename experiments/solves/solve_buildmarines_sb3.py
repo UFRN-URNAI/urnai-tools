@@ -13,6 +13,7 @@ from sb3_contrib import MaskablePPO
 from stable_baselines3 import PPO
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.monitor import Monitor
+from typing import Callable
 
 import wandb
 from urnai.environments.stablebaselines3.custom_env_buildmarines import (
@@ -29,7 +30,24 @@ EPISODE_MINUTES = 15
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
-WANDB_ENABLED = True
+ITERATIONS = 100
+WANDB_ENABLED = False
+
+
+def exponential_schedule(initial_value : float, final_value : float) -> Callable[[float], float]:
+    def func(unused_progress_remaining : float) -> float:
+        base = final_value + (1 - initial_value)
+
+        with open("last_iter_file.txt", 'r') as last_iter_file:
+
+            global_progres_remaining = int(last_iter_file.readline())/ITERATIONS
+            new_value = base ** global_progres_remaining - (1 - initial_value)
+
+            print("SCHEDULE UPDATING VALUE TO: ", new_value,
+               " | ", global_progres_remaining * 100, "% TO FINAL VALUE")
+            
+            return new_value
+    return func
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
 
@@ -49,12 +67,13 @@ def make_history_space_of(space : spaces.Space, history_size : int):
     for i in range(history_size):
         dict_[str(i)] = deepcopy(space)
     return spaces.Dict(dict_)
-    
+
 def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     players = [sc2_env.Agent(sc2_env.Race.terran)]
     action_space = spaces.Discrete(n=4, start=0)
     observation_space = make_history_space_of(
-        spaces.Box(low=0.0, high=1.0, shape=(5,), dtype=float), history_size = config_dict['history_size'])
+        spaces.Box(low=0.0, high=1.0, shape=(5,), dtype=float),
+          history_size = config_dict['history_size'])
     step_mult = 32
     use_invalid_action_masking = config_dict.get('invalid_action_masking', True)
 
@@ -84,15 +103,15 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
                                             eval_action_space, eval_reward, 
                                             observation_space, action_space, logger,
                                             step_mult, MAX_STEPS)
-
     # Wrappers Monitor
     train_env = Monitor(train_custom_env)
     eval_env = Monitor(eval_custom_env)
 
-    models_dir = f"/home/mambauser/saves/models/{config_dict['model_save_name']}"
-    logdir = "/home/mambauser/saves/logs"
+    models_dir = f"/home/mambauser/urnai/saves/models/{config_dict['model_save_name']}"
+    logdir = "/home/mambauser/urnai/saves/logs"
 
     model = PPO(config_dict['policy'], train_env, verbose=1,
+                clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
                 tensorboard_log=logdir,
                 **(hyperparameters if hyperparameters is not None else {}))
     
@@ -104,6 +123,7 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
         eval_env = ActionMasker(eval_env, mask_fn)
 
         model = MaskablePPO(config_dict['policy'],train_env,verbose=1,
+            clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
             tensorboard_log=logdir,
             **(hyperparameters if hyperparameters is not None else {})
         )
@@ -120,39 +140,31 @@ def main(unused_argv):
     try:
         config_dict = {
             "policy":"MultiInputPolicy",
-            "model_save_name": "masked-with_history-primarily_reward_marine-2",
-            "w_supply": 0.1,
-            "w_barrack": 15/80,
+            "model_save_name": "reward_at_the_end_marine-4",
+            "w_supply": 0, #0.1
+            "w_barrack": 0, #15/80
             "w_marine": 10,
             "penalty_no_supply": 0,
             "penalty_no_barrack": 0,
             "invalid_action_masking": True,
-            "history_size" : 20
+            "history_size" : 1
         }
         if WANDB_ENABLED:
             wandb_run = declare_wandb_run(config_dict)
         
         trainer = declare_trainer(config_dict)
-        # trainer.load_most_recent_model(trainer.models_dir)
+        trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            iterations=100000,
+            starting_iteration=74,
+            iterations=ITERATIONS,
             train_steps= int(50 * MAX_STEPS / 32),
             test_episodes=10,
-            callback=None,
-            return_episode_rewards=True, wandb_log=WANDB_ENABLED
+            wandb_log=WANDB_ENABLED
         )
-        # trainer.test_model(
-        #     episodes=100, deterministic=True, render=False,
-        #     wandb_log=False
-        # )
-        # trainer.train_model(
-        #     timesteps=100000, log_interval=1,
-        #     reset_num_timesteps=False, progress_bar=True, 
-        #     repeat_times=1, start_from=1, callback=WandbCallback()
-        # )
 
         if WANDB_ENABLED:
             wandb_run.finish()
+        
     except KeyboardInterrupt:
         print("Training interrupted by user")
 

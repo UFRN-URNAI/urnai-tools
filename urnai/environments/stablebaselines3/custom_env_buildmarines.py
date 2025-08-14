@@ -29,6 +29,8 @@ class CustomEnvBuildMarines(CustomEnv):
         self.max_steps = max_steps
         self.step_count = 0
         self.step_mul = step_mul
+
+        self.ep_reward = 0
     
     def step(
             self, action_idx: Union[int, np.ndarray]
@@ -51,7 +53,11 @@ class CustomEnvBuildMarines(CustomEnv):
             print("Max steps reached.")
             truncated = True
 
+        self.ep_reward += reward
+        reward = 0
+
         if terminated or truncated:
+            reward = self.ep_reward
             self.log_reward_per_action()
 
         return obs, reward, terminated, truncated, info
@@ -62,6 +68,7 @@ class CustomEnvBuildMarines(CustomEnv):
         self.action_map_count = {action: 0 for action in self.actions.values()}
         self.action_map_reward = {action: 0 for action in self.actions.values()}
         self.step_count = 0
+        self.ep_reward = 0
         return super().reset(seed=seed, options=options)
 
     def log_reward_per_action(self):
