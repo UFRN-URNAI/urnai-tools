@@ -1,12 +1,8 @@
 import unittest
-from abc import ABCMeta
-from unittest.mock import patch, call
-
-from urnai.logging.logging_mode_base import LoggingModeBase
+from unittest.mock import call, patch
 
 from urnai.logging.logger_base import LoggerBase
 from urnai.logging.logging_mode_base import LoggingModeBase
-from typing import get_type_hints
 
 
 class FakeModeCls(LoggingModeBase):

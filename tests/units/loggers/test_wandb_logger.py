@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from urnai.logging.wandb_logger import WandbLoggingMode, WandbLogger
+from urnai.logging.wandb_logger import WandbLogger, WandbLoggingMode
 
 
 class TestWandbLogger(unittest.TestCase):

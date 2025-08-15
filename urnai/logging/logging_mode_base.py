@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from enum import Enum
 
 
@@ -9,7 +10,7 @@ class LoggingModeBase(Enum):
             try:
                 mode = cls[mode.upper()]
             except KeyError:
-                raise ValueError(f"Invalid mode string: {mode}")
+                raise ValueError(f"Invalid mode string: {mode}") from None
         elif not isinstance(mode, cls):
             raise TypeError(f"Mode must be an instance of {cls.__name__} or a string")
         if mode not in cls:
