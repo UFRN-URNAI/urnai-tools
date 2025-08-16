@@ -1,6 +1,5 @@
 FROM alvarofpp/s2client:4.9.3 AS sc2client
-FROM mambaorg/micromamba:2.0.8
-#FROM mambaorg/micromamba:2.3.1
+FROM mambaorg/micromamba:2.3.1
 
 # Create environment
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml

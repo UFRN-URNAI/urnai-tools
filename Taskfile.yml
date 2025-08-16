@@ -151,7 +151,7 @@ tasks:
     cmds:
       - |
         ${CMD_DOCKER_RUN} \
-          -u ${UID}:${GID}
+          -u ${UID}:${GID} \
           -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
           {{ .PACKAGE_NAME }} coverage report -m
 
