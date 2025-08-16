@@ -6,7 +6,7 @@ from stable_baselines3.common.type_aliases import MaybeCallback
 
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.logging.logger_base import LoggerBase
-from urnai.logging.logging_mode_base import LoggingModeBase
+from urnai.logging.wandb_logger import WandbLoggingMode
 
 
 class SB3Trainer:
@@ -48,7 +48,7 @@ class SB3Trainer:
         ) -> None:
 
         if self.logger:
-            self.logger.set_mode(LoggingModeBase.TRAINING)
+            self.logger.set_mode(WandbLoggingMode.TRAINING)
         
         for repeat_time in range(repeat_times):
             self.model.learn(total_timesteps = timesteps, callback = callback,
@@ -66,7 +66,7 @@ class SB3Trainer:
         ) -> tuple[float, float] | tuple[list[float], list[int]]:
 
         if self.logger:
-            self.logger.set_mode(LoggingModeBase.EVALUATION)
+            self.logger.set_mode(WandbLoggingMode.EVALUATION)
 
         episode_rewards = evaluate_policy(model = self.model, env = self.eval_env, 
                         n_eval_episodes=episodes, 
