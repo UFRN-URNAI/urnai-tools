@@ -7,7 +7,6 @@ from stable_baselines3.common.type_aliases import MaybeCallback
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
 from urnai.loggers.logger_base import LoggerBase
 
-from experiments.solves.experiment_progress_recorder import recorder
 
 class SB3Trainer:
     def __init__(self, train_env : CustomEnv, eval_env : CustomEnv, models_dir : str, 
@@ -83,15 +82,12 @@ class SB3Trainer:
         return episode_rewards
 
     def alternate_train_test(
-            self, starting_iteration : int = 0,
-            iterations : int = 100, train_steps : int = 10000, 
+            self, iterations : int = 100, train_steps : int = 10000, 
             train_repeat_times : int = 1, test_episodes : int = 100, 
             callback : MaybeCallback = None, return_episode_rewards : bool = True,
             wandb_log : bool = True
         ) -> None:
-        for iteration in range(starting_iteration, iterations):
-            recorder.set_progress(iteration/iterations)
-
+        for iteration in range(iterations):
             print(f"Iteration {iteration+1}/{iterations}")
             print(f"Training for {train_steps} steps")
             self.train_model(

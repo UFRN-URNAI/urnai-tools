@@ -26,28 +26,14 @@ from urnai.sc2.rewards.buildmarines import BuildMarinesReward
 from urnai.sc2.states.buildmarines import BuildMarinesState
 from urnai.trainers.stablebaselines3_trainer import SB3Trainer
 
-from experiments.solves.experiment_progress_recorder import recorder
+from experiments.solves.schedules import ClipRangeExponentialSchedule
 
-EPISODE_MINUTES = 1
+EPISODE_MINUTES = 15
 STEPS_PER_SECOND = 22  # padrão do StarCraft II (aproximado)
 STEPS_PER_MINUTE = int(STEPS_PER_SECOND * 60)
 MAX_STEPS = EPISODE_MINUTES * STEPS_PER_MINUTE
-ITERATIONS = 2
+ITERATIONS = 100
 WANDB_ENABLED = False
-
-
-def exponential_schedule(initial_value : float, final_value : float) -> Callable[[float], float]:
-    def func(unused_progress_remaining : float) -> float:
-        base = final_value + (1 - initial_value)
-
-        global_progres_remaining = recorder.get_progress()
-        new_value = base ** global_progres_remaining - (1 - initial_value)
-
-        print("\nSCHEDULE UPDATING VALUE TO: ", new_value,
-            " | ", global_progres_remaining * 100, "% TO FINAL VALUE\n")
-        
-        return new_value
-    return func
 
 def declare_wandb_run(config_dict : dict, run_id : str = None):
 
@@ -110,11 +96,11 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
     models_dir = f"/home/mambauser/urnai/saves/models/{config_dict['model_save_name']}"
     logdir = "/home/mambauser/urnai/saves/logs"
 
-    model = PPO(config_dict['policy'], train_env, verbose=0,
-                clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
-                tensorboard_log=logdir,
-                **(hyperparameters if hyperparameters is not None else {}))
+    clip_range_exponential_schedule = ClipRangeExponentialSchedule(
+        initial_value=0.8, final_value=0.2, total_iterations=ITERATIONS)
     
+    learning_algorithm = PPO
+
     if use_invalid_action_masking:
         def mask_fn(env: CustomEnvBuildMarines) -> np.ndarray:
             return env.unwrapped.get_action_mask()
@@ -122,11 +108,12 @@ def declare_trainer(config_dict: dict, hyperparameters: dict = None):
         train_env = ActionMasker(train_env, mask_fn)
         eval_env = ActionMasker(eval_env, mask_fn)
 
-        model = MaskablePPO(config_dict['policy'],train_env,verbose=0,
-            clip_range=exponential_schedule(initial_value=0.8, final_value=0.2),
-            tensorboard_log=logdir,
-            **(hyperparameters if hyperparameters is not None else {})
-        )
+        learning_algorithm = MaskablePPO
+    
+    model = learning_algorithm(config_dict['policy'], train_env, verbose=0,
+                clip_range=clip_range_exponential_schedule,
+                tensorboard_log=logdir,
+                **(hyperparameters if hyperparameters is not None else {}))
 
     trainer = SB3Trainer(
         train_env, eval_env, models_dir, logdir, model,
@@ -155,10 +142,9 @@ def main(unused_argv):
         trainer = declare_trainer(config_dict)
         #trainer.load_most_recent_model(trainer.models_dir)
         trainer.alternate_train_test(
-            starting_iteration=0,
             iterations=ITERATIONS,
-            train_steps=int(1 * MAX_STEPS / 32),
-            test_episodes=1,
+            train_steps=int(50 * MAX_STEPS / 32),
+            test_episodes=10,
             wandb_log=WANDB_ENABLED
         )
 
