@@ -1,5 +1,5 @@
 FROM alvarofpp/s2client:4.9.3 AS sc2client
-FROM mambaorg/micromamba:2.0.8
+FROM mambaorg/micromamba:2.3.1
 
 # Create environment
 COPY --chown=$MAMBA_USER:$MAMBA_USER environment.yml /tmp/environment.yml
@@ -31,3 +31,16 @@ RUN apt-get update -yq \
     && sudo usermod -a -G root mambauser \
     && rm -rf /var/lib/apt/lists/*
 USER mambauser
+
+# Set user
+ARG UID=1000
+ARG GID=1000
+
+USER root
+RUN groupmod -g "${GID}" "${MAMBA_USER}"
+RUN usermod -u "${UID}" -g "${GID}" "${MAMBA_USER}"
+USER $MAMBA_USER
+
+# Copy repository
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /app
+WORKDIR /app

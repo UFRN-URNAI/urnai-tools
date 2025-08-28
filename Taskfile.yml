@@ -40,7 +40,11 @@ tasks:
     deps:
       - config-hooks
     cmds:
-      - docker build -t {{ .PACKAGE_NAME }} .
+      - |
+        docker build \
+          --build-arg UID="$UID" \
+          --build-arg GID="$GID" \
+          -t {{ .PACKAGE_NAME }} .
 
   build-no-cache:
     desc: Builds the Docker image without using cache.
@@ -52,7 +56,11 @@ tasks:
     deps:
       - config-hooks
     cmds:
-      - docker build --no-cache -t {{ .PACKAGE_NAME }} .
+      - |
+        docker build --no-cache \
+          --build-arg UID="$UID" \
+          --build-arg GID="$GID" \
+          -t {{ .PACKAGE_NAME }} .
 
   config-hooks:
     desc: Configure git hooks.
@@ -127,7 +135,11 @@ tasks:
       Examples:
         - task shell
     cmds:
-      - ${CMD_DOCKER_RUN} -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} -it {{ .PACKAGE_NAME }} /bin/bash
+      - ${CMD_DOCKER_RUN} -v ${ROOT}:} -it {{ .PACKAGE_NAME }} /bin/bash
+      - |
+        ${CMD_DOCKER_RUN} -v ${ROOT}:{{ .DOCKER_URNAI_DIR } \
+          -u $UID:$GID \
+          -it {{ .PACKAGE_NAME }} /bin/bash
 
   test-coverage:
     desc: Check the test coverage report.
@@ -139,7 +151,7 @@ tasks:
     cmds:
       - |
         ${CMD_DOCKER_RUN} \
-          -u ${UID}:${GID}
+          -u ${UID}:${GID} \
           -v ${ROOT}:{{ .DOCKER_URNAI_DIR }} \
           {{ .PACKAGE_NAME }} coverage report -m
 

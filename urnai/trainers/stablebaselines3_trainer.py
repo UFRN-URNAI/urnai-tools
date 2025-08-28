@@ -1,24 +1,24 @@
 import os
 
-import wandb
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.type_aliases import MaybeCallback
 
 from urnai.environments.stablebaselines3.custom_env import CustomEnv
+from urnai.logging.logger_base import LoggerBase
+from urnai.logging.wandb_logger import WandbLoggingMode
 
 
 class SB3Trainer:
     def __init__(self, train_env : CustomEnv, eval_env : CustomEnv, models_dir : str, 
-                 logdir : str, model : BaseAlgorithm, model_name : str):
+                 logdir : str, model : BaseAlgorithm, model_name : str, 
+                 logger : LoggerBase = None):
         self.train_env = train_env
         self.eval_env = eval_env
         self.models_dir = models_dir
         self.model = model
         self.model_name = model_name
-
-        self.log_step = 0
-        wandb.define_metric("log_step")
+        self.logger = logger
 
         if not os.path.exists(models_dir):
             os.makedirs(models_dir)
@@ -46,6 +46,9 @@ class SB3Trainer:
             reset_num_timesteps: bool = False, progress_bar: bool = False, 
             repeat_times:int = 1, start_from:int = 1, callback : MaybeCallback = None
         ) -> None:
+
+        if self.logger:
+            self.logger.set_mode(WandbLoggingMode.TRAINING)
         
         for repeat_time in range(repeat_times):
             self.model.learn(total_timesteps = timesteps, callback = callback,
@@ -62,6 +65,9 @@ class SB3Trainer:
             return_episode_rewards = False, warn = True, wandb_log = False
         ) -> tuple[float, float] | tuple[list[float], list[int]]:
 
+        if self.logger:
+            self.logger.set_mode(WandbLoggingMode.EVALUATION)
+
         episode_rewards = evaluate_policy(model = self.model, env = self.eval_env, 
                         n_eval_episodes=episodes, 
                         deterministic=deterministic, 
@@ -71,16 +77,6 @@ class SB3Trainer:
                         return_episode_rewards=return_episode_rewards,
                         warn=warn
                         )
-
-        if wandb_log:
-            if return_episode_rewards:
-                for reward in episode_rewards[0]:
-                    wandb.log({"eval/total_reward": reward, "log_step": self.log_step})
-            else:
-                wandb.log({"eval/total_reward": episode_rewards[0],
-                            "log_step": self.log_step})
-        
-            self.log_step += 1
         
         return episode_rewards
 
