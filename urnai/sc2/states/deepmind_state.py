@@ -73,7 +73,9 @@ class DeepmindState(StateBase):
         # Apply one-hot encoding to all categorical channels
         one_hot_channels = []
         for channel, spec in categorical_items:
-            one_hot = np.eye(spec.scale, dtype=np.float32)[channel]
+            # Convert to integer indices for one-hot encoding
+            channel_int = channel.astype(np.int32)
+            one_hot = np.eye(spec.scale, dtype=np.float32)[channel_int]
             one_hot = np.transpose(one_hot, (2, 0, 1))  # [scale, H, W]
             one_hot_channels.append(one_hot)
             
@@ -110,10 +112,10 @@ class DeepmindState(StateBase):
         spatial_shape: tuple[int, int]
     ) -> np.ndarray:
         all_channels = []
-        
+
         if processed_categorical is not None and processed_categorical.size > 0:
             all_channels.append(processed_categorical)
-        
+
         if processed_numerical is not None and processed_numerical.size > 0:
             all_channels.append(processed_numerical)
 
