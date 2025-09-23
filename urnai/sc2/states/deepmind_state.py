@@ -18,6 +18,7 @@ class DeepmindState(StateBase):
     def reset(self):
         self._state = None
         self._dimension = None
+        self._conv_cache = {}
 
     @property
     def state(self):
@@ -50,6 +51,18 @@ class DeepmindState(StateBase):
         list[tuple[np.ndarray, features.Feature]],
         list[tuple[np.ndarray, features.Feature]]
     ]:
+        # Validate input dimensions
+        n_channels = spatial_data.shape[0]
+        n_features = len(feature_specs)
+        
+        if n_channels != n_features:
+            raise ValueError(
+                f"Channel count mismatch: spatial_data has {n_channels} channels "
+                f"but feature_specs expects {n_features} features. "
+                f"This usually indicates a PySC2 version mismatch or incorrect "
+                f"environment configuration."
+            )
+        
         categorical_items = []
         numerical_items = []
         
@@ -63,6 +76,16 @@ class DeepmindState(StateBase):
                 
         return categorical_items, numerical_items
     
+    def _one_hot_encode_channel(
+        self,
+        channel: np.ndarray,
+        num_classes: int
+    ) -> np.ndarray:
+        channel_int = channel.astype(np.int32)
+        one_hot = np.eye(num_classes, dtype=np.float32)[channel_int]
+        one_hot = np.transpose(one_hot, (2, 0, 1))
+        return one_hot
+    
     def _process_categorical_channels(
         self,
         categorical_items: list[tuple[np.ndarray, features.Feature]]
@@ -73,10 +96,7 @@ class DeepmindState(StateBase):
         # Apply one-hot encoding to all categorical channels
         one_hot_channels = []
         for channel, spec in categorical_items:
-            # Convert to integer indices for one-hot encoding
-            channel_int = channel.astype(np.int32)
-            one_hot = np.eye(spec.scale, dtype=np.float32)[channel_int]
-            one_hot = np.transpose(one_hot, (2, 0, 1))  # [scale, H, W]
+            one_hot = self._one_hot_encode_channel(channel, spec.scale)
             one_hot_channels.append(one_hot)
             
         # Concatenate all one-hot encoded channels
@@ -164,8 +184,24 @@ class DeepmindState(StateBase):
         out_channels: int,
         channels: np.ndarray
     ) -> np.ndarray:
-        conv = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+        conv = self.get_cached_conv1x1(in_channels, out_channels)
         return conv(torch.from_numpy(channels)).detach().numpy()
+
+    def get_cached_conv1x1(
+        self,
+        in_channels: int,
+        out_channels: int
+    ) -> np.ndarray:
+        key = (in_channels, out_channels)
+        if key not in self._conv_cache:
+            unique_seed = 42 + in_channels * 1000 + out_channels
+            state = torch.get_rng_state()
+            torch.manual_seed(unique_seed)
+            self._conv_cache[key] = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+            torch.set_rng_state(state)
+
+        conv = self._conv_cache[key]
+        return conv
 
     def process_non_spatial(self, obs: dict[str, Any]) -> np.ndarray:
         player = obs["player"]
