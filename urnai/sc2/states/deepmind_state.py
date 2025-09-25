@@ -26,9 +26,15 @@ class DeepmindState(StateBase):
 
     @property
     def dimension(self):
-        screen_dims = self._state["screen"].shape
-        minimap_dims = self._state["minimap"].shape
-        non_spatial_dims = self._state["non_spatial"].shape
+        if self._state is None:
+            return None
+        
+        if not isinstance(self._state, list) or len(self._state) != 3:
+            return None
+            
+        screen_dims = self._state[0].shape if self._state[0] is not None else None
+        minimap_dims = self._state[1].shape if self._state[1] is not None else None
+        non_spatial_dims = self._state[2].shape if self._state[2] is not None else None
         return (screen_dims, minimap_dims, non_spatial_dims)
 
     def update(self, obs):
@@ -36,11 +42,11 @@ class DeepmindState(StateBase):
         processed_minimap = self.process_minimap(obs)
         processed_non_spatial = self.process_non_spatial(obs)
 
-        self._state = {
-            "screen": processed_screen,       # [C', H, W]
-            "minimap": processed_minimap,     # [C'', H, W]
-            "non_spatial": processed_non_spatial    # [n_features]
-        }
+        self._state = [
+            processed_screen,       # [C', H, W]
+            processed_minimap,      # [C'', H, W]
+            processed_non_spatial   # [n_features]
+        ]
         return self._state
 
     def _separate_raw_channels_by_type(
