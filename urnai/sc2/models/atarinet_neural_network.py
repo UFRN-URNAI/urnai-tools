@@ -3,6 +3,7 @@ import torch.nn.functional as F
 from pysc2.lib import actions
 from torch import nn
 
+
 class AtariNetNeuralNetwork(nn.Module):
     def __init__(self,
                  input_channels_screen,
@@ -67,11 +68,19 @@ class AtariNetNeuralNetwork(nn.Module):
             out_features=len(actions.FUNCTION_TYPES),
         )
 
-        self.policy_arg = {}
+        def _fix_map_actions_range(action_type): # TODO: remove later
+            if action_type.name in ['screen', 'minimap', 'screen2']:
+                return (64, 64)
+            return action_type.sizes
+
+        self.function_arg = {}
         for action_type in actions.TYPES:
-            self.policy_arg[action_type.name] = {}
-            for i, action_size in enumerate(action_type.sizes):
-                self.policy_arg[action_type.name][i] = nn.Linear(
+            self.function_arg[action_type.name] = {}
+
+            sizes = _fix_map_actions_range(action_type)
+
+            for dim_index, action_size in enumerate(sizes):
+                self.function_arg[action_type.name][dim_index] = nn.Linear(
                     in_features=out_combined_dense,
                     out_features=action_size,
                 )
@@ -89,9 +98,16 @@ class AtariNetNeuralNetwork(nn.Module):
         func_id = self.function_identifier(combined)
         func_id = F.softmax(func_id, dim=-1)
 
-        # WIP
+        argument_values = {}
+        for arg_name in self.function_arg:
+            argument_values[arg_name] = {}
 
-        return func_id
+            for dim_index in self.function_arg[arg_name]:
+                arg_value = self.function_arg[arg_name][dim_index](combined)
+                arg_value = F.softmax(arg_value, dim=-1)
+                argument_values[arg_name][dim_index] = arg_value
+
+        return func_id, argument_values
 
     def _forward_screen(self, inputs_screen):
         screen = F.relu(self.screen_conv1(inputs_screen))

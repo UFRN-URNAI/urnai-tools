@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from urnai.sc2.models.atarinet_neural_network import AtariNetNeuralNetwork
@@ -43,6 +44,12 @@ inputs_nonspatial = torch.randn(batch_size, input_channels_nonspatial)
 model = AtariNetNeuralNetwork(
     input_channels_screen, input_channels_minimap, input_channels_nonspatial,
     height, width)
-logits = model((inputs_screen, inputs_minimap, inputs_nonspatial))
-print(logits.shape)
-print(logits)
+function_id, arguments = model((inputs_screen, inputs_minimap, inputs_nonspatial))
+
+print("Function Id: ", np.argmax(function_id.detach().numpy()))
+for arg in arguments:
+    str_ = arg + " "
+    for dim in arguments[arg]:
+        value = np.argmax(arguments[arg][dim].detach().numpy())
+        str_ += str(value) + ", "
+    print(str_)
