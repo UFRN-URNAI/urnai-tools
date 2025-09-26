@@ -1,10 +1,9 @@
-import numpy as np
 import torch
 
 from urnai.sc2.models.atarinet_neural_network import AtariNetNeuralNetwork
 
-
-device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"
+device = (torch.accelerator.current_accelerator().type 
+          if torch.accelerator.is_available() else "cpu")
 print(f"Using {device} device")
 
 """ Uses DeepmindState
@@ -33,7 +32,7 @@ input_channels_screen = 19
 input_channels_minimap = 9
 input_channels_nonspatial = 11
 
-batch_size = 2
+batch_size = 1
 height, width = 64, 64
 
 inputs_screen = torch.randn(batch_size, input_channels_screen, height, width)
@@ -46,3 +45,4 @@ model = AtariNetNeuralNetwork(
     height, width)
 logits = model((inputs_screen, inputs_minimap, inputs_nonspatial))
 print(logits.shape)
+print(logits)

@@ -1,8 +1,7 @@
 import torch
 import torch.nn.functional as F
-
+from pysc2.lib import actions
 from torch import nn
-
 
 class AtariNetNeuralNetwork(nn.Module):
     def __init__(self,
@@ -60,7 +59,22 @@ class AtariNetNeuralNetwork(nn.Module):
 
             combined_dim = s.shape[1] + m.shape[1] + n.shape[1]
 
-        self.combined_dense = nn.Linear(combined_dim, 256)
+        out_combined_dense = 256 # TODO: remove later
+        self.combined_dense = nn.Linear(combined_dim, out_combined_dense)
+
+        self.function_identifier = nn.Linear(
+            in_features=out_combined_dense,
+            out_features=len(actions.FUNCTION_TYPES),
+        )
+
+        self.policy_arg = {}
+        for action_type in actions.TYPES:
+            self.policy_arg[action_type.name] = {}
+            for i, action_size in enumerate(action_type.sizes):
+                self.policy_arg[action_type.name][i] = nn.Linear(
+                    in_features=out_combined_dense,
+                    out_features=action_size,
+                )
 
     def forward(self, x):
         inputs_screen, inputs_minimap, inputs_nonspatial = x
@@ -72,7 +86,12 @@ class AtariNetNeuralNetwork(nn.Module):
         combined = torch.cat([nonspatial, screen, minimap], dim=1)
         combined = F.relu(self.combined_dense(combined))
 
-        return combined
+        func_id = self.function_identifier(combined)
+        func_id = F.softmax(func_id, dim=-1)
+
+        # WIP
+
+        return func_id
 
     def _forward_screen(self, inputs_screen):
         screen = F.relu(self.screen_conv1(inputs_screen))
