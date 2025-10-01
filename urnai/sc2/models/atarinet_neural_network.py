@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-from pysc2.lib import actions
 from torch import nn
 
 
@@ -9,8 +8,8 @@ class AtariNetNeuralNetwork(nn.Module):
                  input_channels_screen,
                  input_channels_minimap,
                  input_channels_nonspatial,
-                 height,
-                 width):
+                 height, width,
+                 action_space_info):
         super().__init__()
         """
         Atari-net Neural Network as described in
@@ -60,12 +59,12 @@ class AtariNetNeuralNetwork(nn.Module):
 
             combined_dim = s.shape[1] + m.shape[1] + n.shape[1]
 
-        out_combined_dense = 256 # TODO: remove later
+        out_combined_dense = 256
         self.combined_dense = nn.Linear(combined_dim, out_combined_dense)
 
         self.function_identifier = nn.Linear(
             in_features=out_combined_dense,
-            out_features=len(actions.FUNCTION_TYPES),
+            out_features=len(action_space_info["functions"]),
         )
 
         def _fix_map_actions_range(action_type): # TODO: remove later
@@ -74,7 +73,7 @@ class AtariNetNeuralNetwork(nn.Module):
             return action_type.sizes
 
         self.function_arg = {}
-        for action_type in actions.TYPES:
+        for action_type in action_space_info["types"]:
             self.function_arg[action_type.name] = {}
 
             sizes = _fix_map_actions_range(action_type)
@@ -107,7 +106,8 @@ class AtariNetNeuralNetwork(nn.Module):
                 arg_value = F.softmax(arg_value, dim=-1)
                 argument_values[arg_name][dim_index] = arg_value
 
-        return func_id, argument_values
+        # TODO: return argument values
+        return func_id
 
     def _forward_screen(self, inputs_screen):
         screen = F.relu(self.screen_conv1(inputs_screen))

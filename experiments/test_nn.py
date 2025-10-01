@@ -1,55 +1,79 @@
+import os
+import sys
+
 import numpy as np
 import torch
+from absl import app
+from pysc2.env import sc2_env
 
-from urnai.sc2.models.atarinet_neural_network import AtariNetNeuralNetwork
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-device = (torch.accelerator.current_accelerator().type 
-          if torch.accelerator.is_available() else "cpu")
-print(f"Using {device} device")
-
-""" Uses DeepmindState
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor
-from urnai.sc2.states.deepmind_state import DeepmindState
-
-state = DeepmindState()
-obs = np.load("saves/logs/example_state.npz")
-input_to_nn = state.update(obs)
-for a in input_to_nn:
-    print(a, input_to_nn[a].shape)
-
-input_channels_screen = input_to_nn["screen"].shape[0]
-input_channels_minimap = input_to_nn["minimap"].shape[0]
-input_channels_nonspatial = input_to_nn["non_spatial"].shape[0]
-
-inputs_screen = (torch.from_numpy(input_to_nn["screen"])).unsqueeze(0)
-inputs_minimap = (torch.from_numpy(input_to_nn["minimap"])).unsqueeze(0)
-inputs_nonspatial = (torch.from_numpy(input_to_nn["non_spatial"])).unsqueeze(0)
-
-"""
-
-input_channels_screen = 19
-input_channels_minimap = 9
-input_channels_nonspatial = 11
-
-batch_size = 1
-height, width = 64, 64
-
-inputs_screen = torch.randn(batch_size, input_channels_screen, height, width)
-inputs_minimap = torch.randn(batch_size, input_channels_minimap, height, width)
-inputs_nonspatial = torch.randn(batch_size, input_channels_nonspatial)
+from urnai.sc2.actions.collectables import CollectablesActionSpace
+from urnai.sc2.environments.sc2environment import SC2Env
+from urnai.sc2.models.atarinet_model import AtariNetModel
+from urnai.sc2.rewards.collectables import CollectablesReward
 
 
-model = AtariNetNeuralNetwork(
-    input_channels_screen, input_channels_minimap, input_channels_nonspatial,
-    height, width)
-function_id, arguments = model((inputs_screen, inputs_minimap, inputs_nonspatial))
+def make_env():
 
-print("Function Id: ", np.argmax(function_id.detach().numpy()))
-for arg in arguments:
-    str_ = arg + " "
-    for dim in arguments[arg]:
-        value = np.argmax(arguments[arg][dim].detach().numpy())
-        str_ += str(value) + ", "
-    print(str_)
+    class QuickEnv:
+        def __init__(self):
+            players = [sc2_env.Agent(sc2_env.Race.terran)]
+            self._env = SC2Env(map_name='CollectMineralShards', visualize=False, 
+                step_mul=16, players=players)
+
+            self._state = ...#DeepMindState()
+            self._action_space = CollectablesActionSpace()
+            self._reward = CollectablesReward()
+
+            self._obs = self._env.reset()
+        
+        def step(self, action):
+            action = self._action_space.get_action(action, self._obs)
+
+            obs, reward, terminated, truncated = self._env.step(action)
+
+            self._obs = obs
+            obs = self._state.update(self._obs)
+            reward = self._reward.get(self._obs, reward, terminated, truncated)
+            return obs, reward, terminated or truncated
+
+    env = QuickEnv()
+    
+    return env
+
+def main(_):
+    input_channels_screen = 19
+    input_channels_minimap = 9
+    input_channels_nonspatial = 11
+
+    height, width = 64, 64
+
+    inputs_screen = np.array(torch.randn(input_channels_screen, height, width))
+    inputs_minimap = np.array(torch.randn(input_channels_minimap, height, width))
+    inputs_nonspatial = np.array(torch.randn(input_channels_nonspatial))
+
+    state = {
+        "screen" : inputs_screen,
+        "minimap" : inputs_minimap,
+        "non_spatial" : inputs_nonspatial
+    }
+
+    model = AtariNetModel(map_name='CollectMineralShards')
+    env = make_env()
+    
+    for _ in range(100):
+        function_id, args = model.predict(state)
+        action = function_id #TODO: Make ActionSpace receive action arguments
+
+        next_state, reward, done = env.step(action)
+
+        model.learn(state, action, reward, next_state, done)
+
+        print(reward)
+
+        if done:
+            break
+
+if __name__ == '__main__':
+    app.run(main)
