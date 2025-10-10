@@ -12,6 +12,9 @@ from urnai.sc2.models.atarinet_neural_network import AtariNetNeuralNetwork
 Transition = namedtuple('Transition',
             ('state', 'action', 'reward', 'next_state'))
 
+DeepmindState = namedtuple('DeepmindState',
+            ('screen', 'minimap', 'nonspatial'))
+
 class ReplayMemory:
 
     def __init__(self, capacity):
@@ -28,8 +31,18 @@ class ReplayMemory:
         return len(self.memory)
 
 class AtariNetModel(ModelBase):
-    def __init__(self, map_name):
+    def __init__(self,
+                 map_name,
+                 batch_size = 10,
+                 gamma = 0.99,
+                 tau = 0.005,
+                 learning_rate = 3e-4):
         super().__init__()
+
+        self.batch_size = batch_size
+        self.gamma = gamma
+        self.tau = tau
+        self.learning_rate = learning_rate
 
         self.action_spec = SC2Env(map_name=map_name).env_instance.action_spec()[0]
 
@@ -56,20 +69,17 @@ class AtariNetModel(ModelBase):
 
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.batch_size = 128
-        self.gamma = 0.99
-        self.tau = 0.005
-        self.learning_rate = 3e-4
-
         self.optimizer = torch.optim.AdamW(
             self.policy_net.parameters(), lr=self.learning_rate, amsgrad=True)
 
-        self.replay_buffer = ReplayMemory(10)
+        self.replay_buffer = ReplayMemory(self.batch_size * 2)
+
+        self.total_loss = 0 #TODO: formalize
 
     def learn(self, state, action, reward, next_state, done) -> None:
         self.replay_buffer.push(state, action, reward, next_state)
 
-        if self.replay_buffer.size() >= self.batch_size:
+        if len(self.replay_buffer) >= self.batch_size:
             self.optimize_model()
 
         self.soft_update()
@@ -95,10 +105,10 @@ class AtariNetModel(ModelBase):
         return function_id, arguments
     
     def optimize_model(self):
-        #Sourced from: 
+        #Original from: 
         #https://docs.pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
 
-        transitions = self.replay_buffer.sample(self.batch_size)
+        transitions : list[Transition] = self.replay_buffer.sample(self.batch_size)
 
         batch = Transition(*zip(*transitions))
 
@@ -106,27 +116,31 @@ class AtariNetModel(ModelBase):
             tuple(map(lambda s: s is not None, batch.next_state)),
             device=self.device, dtype=torch.bool
         )
-        non_final_next_states = torch.cat(
+
+        state_batch = AtariNetModel.to_DeepmindState(batch.state)
+        action_batch = torch.tensor(batch.action).unsqueeze(-1)
+        reward_batch = torch.tensor(batch.reward)
+
+        non_final_next_states = AtariNetModel.to_DeepmindState(
             [s for s in batch.next_state if s is not None]
         )
-        state_batch = torch.cat(batch.state)
-        action_batch = torch.cat(batch.action)
-        reward_batch = torch.cat(batch.reward)
 
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
 
         next_state_values = torch.zeros(self.batch_size, device=self.device)
         with torch.no_grad():
-            next_state_values[non_final_mask] = self.target_net(
-                                            non_final_next_states).max(1).values
+            values = self.target_net(non_final_next_states).max(1).values
+            next_state_values[non_final_mask] = values
 
-        expected_state_action_values = (next_state_values * self.gamma) + reward_batch
+        expected_state_action_values = next_state_values * self.gamma + reward_batch
 
         criterion = nn.SmoothL1Loss()
         loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
         self.optimizer.zero_grad()
         loss.backward()
+
+        self.total_loss += loss.item()
 
         torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
         self.optimizer.step()
@@ -144,9 +158,11 @@ class AtariNetModel(ModelBase):
         def to_input(state):
             return (torch.from_numpy(state)).unsqueeze(0)
 
-        inputs_screen = to_input(state["screen"])
-        inputs_minimap = to_input(state["minimap"])
-        inputs_nonspatial = to_input(state["non_spatial"])
+        inputs_screen = to_input(state[0])
+        inputs_minimap = to_input(state[1])
+        inputs_nonspatial = to_input(state[2])
 
         return inputs_screen, inputs_minimap, inputs_nonspatial
 
+    def to_DeepmindState(batch):
+        return DeepmindState(*[torch.tensor(np.array(l)) for l in zip(*batch)])
