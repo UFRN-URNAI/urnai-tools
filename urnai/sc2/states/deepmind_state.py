@@ -11,8 +11,10 @@ from urnai.states.state_base import StateBase
 class DeepmindState(StateBase):
     """State processor used by DeepMind for StarCraft II observations."""
 
-    def __init__(self, categorical_conv_channels: int = 8):
+    def __init__(self, categorical_conv_channels: int = 8, 
+                 normalize_data: bool = False):
         self.categorical_out_conv_channels = categorical_conv_channels
+        self.normalize_data = normalize_data
         self.reset()
 
     def reset(self):
@@ -49,6 +51,43 @@ class DeepmindState(StateBase):
         ]
         return self._state
 
+    def process_screen(self, obs):
+        """Process screen features using the generic spatial processing method."""
+        return self._process_spatial_features(
+            obs["feature_screen"], 
+            features.SCREEN_FEATURES
+        )
+
+    def process_minimap(self, obs):
+        """Process minimap features using the generic spatial processing method."""
+        return self._process_spatial_features(
+            obs["feature_minimap"], 
+            features.MINIMAP_FEATURES
+        )
+    
+    def process_non_spatial(self, obs: dict[str, Any]) -> np.ndarray:
+        player = obs["player"]
+        player_processed = np.log1p(player.astype(np.float32))
+        return player_processed
+
+    def _process_spatial_features(
+        self,
+        spatial_data: np.ndarray,
+        feature_specs: list
+    ) -> np.ndarray:
+        categorical_items, numerical_items = self._separate_raw_channels_by_type(
+            spatial_data, feature_specs
+        )
+        
+        processed_categorical = self._process_categorical_channels(categorical_items)
+        
+        processed_numerical = self._process_numerical_channels(numerical_items)
+
+        spatial_shape = (spatial_data.shape[1], spatial_data.shape[2])
+        return self._combine_all_channels(
+            processed_categorical, processed_numerical, spatial_shape
+        )
+
     def _separate_raw_channels_by_type(
         self,
         spatial_data: np.ndarray,
@@ -82,16 +121,6 @@ class DeepmindState(StateBase):
                 
         return categorical_items, numerical_items
     
-    def _one_hot_encode_channel(
-        self,
-        channel: np.ndarray,
-        num_classes: int
-    ) -> np.ndarray:
-        channel_int = channel.astype(np.int32)
-        one_hot = np.eye(num_classes, dtype=np.float32)[channel_int]
-        one_hot = np.transpose(one_hot, (2, 0, 1))
-        return one_hot
-    
     def _process_categorical_channels(
         self,
         categorical_items: list[tuple[np.ndarray, features.Feature]]
@@ -114,7 +143,7 @@ class DeepmindState(StateBase):
             self.categorical_out_conv_channels, 
             cat_combined
         )
-    
+
     def _process_numerical_channels(
         self,
         numerical_items: list[tuple[np.ndarray, features.Feature]]
@@ -130,7 +159,7 @@ class DeepmindState(StateBase):
             processed_channels.append(processed_channel)
 
         return np.concatenate(processed_channels, axis=0)
-    
+
     def _combine_all_channels(
         self,
         processed_categorical: np.ndarray,
@@ -152,37 +181,15 @@ class DeepmindState(StateBase):
             height, width = spatial_shape
             return np.zeros((0, height, width), dtype=np.float32)
 
-    def _process_spatial_features(
+    def _one_hot_encode_channel(
         self,
-        spatial_data: np.ndarray,
-        feature_specs: list
+        channel: np.ndarray,
+        num_classes: int
     ) -> np.ndarray:
-        categorical_items, numerical_items = self._separate_raw_channels_by_type(
-            spatial_data, feature_specs
-        )
-        
-        processed_categorical = self._process_categorical_channels(categorical_items)
-        
-        processed_numerical = self._process_numerical_channels(numerical_items)
-
-        spatial_shape = (spatial_data.shape[1], spatial_data.shape[2])
-        return self._combine_all_channels(
-            processed_categorical, processed_numerical, spatial_shape
-        )
-
-    def process_screen(self, obs):
-        """Process screen features using the generic spatial processing method."""
-        return self._process_spatial_features(
-            obs["feature_screen"], 
-            features.SCREEN_FEATURES
-        )
-
-    def process_minimap(self, obs):
-        """Process minimap features using the generic spatial processing method."""
-        return self._process_spatial_features(
-            obs["feature_minimap"], 
-            features.MINIMAP_FEATURES
-        )
+        channel_int = channel.astype(np.int32)
+        one_hot = np.eye(num_classes, dtype=np.float32)[channel_int]
+        one_hot = np.transpose(one_hot, (2, 0, 1))
+        return one_hot
 
     def conv1x1(
         self,
@@ -208,8 +215,3 @@ class DeepmindState(StateBase):
 
         conv = self._conv_cache[key]
         return conv
-
-    def process_non_spatial(self, obs: dict[str, Any]) -> np.ndarray:
-        player = obs["player"]
-        player_processed = np.log1p(player.astype(np.float32))
-        return player_processed
