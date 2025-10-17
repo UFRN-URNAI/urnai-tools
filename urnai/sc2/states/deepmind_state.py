@@ -11,7 +11,7 @@ from urnai.states.state_base import StateBase
 class DeepmindState(StateBase):
     """State processor used by DeepMind for StarCraft II observations."""
 
-    def __init__(self, categorical_conv_channels: int = 8, 
+    def __init__(self, categorical_conv_channels: int = 1, 
                  normalize_data: bool = False):
         self.categorical_out_conv_channels = categorical_conv_channels
         self.normalize_data = normalize_data
