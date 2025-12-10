@@ -1,5 +1,7 @@
+import os
 import random
 from collections import deque, namedtuple
+from typing import Tuple
 
 import numpy as np
 import torch
@@ -8,6 +10,7 @@ from torch import nn
 from urnai.models.model_base import ModelBase
 from urnai.sc2.environments.sc2environment import SC2Env
 from urnai.sc2.models.atarinet_neural_network import AtariNetNeuralNetwork
+from urnai.sc2.models.atarinet_neural_network_simple import AtariNetNeuralNetworkSimple
 
 Transition = namedtuple('Transition',
             ('state', 'action', 'reward', 'next_state'))
@@ -33,33 +36,46 @@ class ReplayMemory:
 class AtariNetModel(ModelBase):
     def __init__(self,
                  map_name,
-                 batch_size = 10,
+                 replay_buffer_size = 3000//4,
+                 batch_size = 64,
                  gamma = 0.99,
                  tau = 0.005,
-                 learning_rate = 3e-4):
+                 learning_rate = 3e-4,
+                 epsilon = 0.5,
+                 n_frame_stack = 4):
         super().__init__()
 
+        self.frame_stack = [deque(maxlen=n_frame_stack) for _ in range(3)]
+        self.n_frame_stack = n_frame_stack
+
         self.batch_size = batch_size
+        self.replay_buffer_size = replay_buffer_size
         self.gamma = gamma
         self.tau = tau
         self.learning_rate = learning_rate
+        self.epsilon = epsilon
+        self.epsilon_decay_value = 0.999
+        self.epsilon_min = min(0.01, self.epsilon)
 
-        self.action_spec = SC2Env(map_name=map_name).env_instance.action_spec()[0]
+        self.training = True
 
-        available_actions = ["no_op", "Move_screen"]
-        action_space_info = {"types" : self.action_spec.types,
-                              "functions" : available_actions}
+        #self.action_spec = SC2Env(map_name=map_name).env_instance.action_spec()[0]
+
+        self.available_actions = [i for i in range(22*16)] #TODO: link this to actionspace
+        action_space_info = {"types" : [],
+                              "functions" : self.available_actions}
 
         self.device = (torch.accelerator.current_accelerator().type 
             if torch.accelerator.is_available() else "cpu")
-        print(f"Using {self.device} device")
+        print(f"\nUsing {self.device} device\n")
 
         #TODO: remove magic numbers (they must be sourced from the state)
         def atarinet():
+            n = self.n_frame_stack
             return AtariNetNeuralNetwork(
-                input_channels_screen = 19,
-                input_channels_minimap = 9,
-                input_channels_nonspatial = 11,
+                input_channels_screen = n * 12, #12
+                input_channels_minimap = n * 2, #2
+                input_channels_nonspatial = n * 11, #11
                 height = 64, width = 64,
                 action_space_info = action_space_info
             ).to(self.device)
@@ -72,7 +88,7 @@ class AtariNetModel(ModelBase):
         self.optimizer = torch.optim.AdamW(
             self.policy_net.parameters(), lr=self.learning_rate, amsgrad=True)
 
-        self.replay_buffer = ReplayMemory(self.batch_size * 2)
+        self.replay_buffer = ReplayMemory(self.replay_buffer_size)
 
         self.total_loss = 0 #TODO: formalize
 
@@ -84,16 +100,14 @@ class AtariNetModel(ModelBase):
 
         self.soft_update()
 
-    def predict(self, state) -> int: #TODO: change the type
+    def predict(self, state) -> Tuple[int, np.ndarray]:
 
-        inputs_screen, inputs_minimap, inputs_nonspatial = self.process_input(state)
-
-        function_id_softmax = self.policy_net(
-            (inputs_screen, inputs_minimap, inputs_nonspatial)
-        )
-
-        function_id = np.argmax(function_id_softmax.detach().numpy())
-
+        if self.training and random.uniform(0, 1) < self.epsilon:
+            function_id = random.choice(self.available_actions)
+        else:
+            with torch.no_grad():
+                output = self.policy_net(self.to_DeepmindState([state]))
+                function_id = output.argmax().item()
         arguments = []
         """
         for arg in self.action_spec.types:
@@ -117,11 +131,11 @@ class AtariNetModel(ModelBase):
             device=self.device, dtype=torch.bool
         )
 
-        state_batch = AtariNetModel.to_DeepmindState(batch.state)
-        action_batch = torch.tensor(batch.action).unsqueeze(-1)
-        reward_batch = torch.tensor(batch.reward)
+        state_batch = self.to_DeepmindState(batch.state)
+        action_batch = torch.tensor(batch.action, device=self.device).unsqueeze(-1)
+        reward_batch = torch.tensor(batch.reward, device=self.device)
 
-        non_final_next_states = AtariNetModel.to_DeepmindState(
+        non_final_next_states = self.to_DeepmindState(
             [s for s in batch.next_state if s is not None]
         )
 
@@ -137,13 +151,14 @@ class AtariNetModel(ModelBase):
         criterion = nn.SmoothL1Loss()
         loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
+        self.total_loss += loss.item()
+
         self.optimizer.zero_grad()
         loss.backward()
 
-        self.total_loss += loss.item()
-
-        torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 100)
+        torch.nn.utils.clip_grad_value_(self.policy_net.parameters(), 1)
         self.optimizer.step()
+        del loss, state_action_values, expected_state_action_values, next_state_values
 
     def soft_update(self):
         target_net_state_dict = self.target_net.state_dict()
@@ -153,16 +168,80 @@ class AtariNetModel(ModelBase):
                                     + target_net_state_dict[key]*(1-self.tau))
         self.target_net.load_state_dict(target_net_state_dict)
 
-    def process_input(self, state):
+    def to_DeepmindState(self, batch):
+        """
+            Converts a batch of states from ReplayMemory into the DeepmindState format.
 
-        def to_input(state):
-            return (torch.from_numpy(state)).unsqueeze(0)
+            Args:
+                batch : list of states. Each state is a list with screen,
+                    minimap and nonspatial observations respectively.
+        """
+        screens, minimaps, nonspatials = zip(*batch)
 
-        inputs_screen = to_input(state[0])
-        inputs_minimap = to_input(state[1])
-        inputs_nonspatial = to_input(state[2])
+        # Flattening Frames and Channels into a single dimension
+        n = self.n_frame_stack
+        screens = [screen.reshape(n * screen.shape[1], 64, 64) for screen in screens]
+        minimaps = [minimap.reshape(n * minimap.shape[1], 64, 64) for minimap in minimaps]
+        nonspatials = [nonspatial.reshape(n * nonspatial.shape[1]) for nonspatial in nonspatials]
 
-        return inputs_screen, inputs_minimap, inputs_nonspatial
+        return DeepmindState(
+            torch.as_tensor(np.array(screens), device=self.device, dtype=torch.float32),
+            torch.as_tensor(np.array(minimaps), device=self.device, dtype=torch.float32),
+            torch.as_tensor(np.array(nonspatials), device=self.device, dtype=torch.float32),
+        )
+    
+    def epsilon_decay(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay_value)
 
-    def to_DeepmindState(batch):
-        return DeepmindState(*[torch.tensor(np.array(l)) for l in zip(*batch)])
+    def save(self, path):
+        self.policy_net = self.policy_net.to(torch.bfloat16)
+        self.target_net = self.target_net.to(torch.bfloat16)
+
+        torch.save({
+            "policy_net" : self.policy_net.state_dict(),
+            "target_net" : self.target_net.state_dict(),
+            #"optmizer" : self.optimizer.state_dict(),
+            "epsilon" : self.epsilon,
+            #"replay_buffer" : self.replay_buffer
+        }, path)
+
+        self.policy_net = self.policy_net.to(torch.float)
+        self.target_net = self.target_net.to(torch.float)
+
+    def load(self, path):
+        data = torch.load(path, weights_only=False)
+        self.policy_net.load_state_dict(data['policy_net'])
+        self.target_net.load_state_dict(data['target_net'])
+
+        self.policy_net = self.policy_net.to(torch.float)
+        self.target_net = self.target_net.to(torch.float)
+
+        #self.optimizer.load_state_dict(data['optmizer'])
+        self.epsilon = data['epsilon']
+        #self.replay_buffer = data['replay_buffer']
+
+        self.optimizer = torch.optim.AdamW(
+            self.policy_net.parameters(), lr=self.learning_rate, amsgrad=True)
+
+    def new_ep(self):
+        self.epsilon_decay()
+        self.total_loss = 0
+        self.clear_frame_stack()
+
+    def make_frame_stack(self, frame):
+
+        def make_frame_stack_single_layer(frame, layer_idx):
+            if len(self.frame_stack[layer_idx]) == 0:
+                for _ in range(self.n_frame_stack):
+                    self.frame_stack[layer_idx].append(frame)
+
+            self.frame_stack[layer_idx].append(frame)
+        
+            return np.stack(self.frame_stack[layer_idx], axis=0)
+
+        return [make_frame_stack_single_layer(frame[layer_idx], layer_idx)
+                 for layer_idx in range(len(frame))]
+    
+    def clear_frame_stack(self):
+        for layer_idx in range(3):
+            self.frame_stack[layer_idx].clear()

@@ -55,7 +55,7 @@ class AtariNetNeuralNetwork(nn.Module):
 
             s = self._forward_screen(dummy_screen)
             m = self._forward_minimap(dummy_minimap)
-            n = torch.tanh(self.nonspatial_dense(dummy_nonspatial))
+            n = self._forward_nonspatial(dummy_nonspatial)
 
             combined_dim = s.shape[1] + m.shape[1] + n.shape[1]
 
@@ -66,6 +66,8 @@ class AtariNetNeuralNetwork(nn.Module):
             in_features=out_combined_dense,
             out_features=len(action_space_info["functions"]),
         )
+
+        # For now, ignore anything below here
 
         def _fix_map_actions_range(action_type): # TODO: remove later
             if action_type.name in ['screen', 'minimap', 'screen2']:
@@ -95,18 +97,18 @@ class AtariNetNeuralNetwork(nn.Module):
         combined = F.relu(self.combined_dense(combined))
 
         func_id = self.function_identifier(combined)
-        func_id = F.softmax(func_id, dim=-1)
 
+        # TODO: return argument values
+        """
         argument_values = {}
         for arg_name in self.function_arg:
             argument_values[arg_name] = {}
 
             for dim_index in self.function_arg[arg_name]:
                 arg_value = self.function_arg[arg_name][dim_index](combined)
-                arg_value = F.softmax(arg_value, dim=-1)
                 argument_values[arg_name][dim_index] = arg_value
+        """
 
-        # TODO: return argument values
         return func_id
 
     def _forward_screen(self, inputs_screen):
