@@ -2,7 +2,7 @@ import io
 import os
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 import numpy as np
 import torch
@@ -128,12 +128,20 @@ class TestAtariNetModelWithPatches(unittest.TestCase):
 
     def test_predict_exploration_and_greedy(self):
         # GIVEN
+        self.model.training = True
+        self.model.epsilon = 1.0
+        # WHEN
+        action, args = self.model.predict(make_dummy_state())
+        # THEN
+        self.assertIn(action, self.model.available_actions)
+        self.assertEqual(args, [])
+
+        # GIVEN
         self.model.training = False
 
         fake_out = torch.zeros(1, len(self.model.available_actions))
         fake_out[0, 5] = 1.0
-        self.model.policy_net = Mock()
-        self.model.policy_net.__call__.return_value = fake_out
+        self.model.policy_net = MagicMock(return_value=fake_out)
 
         # WHEN
         act2, args2 = self.model.predict(make_dummy_state())
@@ -158,13 +166,15 @@ class TestAtariNetModelWithPatches(unittest.TestCase):
         self.assertTrue(self.model.optimize_model.called)
         self.assertTrue(self.model.soft_update.called)
 
-    def test_load_restores_epsilon_and_recreates_optimizer(self):
+    @patch("urnai.sc2.models.atarinet_model.torch.load")
+    def test_load_restores_epsilon_and_recreates_optimizer(self, mock_torch_load):
         # GIVEN
         fake_state = {
             "policy_net": self.model.policy_net.state_dict(),
             "target_net": self.model.target_net.state_dict(),
             "epsilon": 0.321
         }
+        mock_torch_load.return_value = fake_state
 
         # WHEN
         tmpfile = tempfile.NamedTemporaryFile(delete=False)
