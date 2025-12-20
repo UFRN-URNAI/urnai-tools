@@ -1,5 +1,3 @@
-from statistics import mean
-
 from pysc2.env import sc2_env
 
 from urnai.actions.action_space_base import ActionSpaceBase
@@ -11,21 +9,21 @@ class CollectablesActionSpace(ActionSpaceBase):
 
     def __init__(self):
         self.noaction = [sc2_actions["no_op"].run()]
-        self.move_number = 0
-
-        self.hor_threshold = 2
-        self.ver_threshold = 2
-
-        self.moveleft = 0
-        self.moveright = 1
-        self.moveup = 2
-        self.movedown = 3
 
         self.excluded_actions = []
 
-        self.actions = [self.moveleft, self.moveright, self.moveup, self.movedown]
-        self.named_actions = ['move_left', 'move_right', 'move_up', 'move_down']
-        self.action_indices = range(len(self.actions))
+        min_x, max_x = 22, 43
+        min_y, max_y = 28, 43
+        num_x = max_x - min_x + 1  # 22
+        num_y = max_y - min_y + 1  # 16
+        total_actions = num_x * num_y
+
+        self.actions = list(range(total_actions))
+        self.named_actions = [
+            f"move_to_{min_x + (i % num_x)}_{min_y + (i // num_x)}"
+            for i in range(total_actions)
+        ]
+        self.action_indices = list(range(total_actions))
 
         self.pending_actions = []
 
@@ -33,14 +31,13 @@ class CollectablesActionSpace(ActionSpaceBase):
         return len(self.pending_actions) == 0
 
     def reset(self):
-        self.move_number = 0
         self.pending_actions = []
 
     def get_actions(self):
         return self.action_indices
 
     def get_excluded_actions(self, obs):
-        return []
+        return self.excluded_actions
 
     def get_action(self, action_idx, obs):
         action = None
@@ -54,81 +51,35 @@ class CollectablesActionSpace(ActionSpaceBase):
     def solve_action(self, action_idx, obs):
         if action_idx is not None:
             if action_idx is not self.noaction:
-                action = self.actions[action_idx]
-                if action == self.moveleft:
-                    self.move_left(obs)
-                elif action == self.moveright:
-                    self.move_right(obs)
-                elif action == self.moveup:
-                    self.move_up(obs)
-                elif action == self.movedown:
-                    self.move_down(obs)
+                if action_idx not in self.actions:
+                    raise ValueError(f"Invalid action index: {action_idx}. "+
+                                     f"Valid actions: {self.actions}")
+                army_x, army_y = self.calc_action_coordinates(action_idx)
+                self.move_x_y(obs, army_x, army_y)
         else:
             self.reset()
+    
+    def calc_action_coordinates(self, action_idx):
+        min_x, max_x = 22, 43
+        min_y, max_y = 28, 43
+        num_x = max_x - min_x + 1  # 22
+        num_y = max_y - min_y + 1  # 16
 
-    def move_left(self, obs):
+        if not (0 <= action_idx < num_x * num_y):
+            raise ValueError(f"action_idx {action_idx} out of range "+
+                             f"(0 to {num_x * num_y - 1})")
+
+        x = min_x + (action_idx % num_x)
+        y = min_y + (action_idx // num_x)
+        return x, y
+
+    def move_x_y(self, obs, x, y):
         army = scaux.select_army(obs, sc2_env.Race.terran)
-        xs = [unit.x for unit in army]
-        ys = [unit.y for unit in army]
-
-        new_army_x = int(mean(xs)) - self.hor_threshold
-        new_army_y = int(mean(ys))
 
         for unit in army:
             self.pending_actions.append(
                 sc2_actions["Move_pt"].run(
-                    'now', unit.tag,[new_army_x, new_army_y]))
-
-    def move_right(self, obs):
-        army = scaux.select_army(obs, sc2_env.Race.terran)
-        xs = [unit.x for unit in army]
-        ys = [unit.y for unit in army]
-
-        new_army_x = int(mean(xs)) + self.hor_threshold
-        new_army_y = int(mean(ys))
-
-        for unit in army:
-            self.pending_actions.append(
-                sc2_actions["Move_pt"].run(
-                    'now', unit.tag,[new_army_x, new_army_y]))
-
-    def move_down(self, obs):
-        army = scaux.select_army(obs, sc2_env.Race.terran)
-        xs = [unit.x for unit in army]
-        ys = [unit.y for unit in army]
-
-        new_army_x = int(mean(xs))
-        new_army_y = int(mean(ys)) + self.ver_threshold
-
-        for unit in army:
-            self.pending_actions.append(
-                sc2_actions["Move_pt"].run(
-                    'now', unit.tag,[new_army_x, new_army_y]))
-
-    def move_up(self, obs):
-        army = scaux.select_army(obs, sc2_env.Race.terran)
-        xs = [unit.x for unit in army]
-        ys = [unit.y for unit in army]
-
-        new_army_x = int(mean(xs))
-        new_army_y = int(mean(ys)) - self.ver_threshold
-
-        for unit in army:
-            self.pending_actions.append(
-                sc2_actions["Move_pt"].run(
-                    'now', unit.tag,[new_army_x, new_army_y]))
-
-    def get_action_name_str_by_int(self, action_int):
-        action_str = ''
-        for attrstr in dir(self):
-            attr = getattr(self, attrstr)
-            if action_int == attr:
-                action_str = attrstr
-
-        return action_str
-
-    def get_no_action(self):
-        return self.noaction
+                    'now', unit.tag,[x, y]))
 
     def get_named_actions(self):
         return self.named_actions
