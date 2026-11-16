@@ -9,7 +9,7 @@ setup(
     install_requires=[
         'pysc2==4.0.0',
         'pytorch==2.0.0',
-        'stable-baselines3==2.0.0'
+        'stable-baselines3==2.0.0',
         'wandb==0.15.8',
     ],
     entry_points={

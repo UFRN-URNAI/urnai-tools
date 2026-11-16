@@ -15,5 +15,7 @@ dependencies:
   - pip:
       - pysc2==4.0.0
       - sb3-contrib==2.0.0
+      # pysc2 4.0.0 (s2clientprotocol) generated code breaks on protobuf >= 4
+      - protobuf==3.20.3
 platforms:
   - linux-64
