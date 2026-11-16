@@ -5,13 +5,13 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
+import wandb
 from absl import app
 from gymnasium import spaces
 from pysc2.env import sc2_env
 from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 
-import wandb
 from urnai.environments.stablebaselines3.custom_env_collectables import (
     CustomEnvCollectables,
 )

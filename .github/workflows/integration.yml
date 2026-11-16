@@ -22,4 +22,4 @@ jobs:
       - run: lint-yaml
       - run: lint-shell-script
       - run: lint-dockerfile
-      - run: lint-python urnai
+      - run: lint-python .
