@@ -12,9 +12,6 @@ setup(
         'stable-baselines3==2.0.0',
         'wandb==0.15.8',
     ],
-    entry_points={
-        'console_scripts': ['urnai=urnai.urnai_cmd:main'],
-    },
     version='2.0-prev',
     description='A modular Deep Reinforcement Learning toolkit that'
                 'supports multiple environments,'
