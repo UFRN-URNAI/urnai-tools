@@ -99,7 +99,7 @@ tasks:
         CLI_ARGS: Python script path.
 
       Examples:
-        - task run -- ./experiments/solves/collectables_check_env.py
+        - task run -- ./experiments/collectables_check_env.py
     cmds:
       - |
         ${CMD_DOCKER_RUN} \
@@ -116,7 +116,7 @@ tasks:
         CLI_ARGS: Python script path.
 
       Examples:
-        - task run-ui -- ./experiments/solves/collectables_check_env.py
+        - task run-ui -- ./experiments/collectables_check_env.py
     cmds:
       - |
         ${CMD_DOCKER_RUN} \

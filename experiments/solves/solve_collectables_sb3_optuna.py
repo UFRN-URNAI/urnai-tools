@@ -16,7 +16,7 @@ def objective(trial):
         "policy":"MlpPolicy",
         "model_save_name": "PPOMlp"}
     
-    learning_rate = trial.suggest_loguniform("learning_rate", 1e-5, 1e-3)
+    learning_rate = trial.suggest_float("learning_rate", 1e-5, 1e-3, log=True)
     n_steps = trial.suggest_int("n_steps", 128, 2048, step=128)
     gamma = trial.suggest_float("gamma", 0.9, 0.9999, step=0.0001)
     gae_lambda = trial.suggest_float("gae_lambda", 0.8, 1.0, step=0.01)
@@ -33,6 +33,7 @@ def objective(trial):
     mean_reward, _ = trainer.test_model(episodes = 5, return_episode_rewards = False,
                                          wandb_log = False)
     trainer.train_env.close()
+    trainer.eval_env.close()
 
     return mean_reward
 

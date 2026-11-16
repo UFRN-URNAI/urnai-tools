@@ -12,6 +12,7 @@ dependencies:
   - coverage=7.2.7
   - tensorboard=2.19.0
   - numpy=1.26.4
+  - optuna=3.5.0
   - pip:
       - pysc2==4.0.0
       - sb3-contrib==2.0.0

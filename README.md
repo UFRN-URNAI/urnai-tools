@@ -18,7 +18,7 @@ learning experiments for a specific game and a specific RL algorithm.
 
 In these files we instantiate all base objects necessary to use URNAI to train a RL Agent. This is
 one of the most simple and intuitive ways of using URNAI, and we recommend that, after installation,
-new users take a look at our [solve files](./urnai/solves) to start their own experiments.
+new users take a look at our [solve files](./experiments/solves) to start their own experiments.
 
 ### Prerequisites
 
@@ -175,52 +175,23 @@ set "URNAI_LATEST_DEPS=1" && pip3 install git+https://github.com/UFRN-URNAI/URNA
 
 ### Running the examples
 
-From version 0.0.2+ you can use CSV or JSON files to run a batch of trainings:
+The solve files live in [experiments/solves](./experiments/solves) and run inside the project's
+Docker image through [Task](https://taskfile.dev):
 
 ```sh
-git clone https://github.com/UFRN-URNAI/URNAI-Tools 
-cd 'URNAI-Tools/urnai/solves'
-urnai train --train-file=solve_x.json
+task build
+task run -- ./experiments/solves/solve_collectables_sb3.py
 ```
 
-or
-
-```sh
-urnai train --train-file=solve_x.csv
-```
-
-The Alternative to using JSON files is to run one of our solve_x.py files in your Python
-interpreter. These files are used to instantiate and train an AI agent. There are a few files to
-choose from. To see the solve files for games and scenarios that we have already solved (achieved a
-reasonable level of success) check the [solves directory](./urnai/solves). To see the solve files
-that are currently being worked on, and that we haven't yet found a successful solving strategy,
-check out the [solves/experiments directory](./urnai/solves/experiments).
+Training runs are logged to [Weights & Biases](https://wandb.ai): copy `.env.example` to `.env`
+and set `WANDB_API_KEY`, or export `WANDB_MODE=offline` to keep the logs local. Use `task run-ui`
+instead of `task run` to watch the StarCraft II window.
 
 These Solve files are great learning tools to get in touch with URNAI's architecture because they
 instantiate every object that needs to exist in order for the training of an Agent to occur. They
 start from the very basic instantiation of an environment, to the more complex instantiation of a
 Learning Model, with its layers and hyperparameters. At the end, all of those instantiated objects
 are used by the Trainer class, responsible for implementing the Reinforcement Learning cycle.
-
-## Command line
-
-If you installed URNAI as a python package using pip, you can use it on the command line.
-
-The CLI is important to use the library as a quick tool to train agents. Its main purpose is to
-allow the user to launch trainings without the need to touch python code. In general, one may find
-very useful to create python scripts to import and configure URNAI. On the other hand, if the need
-to do mass training of multiple agents with several parameters arise, the command line interface is
-the way to go. Mainly because of the support of JSON and CSV files, and the commands available to
-convert these two types.
-
-There are also some commands to interact with the environments available in the library. To see a
-full documentation on how to use the command line, please
-go [here](https://github.com/UFRN-URNAI/urnai-tools/blob/master/urnai/runner/README.md). If you want
-a quick help, call URNAI on the CLI like this:
-
-```sh
-urnai -h
-```
 
 ## Building your own code
 
@@ -232,8 +203,7 @@ creating new classes that inherit from URNAI's, and then building from there, wi
 implementation of the necessary methods.
 
 Below we give a brief overview of some of URNAI modules, such as the Agent, the Model, and the
-Environment modules. Beyond that, you can take a look at a full overview of URNAI's
-architecture [here](./docs/diagrams/output/component/arch.png).
+Environment modules.
 
 ### Building a new agent for a supported environment
 
@@ -247,11 +217,11 @@ a state representation.
 To create new Action Wrappers, Reward Builders and State Builders you should check the following
 readmes:
 
-- [urnai.agents.actions](./urnai/agents/actions)
+- [urnai.actions](./urnai/actions)
 
-- [urnai.agents.rewards](./urnai/agents/rewards)
+- [urnai.rewards](./urnai/rewards)
 
-- [urnai.agents.states](./urnai/agents/states)
+- [urnai.states](./urnai/states)
 
 ### Building a new DRL model
 
@@ -260,37 +230,19 @@ the [urnai.models](./urnai/models) module.
 
 ### Integrating a new environment
 
-To integrate a new environment, you might want to check the readme in the [urnai.envs](./urnai/envs)
+To integrate a new environment, you might want to check the readme in the [urnai.environments](./urnai/environments)
 module.
 
 ## Built-in Persistence
 
-URNAI has a built-in persistance module, that saves the training progress of Reinforcement Learning
-Agents, saving both the internal Neural Network parameters aswell as the Python parameters used
-during training, guaranteeing that when you load the training it will execute as intended.
+The [SB3Trainer](./urnai/trainers/stablebaselines3_trainer.py) saves the Stable-Baselines3 model to
+`models_dir` after every training round (`<timestamp>.save`). To resume a training, call
+`trainer.load_most_recent_model(trainer.models_dir)` before training, or `trainer.load_model(path)`
+for a specific save.
 
-This persistante module is supported by our [Savable class](./urnai/base/savable.py), that serves as
-a base class for pretty much all classes in URNAI, since we want to save a "snapshot" of almost
-every class during training.
-
-Savable utilizes a Python package called [Pickle](https://docs.python.org/3/library/pickle.html),
-that serializes every Python attribute that can be serialized and then stores them in a file. Pickle
-is then able to later de-serialize these files and restore our classes and Objects to the state they
-were right when training was saved, allowing us to easily pause / resume trainings without any
-manual work.
-
-In summary, all you need to do to use the Built-in Persistance Module is to set "enable_save=True"
-when you initialize our [Trainer class](./urnai/trainers/trainer.py). The Trainer will then
-automatically save / load the training whenever its conditions are met (load when a training already
-exists, save at the ending, save every X episodes, etc).
-
-Another feature that needed to be implemented to allow more flexibility for end users was the **
-Pickle Black List**. This is basically an attribute of the Savable class that stores the names of
-all variables that we wish to ignore in the saving/loading process.
-
-So, for example, if you have created a new trainer class, or overriden URNAI's base trainer, you
-could change the self.pickle_black_list attribute to not save the total amount of trained episodes,
-so that every time you restart the training your agent will always train max_training_episodes .
+For saving plain Python objects, [PersistencePickle](./urnai/base/persistence_pickle.py) serializes
+an object's attributes with [Pickle](https://docs.python.org/3/library/pickle.html), skipping the
+names listed in `attr_block_list`.
 
 ## Roadmap
 
